@@ -160,6 +160,13 @@
     @include bp-down("lg") {
       grid-template-columns: 1fr;
     }
+
+    // Grid tracks must be allowed to shrink below their content's min-content,
+    // otherwise the chart SVG's intrinsic width blows the column out (and
+    // breaks its width measurement) on mobile.
+    > * {
+      min-width: 0;
+    }
   }
 
   &__h2 {

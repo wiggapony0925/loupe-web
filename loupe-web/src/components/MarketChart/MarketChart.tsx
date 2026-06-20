@@ -71,19 +71,29 @@ const RANGE_LABEL: Record<RangeKey, string> = {
   ALL: "All time",
 };
 const DAY = 86_400_000;
-const PALETTE = ["var(--accent-blue)", "var(--accent-purple, #8b5cf6)", "var(--accent-amber, #f59e0b)", "var(--accent-mint)"];
+const PALETTE = [
+  "var(--accent-blue)",
+  "var(--accent-purple, #8b5cf6)",
+  "var(--accent-amber, #f59e0b)",
+  "var(--accent-mint)",
+];
 const PAD = { top: 12, right: 46, bottom: 22 };
 
-/** Width of an element, tracked live via ResizeObserver. */
+/** Width of an element, measured on mount and tracked live via ResizeObserver. */
 function useElementWidth(ref: React.RefObject<HTMLElement | null>) {
   const [w, setW] = useState(640);
   useLayoutEffect(() => {
     const el = ref.current;
     if (!el) return;
-    const ro = new ResizeObserver((entries) => {
-      const cw = entries[0]?.contentRect.width;
+    // Seed synchronously from the real layout width so the first paint is
+    // correctly sized (don't wait for the async ResizeObserver, which can be
+    // slow/flaky and otherwise leaves the chart at the 640 default on mobile).
+    const measure = () => {
+      const cw = el.clientWidth;
       if (cw) setW(cw);
-    });
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
     ro.observe(el);
     return () => ro.disconnect();
   }, [ref]);
@@ -91,9 +101,13 @@ function useElementWidth(ref: React.RefObject<HTMLElement | null>) {
 }
 
 /** Catmull-Rom → cubic-bezier path for smooth, non-overshooting lines. */
-function buildLine(pts: ReadonlyArray<readonly [number, number]>, smooth: boolean): string {
+function buildLine(
+  pts: ReadonlyArray<readonly [number, number]>,
+  smooth: boolean,
+): string {
   if (pts.length === 0) return "";
-  if (pts.length < 3 || !smooth) return pts.map((p, i) => `${i ? "L" : "M"}${p[0]} ${p[1]}`).join(" ");
+  if (pts.length < 3 || !smooth)
+    return pts.map((p, i) => `${i ? "L" : "M"}${p[0]} ${p[1]}`).join(" ");
   const at = (i: number) => pts[Math.min(Math.max(i, 0), pts.length - 1)]!;
   let d = `M${at(0)[0]} ${at(0)[1]}`;
   for (let i = 0; i < pts.length - 1; i++) {
@@ -156,7 +170,8 @@ export function MarketChart({
   const norm = useMemo<ChartSeries[]>(
     () =>
       series.map((s) => {
-        const ok = s.points.length > 1 && s.points.every((p) => Number.isFinite(p.t));
+        const ok =
+          s.points.length > 1 && s.points.every((p) => Number.isFinite(p.t));
         const pts = ok
           ? [...s.points].sort((a, b) => a.t - b.t)
           : s.points.map((p, i) => ({ t: i * DAY, v: p.v }));
@@ -168,24 +183,29 @@ export function MarketChart({
   const fullSpanDays = useMemo(() => {
     let lo = Infinity;
     let hi = -Infinity;
-    for (const s of norm) for (const p of s.points) {
-      if (p.t < lo) lo = p.t;
-      if (p.t > hi) hi = p.t;
-    }
+    for (const s of norm)
+      for (const p of s.points) {
+        if (p.t < lo) lo = p.t;
+        if (p.t > hi) hi = p.t;
+      }
     return hi > lo ? (hi - lo) / DAY : 0;
   }, [norm]);
 
   const availableRanges = useMemo(() => {
     // Controlled: the host owns the range set + data; show pills verbatim.
     if (controlled) return ranges.length ? ranges : (["ALL"] as RangeKey[]);
-    const list = ranges.filter((r) => r === "ALL" || RANGE_DAYS[r] < fullSpanDays * 0.98);
+    const list = ranges.filter(
+      (r) => r === "ALL" || RANGE_DAYS[r] < fullSpanDays * 0.98,
+    );
     if (!list.includes("ALL")) list.push("ALL");
     return list.length ? list : (["ALL"] as RangeKey[]);
   }, [controlled, ranges, fullSpanDays]);
 
   const effectiveRange: RangeKey = controlled
     ? range
-    : (availableRanges.includes(range) ? range : availableRanges[availableRanges.length - 1]) ?? "ALL";
+    : ((availableRanges.includes(range)
+        ? range
+        : availableRanges[availableRanges.length - 1]) ?? "ALL");
 
   // Slice to range, compute domain + pixel geometry.
   const geo = useMemo(() => {
@@ -195,7 +215,10 @@ export function MarketChart({
     let tMax = -Infinity;
     for (const s of norm) for (const p of s.points) if (p.t > tMax) tMax = p.t;
     // Controlled mode: data is already the right window — never slice.
-    const cutoff = controlled || effectiveRange === "ALL" ? -Infinity : tMax - RANGE_DAYS[effectiveRange] * DAY;
+    const cutoff =
+      controlled || effectiveRange === "ALL"
+        ? -Infinity
+        : tMax - RANGE_DAYS[effectiveRange] * DAY;
 
     const sliced = norm.map((s) => {
       let pts = s.points.filter((p) => p.t >= cutoff);
@@ -207,12 +230,13 @@ export function MarketChart({
     let tHi = -Infinity;
     let vMin = Infinity;
     let vMax = -Infinity;
-    for (const s of sliced) for (const p of s.points) {
-      if (p.t < tMin) tMin = p.t;
-      if (p.t > tHi) tHi = p.t;
-      if (p.v < vMin) vMin = p.v;
-      if (p.v > vMax) vMax = p.v;
-    }
+    for (const s of sliced)
+      for (const p of s.points) {
+        if (p.t < tMin) tMin = p.t;
+        if (p.t > tHi) tHi = p.t;
+        if (p.v < vMin) vMin = p.v;
+        if (p.v > vMax) vMax = p.v;
+      }
     const vPad = (vMax - vMin || Math.abs(vMax) || 1) * 0.08;
     vMin -= vPad;
     vMax += vPad;
@@ -226,8 +250,16 @@ export function MarketChart({
       const coords = s.points.map((p) => [xOf(p.t), yOf(p.v)] as const);
       const line = buildLine(coords, smoothing);
       const last = coords[coords.length - 1] ?? [0, 0];
-      const area = line ? `${line} L${last[0]} ${PAD.top + innerH} L${coords[0]?.[0] ?? 0} ${PAD.top + innerH} Z` : "";
-      return { series: s, coords, line, area, color: s.color ?? PALETTE[i % PALETTE.length]! };
+      const area = line
+        ? `${line} L${last[0]} ${PAD.top + innerH} L${coords[0]?.[0] ?? 0} ${PAD.top + innerH} Z`
+        : "";
+      return {
+        series: s,
+        coords,
+        line,
+        area,
+        color: s.color ?? PALETTE[i % PALETTE.length]!,
+      };
     });
 
     return { built, innerW, innerH, vMin, vMax, tMin, tHi, xOf, yOf };
@@ -240,10 +272,19 @@ export function MarketChart({
     if (formatTime) return formatTime;
     const spanDays = (geo.tHi - geo.tMin) / DAY;
     if (spanDays > 730)
-      return (t: number) => new Date(t).toLocaleDateString(undefined, { year: "numeric" });
+      return (t: number) =>
+        new Date(t).toLocaleDateString(undefined, { year: "numeric" });
     if (spanDays > 75)
-      return (t: number) => new Date(t).toLocaleDateString(undefined, { month: "short", year: "2-digit" });
-    return (t: number) => new Date(t).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+      return (t: number) =>
+        new Date(t).toLocaleDateString(undefined, {
+          month: "short",
+          year: "2-digit",
+        });
+    return (t: number) =>
+      new Date(t).toLocaleDateString(undefined, {
+        month: "short",
+        day: "numeric",
+      });
   }, [formatTime, geo.tHi, geo.tMin]);
 
   const primary = geo.built[0];
@@ -254,7 +295,12 @@ export function MarketChart({
   const positive = lastV >= baseV;
 
   // Dynamic accent (single series, color-by-change) → drives line + gradient.
-  const accent = isSingle && colorByChange ? (positive ? "var(--up)" : "var(--down)") : primary?.color ?? PALETTE[0]!;
+  const accent =
+    isSingle && colorByChange
+      ? positive
+        ? "var(--up)"
+        : "var(--down)"
+      : (primary?.color ?? PALETTE[0]!);
 
   // Re-trigger the draw-in animation when range changes.
   const drawKey = `${effectiveRange}-${Math.round(width)}`;
@@ -288,12 +334,16 @@ export function MarketChart({
     setActive(best);
   }
 
-  const crossX = active !== null && primary ? primary.coords[active]?.[0] ?? 0 : 0;
+  const crossX =
+    active !== null && primary ? (primary.coords[active]?.[0] ?? 0) : 0;
   const yTicks = 4;
   const change = onRangeChange;
 
   return (
-    <div className={styles.chart} style={{ "--chart-accent": accent } as CSSProperties}>
+    <div
+      className={styles.chart}
+      style={{ "--chart-accent": accent } as CSSProperties}
+    >
       {header && (
         <div className={styles.chart__head}>
           <div>
@@ -301,12 +351,20 @@ export function MarketChart({
             <div className={styles.chart__value}>{format(shownV)}</div>
           </div>
           <div className={styles.chart__metric}>
-            <span className={cx(styles.chart__delta, !deltaUp && styles["chart__delta--down"])}>
-              {deltaUp ? "▲" : "▼"} {format(Math.abs(delta))} ({deltaPct >= 0 ? "+" : ""}
+            <span
+              className={cx(
+                styles.chart__delta,
+                !deltaUp && styles["chart__delta--down"],
+              )}
+            >
+              {deltaUp ? "▲" : "▼"} {format(Math.abs(delta))} (
+              {deltaPct >= 0 ? "+" : ""}
               {deltaPct.toFixed(2)}%)
             </span>
             <span className={styles.chart__period}>
-              {active !== null && shownT !== undefined ? fmtTime(shownT) : RANGE_LABEL[effectiveRange]}
+              {active !== null && shownT !== undefined
+                ? fmtTime(shownT)
+                : RANGE_LABEL[effectiveRange]}
             </span>
           </div>
         </div>
@@ -320,12 +378,33 @@ export function MarketChart({
         onPointerDown={handleMove}
         onPointerLeave={() => setActive(null)}
       >
-        <svg className={styles.chart__svg} width={width} height={height} role="img" aria-label={title ?? "Price chart"}>
+        <svg
+          className={styles.chart__svg}
+          width={width}
+          height={height}
+          role="img"
+          aria-label={title ?? "Price chart"}
+        >
           <defs>
             {geo.built.map((b, i) => (
-              <linearGradient key={i} id={`${gid}-grad-${i}`} x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor={isSingle ? "var(--chart-accent)" : b.color} stopOpacity="0.28" />
-                <stop offset="100%" stopColor={isSingle ? "var(--chart-accent)" : b.color} stopOpacity="0" />
+              <linearGradient
+                key={i}
+                id={`${gid}-grad-${i}`}
+                x1="0"
+                y1="0"
+                x2="0"
+                y2="1"
+              >
+                <stop
+                  offset="0%"
+                  stopColor={isSingle ? "var(--chart-accent)" : b.color}
+                  stopOpacity="0.28"
+                />
+                <stop
+                  offset="100%"
+                  stopColor={isSingle ? "var(--chart-accent)" : b.color}
+                  stopOpacity="0"
+                />
               </linearGradient>
             ))}
           </defs>
@@ -336,8 +415,18 @@ export function MarketChart({
             const v = geo.vMax - ((geo.vMax - geo.vMin) * i) / yTicks;
             return (
               <g key={`grid-${i}`}>
-                <line x1={0} y1={y} x2={geo.innerW} y2={y} className={styles.chart__grid} />
-                <text x={width - PAD.right + 6} y={y + 3} className={styles.chart__axis}>
+                <line
+                  x1={0}
+                  y1={y}
+                  x2={geo.innerW}
+                  y2={y}
+                  className={styles.chart__grid}
+                />
+                <text
+                  x={width - PAD.right + 6}
+                  y={y + 3}
+                  className={styles.chart__axis}
+                >
                   {format(v)}
                 </text>
               </g>
@@ -363,7 +452,12 @@ export function MarketChart({
 
           <g key={drawKey} className={styles.chart__draw}>
             {geo.built.map((b, i) => (
-              <path key={`area-${i}`} d={b.area} className={styles.chart__area} fill={`url(#${gid}-grad-${i})`} />
+              <path
+                key={`area-${i}`}
+                d={b.area}
+                className={styles.chart__area}
+                fill={`url(#${gid}-grad-${i})`}
+              />
             ))}
             {geo.built.map((b, i) => (
               <path
@@ -379,9 +473,18 @@ export function MarketChart({
           {/* crosshair + dots */}
           {active !== null && primary && (
             <g className={styles.chart__cross}>
-              <line x1={crossX} y1={PAD.top} x2={crossX} y2={PAD.top + geo.innerH} className={styles.chart__crossline} />
+              <line
+                x1={crossX}
+                y1={PAD.top}
+                x2={crossX}
+                y2={PAD.top + geo.innerH}
+                className={styles.chart__crossline}
+              />
               {geo.built.map((b, i) => {
-                const j = nearestIndexByT(b.series.points, primaryPts[active]?.t ?? 0);
+                const j = nearestIndexByT(
+                  b.series.points,
+                  primaryPts[active]?.t ?? 0,
+                );
                 const c = b.coords[j];
                 if (!c) return null;
                 return (
@@ -410,13 +513,20 @@ export function MarketChart({
         )}
       </div>
 
-      <div className={styles.chart__ranges} role="tablist" aria-label="Time range">
+      <div
+        className={styles.chart__ranges}
+        role="tablist"
+        aria-label="Time range"
+      >
         {availableRanges.map((r) => (
           <button
             key={r}
             role="tab"
             aria-selected={r === effectiveRange}
-            className={cx(styles.chart__range, r === effectiveRange && styles["chart__range--active"])}
+            className={cx(
+              styles.chart__range,
+              r === effectiveRange && styles["chart__range--active"],
+            )}
             onClick={() => {
               if (!controlled) setRange(r);
               change?.(r);
@@ -431,7 +541,10 @@ export function MarketChart({
         <div className={styles.chart__legend}>
           {geo.built.map((b, i) => (
             <span key={i} className={styles["chart__legend-item"]}>
-              <span className={styles["chart__legend-swatch"]} style={{ background: b.color }} />
+              <span
+                className={styles["chart__legend-swatch"]}
+                style={{ background: b.color }}
+              />
               {b.series.label ?? b.series.id}
             </span>
           ))}

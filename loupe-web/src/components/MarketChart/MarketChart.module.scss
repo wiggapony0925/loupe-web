@@ -2,6 +2,7 @@
 .chart {
   --chart-accent: var(--accent-blue);
   width: 100%;
+  min-width: 0; // allow shrinking inside flex/grid parents (mobile)
 
   &__head {
     display: flex;
@@ -52,6 +53,7 @@
   &__plot {
     position: relative;
     width: 100%;
+    overflow: hidden; // never let the SVG spill past / widen its container
     touch-action: pan-y; // horizontal scrub, vertical page scroll
     cursor: crosshair;
   }
@@ -133,7 +135,9 @@
     font-size: var(--text-sm);
     font-weight: 700;
     color: var(--ink-muted);
-    transition: background-color var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out);
+    transition:
+      background-color var(--dur-fast) var(--ease-out),
+      color var(--dur-fast) var(--ease-out);
     @include focus-ring;
 
     &:hover {
