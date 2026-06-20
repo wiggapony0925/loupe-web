@@ -1,7 +1,12 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { LayoutGrid, List } from "lucide-react";
-import { usePublicBrowse, usePublicSearch, type BrowseSort, type SortKey } from "@loupe/core";
+import {
+  usePublicBrowse,
+  usePublicSearch,
+  type BrowseSort,
+  type SortKey,
+} from "@loupe/core";
 import {
   FilterPill,
   Pagination,
@@ -10,6 +15,7 @@ import {
   NoteCard,
   Button,
   ComingSoon,
+  GameRails,
   type FilterOption,
 } from "@/components";
 import { EmptyResultsArt } from "@/assets";
@@ -19,7 +25,14 @@ import styles from "./Browse.module.scss";
 const PAGE_SIZE = 24;
 const SUPPORTED = new Set(["pokemon", "magic", "yugioh"]);
 // Games the search endpoint accepts as a `tcg` filter (others fall back to all).
-const SEARCH_TCGS = new Set(["pokemon", "magic", "yugioh", "onepiece", "lorcana", "all"]);
+const SEARCH_TCGS = new Set([
+  "pokemon",
+  "magic",
+  "yugioh",
+  "onepiece",
+  "lorcana",
+  "all",
+]);
 
 const SORTS: FilterOption[] = [
   { label: "Best Match", value: "best" },
@@ -56,8 +69,7 @@ export function Browse() {
   const gameParam = params.get("game");
   const game = gameParam ?? "pokemon"; // browse landing default
   // Search defaults to ALL games unless the user picked one in the selector.
-  const searchTcg =
-    gameParam && SEARCH_TCGS.has(gameParam) ? gameParam : "all";
+  const searchTcg = gameParam && SEARCH_TCGS.has(gameParam) ? gameParam : "all";
   const navigate = useNavigate();
   const isSearch = query.trim().length > 0;
 
@@ -78,20 +90,39 @@ export function Browse() {
   }, [query, game, searchTcg]);
 
   const search = usePublicSearch(
-    { q: query, tcg: searchTcg, rarity, set: setName, sort, page, pageSize: PAGE_SIZE },
+    {
+      q: query,
+      tcg: searchTcg,
+      rarity,
+      set: setName,
+      sort,
+      page,
+      pageSize: PAGE_SIZE,
+    },
     isSearch,
   );
-  const browse = usePublicBrowse({ game, page, pageSize: PAGE_SIZE, sort: browseSort }, !isSearch);
+  const browse = usePublicBrowse(
+    { game, page, pageSize: PAGE_SIZE, sort: browseSort },
+    !isSearch,
+  );
   const active = isSearch ? search : browse;
   const data = active.data;
 
   const results = data?.results ?? [];
   const total = data?.total ?? 0;
   const pageCount = Math.max(1, Math.ceil(total / PAGE_SIZE));
-  const rarityOpts: FilterOption[] = (data?.facets.rarities ?? []).map((r) => ({ label: r, value: r }));
-  const setOpts: FilterOption[] = (data?.facets.sets ?? []).map((s) => ({ label: s, value: s }));
+  const rarityOpts: FilterOption[] = (data?.facets.rarities ?? []).map((r) => ({
+    label: r,
+    value: r,
+  }));
+  const setOpts: FilterOption[] = (data?.facets.sets ?? []).map((s) => ({
+    label: s,
+    value: s,
+  }));
   const activeFilters = [rarity, setName].filter(Boolean).length;
-  const heading = isSearch ? `Results for “${query}”` : `Browse ${GAME_LABELS[game] ?? "cards"}`;
+  const heading = isSearch
+    ? `Results for “${query}”`
+    : `Browse ${GAME_LABELS[game] ?? "cards"}`;
 
   const clearFilters = () => {
     setRarity(null);
@@ -102,6 +133,15 @@ export function Browse() {
   return (
     <div className={styles.browse}>
       <h1 className={styles.browse__heading}>{heading}</h1>
+
+      {/* Discovery rails on the browse landing (hidden while searching). */}
+      {!isSearch && (
+        <div className={styles.browse__rails}>
+          <GameRails
+            onCard={(id) => navigate(`/cards/${encodeURIComponent(id)}`)}
+          />
+        </div>
+      )}
 
       {isSearch && (
         <div className={styles.browse__filters}>
@@ -156,18 +196,26 @@ export function Browse() {
 
       <div className={styles.browse__toolbar}>
         <span className={styles.browse__count}>
-          {active.isLoading ? "Loading…" : `${total.toLocaleString()} result${total === 1 ? "" : "s"}`}
+          {active.isLoading
+            ? "Loading…"
+            : `${total.toLocaleString()} result${total === 1 ? "" : "s"}`}
         </span>
         <div className={styles.browse__view}>
           <button
-            className={cx(styles.browse__viewBtn, view === "grid" && styles["browse__viewBtn--active"])}
+            className={cx(
+              styles.browse__viewBtn,
+              view === "grid" && styles["browse__viewBtn--active"],
+            )}
             onClick={() => setView("grid")}
             aria-label="Grid view"
           >
             <LayoutGrid size={18} />
           </button>
           <button
-            className={cx(styles.browse__viewBtn, view === "list" && styles["browse__viewBtn--active"])}
+            className={cx(
+              styles.browse__viewBtn,
+              view === "list" && styles["browse__viewBtn--active"],
+            )}
             onClick={() => setView("list")}
             aria-label="List view"
           >
@@ -188,7 +236,11 @@ export function Browse() {
             title={`${GAME_LABELS[game] ?? "This game"} — coming soon`}
             message={`We're adding ${GAME_LABELS[game] ?? "this game"} to the live catalog. For now, browse Pokémon, Magic, or Yu-Gi-Oh!.`}
             action={
-              <Button variant="secondary" size="sm" onClick={() => navigate("/cards?game=pokemon")}>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => navigate("/cards?game=pokemon")}
+              >
                 Browse Pokémon
               </Button>
             }
@@ -203,7 +255,11 @@ export function Browse() {
                 : "We couldn't load this catalog page — try again in a moment."
             }
             action={
-              <Button variant="secondary" size="sm" onClick={() => navigate("/cards?game=pokemon")}>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => navigate("/cards?game=pokemon")}
+              >
                 Browse Pokémon
               </Button>
             }
@@ -212,8 +268,13 @@ export function Browse() {
       ) : (
         <>
           <div
-            className={view === "grid" ? styles["browse__grid"] : styles["browse__list"]}
-            style={{ opacity: active.isFetching ? 0.6 : 1, transition: "opacity .15s" }}
+            className={
+              view === "grid" ? styles["browse__grid"] : styles["browse__list"]
+            }
+            style={{
+              opacity: active.isFetching ? 0.6 : 1,
+              transition: "opacity .15s",
+            }}
           >
             {results.map((c) => (
               <ProductCard

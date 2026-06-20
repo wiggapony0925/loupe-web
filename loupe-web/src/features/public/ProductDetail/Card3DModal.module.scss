@@ -33,6 +33,7 @@
     position: absolute;
     top: var(--space-lg);
     right: var(--space-lg);
+    z-index: 2; // always above the drag stage so Close is reliably clickable
     display: flex;
     gap: var(--space-sm);
   }
@@ -55,8 +56,11 @@
     }
   }
 
-  // Perspective container; capture the whole stage so dragging anywhere works.
+  // Perspective container; catches drag/scroll anywhere and a tap on the
+  // empty area dismisses (the card itself stops propagation via its layout).
   &__stage {
+    position: relative;
+    z-index: 1;
     perspective: 1400px;
     display: grid;
     place-items: center;
@@ -75,7 +79,8 @@
   &__card {
     position: relative;
     border-radius: var(--radius-lg);
-    transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+    transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg))
+      scale(var(--scale, 1));
     transform-style: preserve-3d;
     transition:
       transform 120ms var(--ease-out),
@@ -88,7 +93,7 @@
 
   &__img {
     display: block;
-    height: min(72vh, 620px);
+    height: min(66vh, 580px);
     max-width: calc(100vw - 2 * var(--space-xl));
     width: auto;
     border-radius: var(--radius-lg);
@@ -119,11 +124,38 @@
     mix-blend-mode: screen;
   }
 
+  // Caption block under the card — mirrors the mobile modal's chrome.
+  &__caption {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    text-align: center;
+    pointer-events: none;
+  }
+
+  &__title {
+    color: #fff;
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: -0.2px;
+    max-width: 90vw;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &__subtitle {
+    color: color-mix(in srgb, #fff 60%, transparent);
+    font-size: 12px;
+  }
+
   &__hint {
-    color: color-mix(in srgb, #fff 70%, transparent);
-    font-size: var(--text-sm);
-    font-weight: 600;
-    letter-spacing: 0.01em;
+    margin-top: 6px;
+    color: color-mix(in srgb, #fff 45%, transparent);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 2px;
   }
 
   @media (prefers-reduced-motion: reduce) {

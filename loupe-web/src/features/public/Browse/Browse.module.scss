@@ -8,6 +8,14 @@
     margin-bottom: var(--space-lg);
   }
 
+  // Discovery rails (Best from …) above the catalog grid.
+  &__rails {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xl);
+    margin-bottom: var(--space-2xl);
+  }
+
   &__filters {
     display: flex;
     align-items: center;

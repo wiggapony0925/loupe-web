@@ -32,6 +32,7 @@ export { CardPriceChart } from "./MarketChart/CardPriceChart";
 export { Footer } from "./Footer/Footer";
 export { Carousel } from "./Carousel/Carousel";
 export type { CarouselProps } from "./Carousel/Carousel";
+export { GameRails } from "./GameRails/GameRails";
 export { ComingSoon } from "./ComingSoon/ComingSoon";
 export { Modal } from "./Modal/Modal";
 export type { ModalProps } from "./Modal/Modal";

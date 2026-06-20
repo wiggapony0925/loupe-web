@@ -1,6 +1,11 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { usePublicBrowse, usePublicTrending, type BrowseSort, type CardSummary } from "@loupe/core";
+import {
+  usePublicBrowse,
+  usePublicTrending,
+  type BrowseSort,
+  type CardSummary,
+} from "@loupe/core";
 import {
   ProductCard,
   Pagination,
@@ -9,6 +14,7 @@ import {
   ComingSoon,
   Carousel,
   ShopCard,
+  GameRails,
   type FilterOption,
 } from "@/components";
 import { cx } from "@/lib/cx";
@@ -44,14 +50,21 @@ export function Markets() {
     setSort("name");
   }, [game]);
 
-  const { data, isLoading, isFetching } = usePublicBrowse({ game, page, pageSize: PAGE_SIZE, sort });
+  const { data, isLoading, isFetching } = usePublicBrowse({
+    game,
+    page,
+    pageSize: PAGE_SIZE,
+    sort,
+  });
   const results = data?.results ?? [];
   const total = data?.total ?? 0;
   const pageCount = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
   const tiles = (rows: CardSummary[] | undefined, loading: boolean) =>
     loading
-      ? Array.from({ length: 8 }).map((_, i) => <Skeleton key={i} height={300} radius={14} />)
+      ? Array.from({ length: 8 }).map((_, i) => (
+          <Skeleton key={i} height={300} radius={14} />
+        ))
       : (rows ?? []).map((c) => (
           <ShopCard
             key={c.id}
@@ -71,12 +84,21 @@ export function Markets() {
         <h1 className={styles.title}>The live market.</h1>
       </header>
 
-      <Carousel title="Trending now" live subtitle="Moving most across connected marketplaces.">
+      <Carousel
+        title="Trending now"
+        live
+        subtitle="Moving most across connected marketplaces."
+      >
         {tiles(trending.data, trending.isLoading)}
       </Carousel>
-      <Carousel title="Most valuable right now" subtitle="The priciest cards in today's live market.">
+      <Carousel
+        title="Most valuable right now"
+        subtitle="The priciest cards in today's live market."
+      >
         {tiles(valuable.data, valuable.isLoading)}
       </Carousel>
+
+      <GameRails onCard={go} />
 
       <section className={styles.browse}>
         <h2 className={styles.browseTitle}>Browse the catalog</h2>
@@ -94,7 +116,9 @@ export function Markets() {
         </div>
 
         <div className={styles.toolbar}>
-          <span className={styles.count}>{isLoading ? "Loading…" : `${total.toLocaleString()} cards`}</span>
+          <span className={styles.count}>
+            {isLoading ? "Loading…" : `${total.toLocaleString()} cards`}
+          </span>
           <FilterPill
             label="Sort"
             options={SORTS}
@@ -113,16 +137,29 @@ export function Markets() {
             ))}
           </div>
         ) : results.length === 0 ? (
-          <ComingSoon title="Nothing here right now" message="Try Pokémon, Magic, or Yu-Gi-Oh!." />
+          <ComingSoon
+            title="Nothing here right now"
+            message="Try Pokémon, Magic, or Yu-Gi-Oh!."
+          />
         ) : (
           <>
-            <div className={styles.grid} style={{ opacity: isFetching ? 0.6 : 1, transition: "opacity .15s" }}>
+            <div
+              className={styles.grid}
+              style={{
+                opacity: isFetching ? 0.6 : 1,
+                transition: "opacity .15s",
+              }}
+            >
               {results.map((c) => (
                 <ProductCard key={c.id} card={c} onClick={() => go(c.id)} />
               ))}
             </div>
             <div className={styles.pager}>
-              <Pagination page={page} pageCount={pageCount} onChange={setPage} />
+              <Pagination
+                page={page}
+                pageCount={pageCount}
+                onChange={setPage}
+              />
             </div>
           </>
         )}

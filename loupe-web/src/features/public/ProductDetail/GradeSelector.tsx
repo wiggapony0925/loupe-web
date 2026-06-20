@@ -91,6 +91,20 @@ const COMPANIES: Company[] = [
       { g: "5" },
     ],
   },
+  {
+    key: "tag",
+    label: "TAG",
+    grades: [
+      { g: "10", tag: "PRISTINE" },
+      { g: "9.5", tag: "GEM" },
+      { g: "9", tag: "MINT" },
+      { g: "8.5" },
+      { g: "8" },
+      { g: "7" },
+      { g: "6" },
+      { g: "5" },
+    ],
+  },
 ];
 
 export function tierLabel(t: PriceTier): string {
@@ -145,7 +159,14 @@ export function GradeSelector({
       </div>
 
       {company.grades.length > 0 ? (
-        <div className={styles.tiers__grades} aria-label="Grade">
+        // Key by company so switching houses remounts the rail instead of
+        // reusing/animating chips across different grade scales (which made
+        // them slide into weird orders).
+        <div
+          key={company.key}
+          className={styles.tiers__grades}
+          aria-label="Grade"
+        >
           {company.grades.map(({ g, tag }) => {
             const price = estimateTierPrice(rawBase, value.house, g, year);
             return (

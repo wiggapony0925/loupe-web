@@ -1,4 +1,12 @@
-import { useEffect, useId, useMemo, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
+import {
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+  type FormEvent,
+  type KeyboardEvent,
+} from "react";
 import { DropdownMenu } from "radix-ui";
 import { Check, ChevronDown, Loader2, Search, X } from "lucide-react";
 import { usePublicSearch, type CardSummary } from "@loupe/core";
@@ -37,7 +45,9 @@ export function SearchCombobox({
   size = "md",
   className,
 }: SearchComboboxProps) {
-  const [category, setCategory] = useState<(typeof CATEGORIES)[number]>(CATEGORIES[0]);
+  const [category, setCategory] = useState<(typeof CATEGORIES)[number]>(
+    CATEGORIES[0],
+  );
   const [query, setQuery] = useState(initialQuery);
   const [debounced, setDebounced] = useState(initialQuery.trim());
   const [open, setOpen] = useState(false);
@@ -56,7 +66,10 @@ export function SearchCombobox({
     { q: debounced, tcg: category.tcg, pageSize: 7 },
     enabled,
   );
-  const suggestions = useMemo(() => (enabled ? data?.results ?? [] : []), [enabled, data]);
+  const suggestions = useMemo(
+    () => (enabled ? (data?.results ?? []) : []),
+    [enabled, data],
+  );
   const showPanel = open && debounced.length >= 2;
   const itemCount = suggestions.length + 1; // + the "search all" row
 
@@ -66,7 +79,8 @@ export function SearchCombobox({
   // Close when clicking outside.
   useEffect(() => {
     function onDoc(e: MouseEvent) {
-      if (rootRef.current && !rootRef.current.contains(e.target as Node)) setOpen(false);
+      if (rootRef.current && !rootRef.current.contains(e.target as Node))
+        setOpen(false);
     }
     document.addEventListener("mousedown", onDoc);
     return () => document.removeEventListener("mousedown", onDoc);
@@ -105,20 +119,37 @@ export function SearchCombobox({
   }
 
   return (
-    <div ref={rootRef} className={cx(styles.combo, styles[`combo--${size}`], className)}>
+    <div
+      ref={rootRef}
+      className={cx(styles.combo, styles[`combo--${size}`], className)}
+    >
       <form className={styles.combo__bar} onSubmit={submit} role="search">
         <DropdownMenu.Root>
           <DropdownMenu.Trigger asChild>
-            <button type="button" className={styles.combo__category} aria-label="Category">
+            <button
+              type="button"
+              className={styles.combo__category}
+              aria-label="Category"
+            >
               {category.label} <ChevronDown size={15} />
             </button>
           </DropdownMenu.Trigger>
           <DropdownMenu.Portal>
-            <DropdownMenu.Content className={styles.combo__menu} align="start" sideOffset={8}>
+            <DropdownMenu.Content
+              className={styles.combo__menu}
+              align="start"
+              sideOffset={8}
+            >
               {CATEGORIES.map((c) => (
-                <DropdownMenu.Item key={c.tcg} className={styles.combo__option} onSelect={() => setCategory(c)}>
+                <DropdownMenu.Item
+                  key={c.tcg}
+                  className={styles.combo__option}
+                  onSelect={() => setCategory(c)}
+                >
                   <span>{c.label}</span>
-                  {c.tcg === category.tcg && <Check size={15} className={styles.combo__check} />}
+                  {c.tcg === category.tcg && (
+                    <Check size={15} className={styles.combo__check} />
+                  )}
                 </DropdownMenu.Item>
               ))}
             </DropdownMenu.Content>
@@ -157,7 +188,11 @@ export function SearchCombobox({
           )}
         </div>
 
-        <button className={styles.combo__submit} type="submit" aria-label="Search">
+        <button
+          className={styles.combo__submit}
+          type="submit"
+          aria-label="Search"
+        >
           <Search />
         </button>
       </form>
@@ -169,9 +204,14 @@ export function SearchCombobox({
               <Loader2 className={styles.combo__spin} size={16} /> Searching…
             </div>
           ) : isError ? (
-            <div className={styles.combo__status}>Couldn't load suggestions — press Enter to search.</div>
+            <div className={styles.combo__status}>
+              Couldn't load suggestions — press Enter to search.
+            </div>
           ) : suggestions.length === 0 ? (
-            <div className={styles.combo__status}>No matches for “{debounced}”.</div>
+            <div className={styles.combo__status}>
+              No quick matches for “{debounced}” — press Enter to search all{" "}
+              {category.tcg === "all" ? "cards" : category.label}.
+            </div>
           ) : (
             suggestions.map((c, i) => (
               <button
@@ -179,7 +219,10 @@ export function SearchCombobox({
                 type="button"
                 role="option"
                 aria-selected={i === active}
-                className={cx(styles.combo__row, i === active && styles["combo__row--active"])}
+                className={cx(
+                  styles.combo__row,
+                  i === active && styles["combo__row--active"],
+                )}
                 onMouseEnter={() => setActive(i)}
                 onClick={() => selectCard(c)}
               >
@@ -192,14 +235,21 @@ export function SearchCombobox({
                     {[c.setName, c.rarity].filter(Boolean).join(" · ")}
                   </span>
                 </span>
-                {c.price && <span className={styles.combo__rowPrice}>{formatMoney(c.price)}</span>}
+                {c.price && (
+                  <span className={styles.combo__rowPrice}>
+                    {formatMoney(c.price)}
+                  </span>
+                )}
               </button>
             ))
           )}
 
           <button
             type="button"
-            className={cx(styles.combo__all, active === suggestions.length && styles["combo__row--active"])}
+            className={cx(
+              styles.combo__all,
+              active === suggestions.length && styles["combo__row--active"],
+            )}
             onMouseEnter={() => setActive(suggestions.length)}
             onClick={() => submit()}
           >

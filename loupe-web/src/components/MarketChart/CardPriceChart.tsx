@@ -1,13 +1,25 @@
 import { useState } from "react";
+import { useQueries } from "@tanstack/react-query";
 import {
-  usePriceHistory,
+  api,
   CARD_CHART_RANGES,
   CARD_CHART_RANGE_TO_BACKEND,
   type CardChartRange,
+  type PriceSeries,
 } from "@loupe/core";
 import { formatMoney } from "@/lib/format";
-import { MarketChart, type RangeKey } from "./MarketChart";
+import { MarketChart, type ChartSeries, type RangeKey } from "./MarketChart";
 import styles from "./CardPriceChart.module.scss";
+
+const DAY = 86_400_000;
+
+/** A single line to plot — the primary tier or a compare overlay. */
+export interface ChartTier {
+  house: string;
+  grade?: string;
+  label: string;
+  color: string;
+}
 
 interface CardPriceChartProps {
   cardId: string;
@@ -17,10 +29,12 @@ interface CardPriceChartProps {
   title?: string;
   /** Starting range. Defaults to 1M (a month) like the app. */
   defaultRange?: CardChartRange;
-  /** Grading house ("raw" | "psa" | "bgs" | "cgc" | "sgc") to chart. */
+  /** Grading house ("raw" | "psa" | "bgs" | "cgc" | "sgc" | "tag") to chart. */
   house?: string;
   /** Grade within the house (e.g. "10", "9.5") — omit for raw. */
   grade?: string;
+  /** Additional tiers overlaid as distinctly-coloured compare lines. */
+  compare?: ChartTier[];
 }
 
 /**
@@ -28,9 +42,10 @@ interface CardPriceChartProps {
  * `MarketChart` used everywhere a card's history is shown (hero, detail).
  *
  * It owns the active range and fetches the matching backend bucket
- * (`1W→7d … ALL→all`), so each timeframe renders a correctly-grained,
- * accurately-timestamped series. `ALL` walks back to the card's release
- * year, mirroring the mobile app's `InteractiveCardChart`.
+ * (`1W→7d … ALL→all`) for the primary tier plus any compare overlays via
+ * `useQueries`, so each timeframe renders a correctly-grained, accurately
+ * timestamped series. `ALL` walks back to the card's release year, mirroring
+ * the mobile app's `InteractiveCardChart`.
  */
 export function CardPriceChart({
   cardId,
@@ -41,31 +56,56 @@ export function CardPriceChart({
   defaultRange = "1M",
   house,
   grade,
+  compare = [],
 }: CardPriceChartProps) {
   const [range, setRange] = useState<CardChartRange>(defaultRange);
-  const { data: series, isLoading } = usePriceHistory(
-    cardId,
-    CARD_CHART_RANGE_TO_BACKEND[range],
-    house,
-    grade,
-  );
+  const backendRange = CARD_CHART_RANGE_TO_BACKEND[range];
 
-  const fmtMoney = (v: number) =>
-    formatMoney({ amount: v, currency: series?.currency ?? "USD" });
+  // Primary line first (drives the header value/delta), then compares.
+  const tiers: ChartTier[] = [
+    {
+      house: house ?? "raw",
+      grade,
+      label: cardName ?? "Price",
+      color: "var(--accent-mint)",
+    },
+    ...compare,
+  ];
 
-  const hasData = series && series.points.length > 1;
+  const results = useQueries({
+    queries: tiers.map((t) => ({
+      queryKey: ["prices", cardId, backendRange, t.house, t.grade ?? "all"],
+      queryFn: () => api.cards.prices(cardId, backendRange, t.house, t.grade),
+      enabled: Boolean(cardId),
+      staleTime: 300_000,
+    })),
+  });
+
+  const primary = results[0];
+  const currency =
+    (primary?.data as PriceSeries | undefined)?.currency ?? "USD";
+  const fmtMoney = (v: number) => formatMoney({ amount: v, currency });
+
+  const series: ChartSeries[] = tiers
+    .map((t, i): ChartSeries | null => {
+      const data = results[i]?.data as PriceSeries | undefined;
+      if (!data || data.points.length < 2) return null;
+      return {
+        id: `${t.house}-${t.grade ?? "raw"}`,
+        label: t.label,
+        color: t.color,
+        points: data.points.map((v, j) => ({ t: data.at[j] ?? j * DAY, v })),
+      };
+    })
+    .filter((s): s is ChartSeries => s !== null);
+
+  const hasData = series.length > 0 && (series[0]?.points.length ?? 0) > 1;
 
   return (
     <div className={styles.wrap}>
       {hasData ? (
         <MarketChart
-          series={[
-            {
-              id: cardId,
-              label: cardName,
-              points: series.points.map((v, i) => ({ t: series.at[i] ?? i * 86_400_000, v })),
-            },
-          ]}
+          series={series}
           height={height}
           header={header}
           title={title}
@@ -79,7 +119,7 @@ export function CardPriceChart({
         // switching ranges always works even on a sparse series.
         <RangeOnly
           range={range}
-          loading={isLoading}
+          loading={primary?.isLoading ?? false}
           onRangeChange={setRange}
           height={height}
           header={header}

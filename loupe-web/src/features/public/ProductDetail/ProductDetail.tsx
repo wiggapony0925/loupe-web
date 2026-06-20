@@ -25,6 +25,8 @@ import {
 import { ScanButton } from "@/features/scan";
 import { GradeSelector, tierLabel, type PriceTier } from "./GradeSelector";
 import { Card3DModal } from "./Card3DModal";
+import { CompareBar } from "./CompareBar";
+import { COMPARE_PRESETS } from "./compareTiers";
 import { WatchlistButton } from "../WatchlistButton/WatchlistButton";
 import { AddToCollectionButton } from "@/features/collection";
 import { formatMoney } from "@/lib/format";
@@ -96,6 +98,7 @@ export function ProductDetail() {
   const { data: quotes } = useMarketplacePrices(id);
   const { data: valuation } = useValuation(id);
   const [tier, setTier] = useState<PriceTier>({ house: "raw" });
+  const [compareKeys, setCompareKeys] = useState<string[]>([]);
   const [viewer, setViewer] = useState(false);
 
   if (isLoading) return <ProductDetailSkeleton />;
@@ -115,6 +118,20 @@ export function ProductDetail() {
 
   const changePct = series?.changePct ?? market?.changePct1y;
   const price = card.price ?? market?.raw;
+
+  const toggleCompare = (key: string) =>
+    setCompareKeys((keys) =>
+      keys.includes(key) ? keys.filter((k) => k !== key) : [...keys, key],
+    );
+  // Selected overlays, minus any that duplicate the primary tier.
+  const compareTiers = COMPARE_PRESETS.filter(
+    (p) =>
+      compareKeys.includes(p.key) &&
+      !(
+        p.house === tier.house &&
+        (p.grade ?? undefined) === (tier.grade ?? undefined)
+      ),
+  );
 
   const details: Array<[string, string]> = [
     [
@@ -301,18 +318,32 @@ export function ProductDetail() {
             />
           </div>
           <Panel padding="lg">
+            <CompareBar selected={compareKeys} onToggle={toggleCompare} />
             <CardPriceChart
               cardId={card.id}
-              cardName={`${card.name} · ${tierLabel(tier)}`}
+              cardName={tierLabel(tier)}
               height={300}
               house={tier.house}
               grade={tier.grade}
+              compare={compareTiers}
             />
             <p className={styles["product__chart-note"]}>
-              Showing <strong>{tierLabel(tier)}</strong> prices — switch between
-              Raw and the major grading companies above. Tap a timeframe
-              (1W–ALL) and drag to scrub; the line is green when the period is
-              up, red when down.
+              {compareTiers.length > 0 ? (
+                <>
+                  Comparing <strong>{tierLabel(tier)}</strong> against{" "}
+                  {compareTiers.map((c) => c.label).join(", ")} — each tier is
+                  its own coloured line. Tap a timeframe (1W–ALL) and drag to
+                  scrub.
+                </>
+              ) : (
+                <>
+                  Showing <strong>{tierLabel(tier)}</strong> prices — switch
+                  between Raw and the major grading companies above, or tap a
+                  Compare chip to overlay another grade as a second line. Tap a
+                  timeframe (1W–ALL) and drag to scrub; the line is green when
+                  the period is up, red when down.
+                </>
+              )}
             </p>
           </Panel>
         </div>
@@ -417,6 +448,8 @@ export function ProductDetail() {
           onOpenChange={setViewer}
           src={card.imageUrl}
           alt={card.name}
+          title={card.name}
+          subtitle={[card.setName, card.number].filter(Boolean).join(" · ")}
         />
       )}
     </div>
