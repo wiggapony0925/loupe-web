@@ -28,6 +28,7 @@ import { Card3DModal } from "./Card3DModal";
 import { CompareBar } from "./CompareBar";
 import { COMPARE_PRESETS } from "./compareTiers";
 import { WatchlistButton } from "../WatchlistButton/WatchlistButton";
+import { PriceAlertButton } from "../PriceAlertButton/PriceAlertButton";
 import { AddToCollectionButton } from "@/features/collection";
 import { formatMoney } from "@/lib/format";
 import styles from "./ProductDetail.module.scss";
@@ -226,6 +227,7 @@ export function ProductDetail() {
           <div className={styles["product__buybox-watch"]}>
             <WatchlistButton card={card} />
             <AddToCollectionButton card={card} />
+            <PriceAlertButton card={card} currentPrice={price} />
           </div>
           <p className={styles["product__buybox-note"]}>
             Live prices from connected marketplaces.

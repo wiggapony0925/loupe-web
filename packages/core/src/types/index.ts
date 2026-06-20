@@ -1,6 +1,7 @@
 /** Shared view-model + wire types, split by domain. */
 
 export * from "./admin.types";
+export * from "./alerts.types";
 export * from "./auth.types";
 export * from "./blog.types";
 export * from "./card.types";

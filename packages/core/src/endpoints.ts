@@ -55,6 +55,12 @@ export const ENDPOINTS = {
     add: `${V1}/watchlist`,
     remove: (cardId: string) => `${V1}/watchlist/${cardId}`,
   },
+  /** Price alerts — notify the user when a card crosses a threshold. */
+  alerts: {
+    list: `${V1}/alerts`,
+    create: `${V1}/alerts`,
+    remove: (id: string) => `${V1}/alerts/${id}`,
+  },
   /** Public developer-portal surface — careers + blog. */
   careers: {
     jobs: `${V1}/careers/jobs`,

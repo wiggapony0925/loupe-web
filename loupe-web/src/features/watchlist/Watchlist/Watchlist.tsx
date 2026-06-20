@@ -3,6 +3,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Trash2 } from "lucide-react";
 import { api, useWatchlist } from "@loupe/core";
 import { CardThumb, Skeleton, NoteCard, Button } from "@/components";
+import { AlertsPanel } from "../AlertsPanel/AlertsPanel";
 import styles from "./Watchlist.module.scss";
 
 /** The signed-in user's pinned cards (real data via /v1/watchlist). */
@@ -62,6 +63,8 @@ export function Watchlist() {
           ))}
         </div>
       )}
+
+      <AlertsPanel />
     </div>
   );
 }

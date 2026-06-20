@@ -54,6 +54,8 @@ import type {
   CardValuation,
   ScanResult,
   CreateGradeInput,
+  CreateAlertInput,
+  PriceAlert,
   FeatureFlag,
   FeatureFlagCreateInput,
   FeatureFlagUpdateInput,
@@ -438,6 +440,35 @@ export const api = {
     remove: (id: string) =>
       apiFetch<void>(ENDPOINTS.grades.item(id), { method: "DELETE" }),
   },
+  /** Price alerts — notify the user when a card crosses a price threshold. */
+  alerts: {
+    /** The signed-in user's alerts, newest first. `pending` hides fired ones. */
+    list: async (pending = false): Promise<PriceAlert[]> => {
+      const rows = await apiFetch<RawPriceAlert[]>(ENDPOINTS.alerts.list, {
+        query: { pending: pending || undefined },
+      });
+      return (rows ?? []).map(toPriceAlert);
+    },
+    /** Create an alert. Accepts a public composite `upstreamId` directly — the
+     *  backend materializes the local card (mobile may pass a `cardId`). */
+    create: async (input: CreateAlertInput): Promise<PriceAlert> => {
+      const body: Record<string, unknown> = {
+        condition: input.condition,
+        threshold_usd: input.thresholdUsd,
+      };
+      if (input.cardId) body.card_id = input.cardId;
+      if (input.upstreamId) body.upstream_id = input.upstreamId;
+      if (input.note) body.note = input.note;
+      const row = await apiFetch<RawPriceAlert>(ENDPOINTS.alerts.create, {
+        method: "POST",
+        json: body,
+      });
+      return toPriceAlert(row);
+    },
+    /** Delete an alert by id. */
+    remove: (id: string) =>
+      apiFetch<void>(ENDPOINTS.alerts.remove(id), { method: "DELETE" }),
+  },
   /** Public careers surface — browse open roles, apply, track. */
   careers: {
     jobs: async (): Promise<JobPosting[]> => {
@@ -742,5 +773,33 @@ function toGradedCard(r: RawGrade): GradedCard {
     purchaseDate: r.purchase_date ?? null,
     notes: r.notes ?? null,
     copies: r.copies_owned ?? undefined,
+  };
+}
+
+interface RawPriceAlert {
+  id: string;
+  card_id: string;
+  condition: "above" | "below";
+  threshold_usd: string | number;
+  note?: string | null;
+  created_at: string;
+  triggered_at?: string | null;
+  triggered_price_usd?: string | number | null;
+  card_name?: string | null;
+  card_image_url?: string | null;
+}
+
+function toPriceAlert(r: RawPriceAlert): PriceAlert {
+  return {
+    id: r.id,
+    cardId: r.card_id,
+    condition: r.condition,
+    thresholdUsd: num(r.threshold_usd) ?? 0,
+    note: r.note ?? null,
+    createdAt: r.created_at,
+    triggeredAt: r.triggered_at ?? null,
+    triggeredPriceUsd: num(r.triggered_price_usd) ?? null,
+    cardName: r.card_name ?? null,
+    cardImageUrl: r.card_image_url ?? null,
   };
 }

@@ -32,6 +32,8 @@ import type {
   PortfolioHistory,
   ScanResult,
   CreateGradeInput,
+  CreateAlertInput,
+  PriceAlert,
   FeatureFlag,
   FeatureFlagCreateInput,
   FeatureFlagUpdateInput,
@@ -339,6 +341,50 @@ export const useDeleteGrade = (
     ...options,
     onSuccess: (...args) => {
       invalidateGradeCaches(qc);
+      options?.onSuccess?.(...args);
+    },
+  });
+};
+
+// ── Price alerts ──
+
+/** The signed-in user's price alerts (newest first). `pending` hides fired ones. */
+export const useAlerts = (pending = false, enabled = true) =>
+  useApiQuery<PriceAlert[]>(
+    ["alerts", pending],
+    () => api.alerts.list(pending),
+    { enabled, staleTime: 30_000 },
+  );
+
+/** Create a price alert. Accepts a public composite `upstreamId` directly. */
+export const useCreateAlert = (
+  options?: Omit<
+    UseMutationOptions<PriceAlert, ApiError, CreateAlertInput>,
+    "mutationFn"
+  >,
+) => {
+  const qc = useQueryClient();
+  return useApiMutation<PriceAlert, CreateAlertInput>(
+    (input) => api.alerts.create(input),
+    {
+      ...options,
+      onSuccess: (...args) => {
+        void qc.invalidateQueries({ queryKey: ["alerts"] });
+        options?.onSuccess?.(...args);
+      },
+    },
+  );
+};
+
+/** Delete a price alert by id. */
+export const useDeleteAlert = (
+  options?: Omit<UseMutationOptions<void, ApiError, string>, "mutationFn">,
+) => {
+  const qc = useQueryClient();
+  return useApiMutation<void, string>((id) => api.alerts.remove(id), {
+    ...options,
+    onSuccess: (...args) => {
+      void qc.invalidateQueries({ queryKey: ["alerts"] });
       options?.onSuccess?.(...args);
     },
   });
