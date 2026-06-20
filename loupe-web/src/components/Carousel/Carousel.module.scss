@@ -2,6 +2,12 @@
 .carousel {
   --carousel-item: clamp(170px, 22vw, 210px);
 
+  // Phones: smaller tiles so ~2 cards + a peek are visible (22vw read as
+  // far too wide on a 375px screen — only ~1.5 cards showed).
+  @include bp-down("sm") {
+    --carousel-item: 44vw;
+  }
+
   &__head {
     display: flex;
     align-items: flex-end;
