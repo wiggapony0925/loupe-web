@@ -2,7 +2,18 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Pencil } from "lucide-react";
 import { useAnalyticsOverview, useGrades, type GradedCard } from "@loupe/core";
-import { Panel, Stat, Badge, CardThumb, Skeleton, NoteCard, Button, FilterPill, type FilterOption } from "@/components";
+import {
+  Panel,
+  Stat,
+  Badge,
+  CardThumb,
+  Skeleton,
+  NoteCard,
+  Button,
+  Delta,
+  FilterPill,
+  type FilterOption,
+} from "@/components";
 import { CollectionForm, gradeLabel } from "@/features/collection";
 import { formatMoney } from "@/lib/format";
 import styles from "./Vault.module.scss";
@@ -16,7 +27,8 @@ const SORTS: FilterOption[] = [
   { label: "Grade: Low to High", value: "grade_asc" },
 ];
 
-const usd = (n?: number) => (n === undefined ? "—" : formatMoney({ amount: n, currency: "USD" }));
+const usd = (n?: number) =>
+  n === undefined ? "—" : formatMoney({ amount: n, currency: "USD" });
 
 /** The Vault — the signed-in user's graded/owned cards (live via /v1/grades). */
 export function Vault() {
@@ -28,6 +40,24 @@ export function Vault() {
   const stats = overview?.stats;
   const items = cards ?? [];
 
+  // Cost-basis P/L over holdings that have a recorded purchase price.
+  const withCost = items.filter(
+    (c) => c.purchasePriceUsd != null && c.purchasePriceUsd > 0,
+  );
+  const totalCost = withCost.reduce((s, c) => s + (c.purchasePriceUsd ?? 0), 0);
+  const totalCostVal = withCost.reduce(
+    (s, c) => s + (c.estimatedValueUsd ?? 0),
+    0,
+  );
+  const pnl = totalCostVal - totalCost;
+  const pnlPct = totalCost > 0 ? (pnl / totalCost) * 100 : 0;
+
+  /** Per-card gain/loss % vs purchase price (null when no cost basis). */
+  const cardPnlPct = (c: GradedCard): number | null =>
+    c.purchasePriceUsd && c.purchasePriceUsd > 0 && c.estimatedValueUsd != null
+      ? ((c.estimatedValueUsd - c.purchasePriceUsd) / c.purchasePriceUsd) * 100
+      : null;
+
   return (
     <div className={styles.page}>
       <header className={styles.head}>
@@ -38,15 +68,32 @@ export function Vault() {
       {stats && (
         <Panel padding="lg" raised className={styles.summary}>
           <Stat label="Collection value" value={usd(stats.totalValueUsd)} />
+          {withCost.length > 0 && (
+            <Stat
+              label="Total P/L"
+              value={
+                <Delta
+                  percent={pnlPct}
+                  money={{ amount: pnl, currency: "USD" }}
+                  variant="arrow"
+                />
+              }
+            />
+          )}
           <Stat label="Cards" value={stats.holdings.toLocaleString()} />
           <Stat label="Sets" value={stats.uniqueSets.toLocaleString()} />
-          <Stat label="Avg grade" value={stats.avgGrade ? stats.avgGrade.toFixed(1) : "—"} />
+          <Stat
+            label="Avg grade"
+            value={stats.avgGrade ? stats.avgGrade.toFixed(1) : "—"}
+          />
         </Panel>
       )}
 
       <div className={styles.toolbar}>
         <span className={styles.count}>
-          {isLoading ? "Loading…" : `${items.length.toLocaleString()} ${items.length === 1 ? "card" : "cards"}`}
+          {isLoading
+            ? "Loading…"
+            : `${items.length.toLocaleString()} ${items.length === 1 ? "card" : "cards"}`}
         </span>
         <FilterPill
           label="Sort"
@@ -67,7 +114,11 @@ export function Vault() {
           title="Your vault is empty"
           message="Browse the market and tap “Add to collection” on any card to start tracking what you own — with live valuations and P/L. You can also scan cards in the Loupe mobile app."
           action={
-            <Button variant="secondary" size="sm" onClick={() => navigate("/cards")}>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => navigate("/cards")}
+            >
               Browse the market
             </Button>
           }
@@ -79,22 +130,41 @@ export function Vault() {
               <button
                 type="button"
                 className={styles.card__open}
-                onClick={() => navigate(`/cards/${encodeURIComponent(c.cardId)}`)}
+                onClick={() =>
+                  navigate(`/cards/${encodeURIComponent(c.cardId)}`)
+                }
               >
                 <span className={styles.media}>
-                  <CardThumb src={c.cardImageUrl ?? ""} alt={c.cardName ?? "Card"} size="lg" />
+                  <CardThumb
+                    src={c.cardImageUrl ?? ""}
+                    alt={c.cardName ?? "Card"}
+                    size="lg"
+                  />
                   <span className={styles.gradeBadge}>
-                    <Badge tone="purple">{gradeLabel(c.house, c.grade, c.condition)}</Badge>
+                    <Badge tone="purple">
+                      {gradeLabel(c.house, c.grade, c.condition)}
+                    </Badge>
                   </span>
-                  {c.copies && c.copies > 1 && <span className={styles.copies}>×{c.copies}</span>}
+                  {c.copies && c.copies > 1 && (
+                    <span className={styles.copies}>×{c.copies}</span>
+                  )}
                 </span>
                 <span className={styles.name}>{c.cardName ?? "Card"}</span>
                 {(c.cardSetName || c.cardNumber) && (
                   <span className={styles.meta}>
-                    {[c.cardSetName, c.cardNumber ? `#${c.cardNumber}` : null].filter(Boolean).join(" · ")}
+                    {[c.cardSetName, c.cardNumber ? `#${c.cardNumber}` : null]
+                      .filter(Boolean)
+                      .join(" · ")}
                   </span>
                 )}
-                <span className={styles.value}>{usd(c.estimatedValueUsd)}</span>
+                <span className={styles.valueRow}>
+                  <span className={styles.value}>
+                    {usd(c.estimatedValueUsd)}
+                  </span>
+                  {cardPnlPct(c) !== null && (
+                    <Delta percent={cardPnlPct(c) as number} variant="arrow" />
+                  )}
+                </span>
               </button>
               <button
                 type="button"

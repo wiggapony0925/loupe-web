@@ -57,7 +57,9 @@
   border: 1px solid var(--line);
   border-radius: var(--radius-lg);
   background: var(--bg-elevated);
-  transition: border-color var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast) var(--ease-out),
+  transition:
+    border-color var(--dur-fast) var(--ease-out),
+    box-shadow var(--dur-fast) var(--ease-out),
     transform var(--dur-fast) var(--ease-out);
 
   &:hover {
@@ -94,7 +96,9 @@
     border-radius: var(--radius-pill);
     opacity: 0.7;
     cursor: pointer;
-    transition: opacity var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out),
+    transition:
+      opacity var(--dur-fast) var(--ease-out),
+      color var(--dur-fast) var(--ease-out),
       border-color var(--dur-fast) var(--ease-out);
 
     &:hover,
@@ -144,8 +148,15 @@
   @include line-clamp(1);
 }
 
-.value {
+.valueRow {
   margin-top: 2px;
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+}
+
+.value {
   font-size: var(--text-lg);
   font-weight: 800;
   color: var(--ink);
