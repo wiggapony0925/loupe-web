@@ -18,3 +18,9 @@
     transition-duration: 0.001ms !important;
   }
 }
+
+/* Lazy-route Suspense fallback — holds page height so the layout doesn't
+   collapse while a code-split route chunk loads. */
+.route-fallback {
+  min-height: 60vh;
+}
