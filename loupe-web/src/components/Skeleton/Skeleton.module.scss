@@ -19,3 +19,11 @@
     background-position: -200% 0;
   }
 }
+
+// Respect reduced-motion: hold a calm static placeholder instead of shimmering.
+@media (prefers-reduced-motion: reduce) {
+  .skeleton {
+    animation: none;
+    background: var(--bg-sunken);
+  }
+}

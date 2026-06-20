@@ -20,7 +20,12 @@ export function TopBar() {
     <header className={styles.topbar}>
       <SearchCombobox
         className={styles.search}
-        onSearch={(query) => navigate(`/cards${query ? `?q=${encodeURIComponent(query)}` : ""}`)}
+        onSearch={(query, tcg) => {
+          const p = new URLSearchParams();
+          if (query) p.set("q", query);
+          if (tcg && tcg !== "all") p.set("game", tcg);
+          navigate(`/cards${p.toString() ? `?${p}` : ""}`);
+        }}
         onSelectCard={(c) => navigate(`/cards/${encodeURIComponent(c.id)}`)}
       />
 

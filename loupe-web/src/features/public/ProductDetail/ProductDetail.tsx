@@ -288,16 +288,40 @@ export function ProductDetail() {
 function ProductDetailSkeleton() {
   return (
     <div className={styles.product}>
-      <Skeleton width={260} height={16} />
-      <div className={styles.product__hero} style={{ marginTop: 16 }}>
-        <Skeleton height={392} radius={14} />
-        <div>
-          <Skeleton width={280} height={32} />
-          <div style={{ height: 16 }} />
-          <Skeleton width={200} height={16} />
+      <Skeleton width={260} height={14} radius={6} />
+      <div className={styles.product__hero}>
+        {/* Art */}
+        <Panel padding="lg" className={styles.product__art}>
+          <Skeleton height={360} radius={12} />
+        </Panel>
+        {/* Identity */}
+        <div className={styles.product__info}>
+          <Skeleton width="80%" height={30} radius={8} />
+          <div style={{ height: 12 }} />
+          <Skeleton width={90} height={22} radius={999} />
+          <div style={{ height: 20 }} />
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} style={{ display: "flex", justifyContent: "space-between", margin: "10px 0" }}>
+              <Skeleton width={120} height={14} radius={6} />
+              <Skeleton width={80} height={14} radius={6} />
+            </div>
+          ))}
         </div>
-        <Skeleton height={220} radius={14} />
+        {/* Buy box */}
+        <Panel padding="lg" className={styles.product__buybox}>
+          <Skeleton width={100} height={12} radius={6} />
+          <div style={{ height: 10 }} />
+          <Skeleton width={160} height={36} radius={8} />
+          <div style={{ height: 18 }} />
+          <Skeleton height={48} radius={12} />
+          <div style={{ height: 10 }} />
+          <Skeleton height={48} radius={12} />
+        </Panel>
       </div>
+      {/* Loupe Value */}
+      <Skeleton height={180} radius={20} />
+      {/* Chart */}
+      <Skeleton height={300} radius={20} />
     </div>
   );
 }

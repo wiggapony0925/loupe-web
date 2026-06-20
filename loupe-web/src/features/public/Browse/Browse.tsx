@@ -18,6 +18,8 @@ import styles from "./Browse.module.scss";
 
 const PAGE_SIZE = 24;
 const SUPPORTED = new Set(["pokemon", "magic", "yugioh"]);
+// Games the search endpoint accepts as a `tcg` filter (others fall back to all).
+const SEARCH_TCGS = new Set(["pokemon", "magic", "yugioh", "onepiece", "lorcana", "all"]);
 
 const SORTS: FilterOption[] = [
   { label: "Best Match", value: "best" },
@@ -51,7 +53,11 @@ const GAME_LABELS: Record<string, string> = {
 export function Browse() {
   const [params] = useSearchParams();
   const query = params.get("q") ?? "";
-  const game = params.get("game") ?? "pokemon";
+  const gameParam = params.get("game");
+  const game = gameParam ?? "pokemon"; // browse landing default
+  // Search defaults to ALL games unless the user picked one in the selector.
+  const searchTcg =
+    gameParam && SEARCH_TCGS.has(gameParam) ? gameParam : "all";
   const navigate = useNavigate();
   const isSearch = query.trim().length > 0;
 
@@ -69,9 +75,12 @@ export function Browse() {
     setSetName(null);
     setSort("best");
     setBrowseSort("name");
-  }, [query, game]);
+  }, [query, game, searchTcg]);
 
-  const search = usePublicSearch({ q: query, rarity, set: setName, sort, page, pageSize: PAGE_SIZE }, isSearch);
+  const search = usePublicSearch(
+    { q: query, tcg: searchTcg, rarity, set: setName, sort, page, pageSize: PAGE_SIZE },
+    isSearch,
+  );
   const browse = usePublicBrowse({ game, page, pageSize: PAGE_SIZE, sort: browseSort }, !isSearch);
   const active = isSearch ? search : browse;
   const data = active.data;

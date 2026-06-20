@@ -12,7 +12,7 @@ import {
   Wallet,
 } from "lucide-react";
 import { usePriceHistory, useTrending } from "@loupe/core";
-import { Button, ThemeToggle, Skeleton, CardThumb, Delta, Footer, MarketChart, ScrollToTop, NavDrawer } from "@/components";
+import { Button, ThemeToggle, Skeleton, CardThumb, Delta, Footer, CardPriceChart, ScrollToTop, NavDrawer } from "@/components";
 import { AuroraField, Logo } from "@/assets";
 import { DeviceReveal } from "../DeviceReveal/DeviceReveal";
 import { TrendingCarousels } from "../TrendingCarousels/TrendingCarousels";
@@ -135,18 +135,9 @@ export function MarketingLanding() {
             </Button>
           </div>
           <div className={styles.showcaseChart}>
-            <MarketChart
-              series={[
-                {
-                  id: featured.id,
-                  label: featured.name,
-                  points: featuredHist.points.map((v, i) => ({ t: featuredHist.at[i] ?? i * 86_400_000, v })),
-                },
-              ]}
-              height={260}
-              title={featured.name}
-              format={(v) => formatMoney({ amount: v, currency: featuredHist.currency })}
-            />
+            {/* The same reusable, range-aware chart as the card detail — 1W…ALL
+                back to the card's release, not a single clipped 30-day series. */}
+            <CardPriceChart cardId={featured.id} cardName={featured.name} height={260} />
           </div>
         </section>
       )}

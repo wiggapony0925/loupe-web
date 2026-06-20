@@ -34,31 +34,63 @@
     }
   }
 
+  // Horizontal, scrollable grade rail — the full scale fits without wrapping
+  // into a tall block on mobile.
   &__grades {
     display: flex;
-    flex-wrap: wrap;
     gap: var(--space-sm);
+    overflow-x: auto;
+    padding-bottom: 4px;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
   }
 
   &__grade {
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1px;
     padding: 5px 12px;
-    font-size: var(--text-xs);
-    font-weight: 700;
-    color: var(--ink-dim);
     border: 1px solid var(--line-strong);
     border-radius: var(--radius-pill);
     transition: border-color var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out),
       background-color var(--dur-fast) var(--ease-out);
 
     &:hover {
-      color: var(--ink);
       border-color: var(--ink-dim);
+      .tiers__gradeNum {
+        color: var(--ink);
+      }
     }
 
     &--active {
-      color: #fff;
       background: var(--accent-mint);
       border-color: var(--accent-mint);
+
+      .tiers__gradeNum,
+      .tiers__gradeTag {
+        color: #fff;
+      }
     }
+  }
+
+  &__gradeNum {
+    font-size: var(--text-xs);
+    font-weight: 700;
+    color: var(--ink-dim);
+    white-space: nowrap;
+  }
+
+  &__gradeTag {
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--accent-amber);
   }
 }

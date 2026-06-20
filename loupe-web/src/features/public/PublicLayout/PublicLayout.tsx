@@ -20,7 +20,13 @@ export function PublicLayout() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [cartOpen, setCartOpen] = useState(false);
-  const onSearch = (q: string) => navigate(`/cards${q ? `?q=${encodeURIComponent(q)}` : ""}`);
+  // Carry the selected game so the results page filters to it (or browses it).
+  const onSearch = (q: string, tcg: string) => {
+    const p = new URLSearchParams();
+    if (q) p.set("q", q);
+    if (tcg && tcg !== "all") p.set("game", tcg);
+    navigate(`/cards${p.toString() ? `?${p}` : ""}`);
+  };
 
   return (
     <div className={styles["public"]}>
