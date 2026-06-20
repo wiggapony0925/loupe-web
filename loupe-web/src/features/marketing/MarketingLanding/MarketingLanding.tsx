@@ -26,10 +26,13 @@ export function MarketingLanding() {
   const { data, isLoading } = useTrending();
   const navigate = useNavigate();
   const { user } = useAuth();
-  // Top trending cards (with art) → a fanned stack of 3 in the hero.
-  const withArt = (data ?? []).filter((c) => c.imageUrl);
-  const featured = withArt.find((c) => c.price) ?? withArt[0];
-  const behind = withArt.filter((c) => c.id !== featured?.id).slice(0, 2);
+  // Top trending cards → a fanned stack of 3 in the hero. Prefer cards with
+  // both art and a price so the hero never features a "—" priceless card;
+  // fall back to any with art if the priced set is too thin.
+  const priced = (data ?? []).filter((c) => c.imageUrl && c.price);
+  const pool = priced.length >= 3 ? priced : (data ?? []).filter((c) => c.imageUrl);
+  const featured = pool[0];
+  const behind = pool.slice(1, 3);
   const { data: featuredHist } = usePriceHistory(featured?.id ?? "");
   const featuredChange = featuredHist?.changePct;
 
