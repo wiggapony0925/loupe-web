@@ -1,30 +1,37 @@
 import { useState } from "react";
-import { Check, Minus, Plus, ScanLine, ShieldCheck, Sparkles, Truck, Users } from "lucide-react";
-import { useWaitlistStats } from "@loupe/core";
-import { GraderDevice } from "@/assets";
-import { Button } from "@/components";
+import { Check, Minus, Plus, ScanLine, ShieldCheck, Sparkles, Truck, Users, Cpu, Wifi, Zap } from "lucide-react";
+import { usePublicTrending, useWaitlistStats, type CardSummary } from "@loupe/core";
+import { Button, TiltCard, CardThumb } from "@/components";
 import { WaitlistCheckout } from "../WaitlistCheckout/WaitlistCheckout";
 import {
   SCANNER_FAQ,
   SCANNER_HIGHLIGHTS,
   SCANNER_LIST_PRICE,
   SCANNER_SPECS,
+  SCANNER_SUBGRADES,
   scannerPriceLabel,
 } from "../scannerProduct";
 import styles from "./Scanner.module.scss";
 
 const MAX_QTY = 5;
+const HL_ICONS = [ScanLine, Sparkles, Wifi, Cpu];
 
 /**
- * Loupe Scanner product page — an Amazon-style listing (gallery + buy box +
- * specs + FAQ) rendered in our theme. The buy CTA opens the waitlist
- * "checkout": pressing it reserves a spot rather than charging a card.
+ * Loupe Scanner product page — an Amazon-style listing in our theme. The
+ * showcase puts a *real* trending Pokémon card in the device with a live
+ * grade-estimate HUD (the same card-forward treatment as the mobile app),
+ * and the buy CTA opens the waitlist "checkout": pressing it reserves a spot
+ * rather than charging a card.
  */
 export function Scanner() {
   const [qty, setQty] = useState(1);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const { data: stats } = useWaitlistStats();
+  const { data: cards } = usePublicTrending({ tcg: "pokemon", limit: 8 });
 
+  const withArt = (cards ?? []).filter((c) => c.imageUrl);
+  const hero: CardSummary | undefined = withArt[0];
+  const strip = withArt.slice(1, 5);
   const reserved = stats?.total ?? 0;
 
   return (
@@ -36,20 +43,56 @@ export function Scanner() {
       </nav>
 
       <div className={styles.hero}>
-        {/* Gallery */}
+        {/* Showcase — real card + grade HUD */}
         <div className={styles.gallery}>
-          <div className={styles.gallery__main}>
-            <span className={styles.gallery__tag}>Pre-order</span>
-            <GraderDevice revealed className={styles.gallery__device} />
-          </div>
-          <div className={styles.gallery__thumbs}>
-            {["Front", "Tray", "App sync"].map((label, i) => (
-              <div key={label} className={styles.gallery__thumb} data-active={i === 0}>
-                <GraderDevice revealed className={styles.gallery__thumbDevice} />
-                <span>{label}</span>
+          <div className={styles.stage}>
+            <span className={styles.stage__tag}>Pre-order</span>
+            <div className={styles.stage__scan}>
+              {hero ? (
+                <TiltCard className={styles.stage__tilt}>
+                  <CardThumb src={hero.imageUrl} alt={hero.name} className={styles.stage__card} />
+                </TiltCard>
+              ) : (
+                <div className={styles.stage__cardFallback} aria-hidden />
+              )}
+              <div className={styles.stage__beam} aria-hidden />
+            </div>
+
+            <div className={styles.hud}>
+              <div className={styles.hud__head}>
+                <span className={styles.hud__dot} />
+                Live grade estimate
               </div>
-            ))}
+              <div className={styles.hud__grades}>
+                {SCANNER_SUBGRADES.map((g) => (
+                  <div key={g.label} className={styles.hud__grade}>
+                    <span className={styles.hud__label}>{g.label}</span>
+                    <span className={styles.hud__bar}>
+                      <span style={{ width: `${(g.value / 10) * 100}%` }} />
+                    </span>
+                    <span className={styles.hud__value}>{g.value.toFixed(1)}</span>
+                  </div>
+                ))}
+              </div>
+              <div className={styles.hud__verdict}>
+                <span className={styles.hud__psa}>PSA 10</span>
+                <span className={styles.hud__pill}>
+                  <Check size={13} /> Gem-mint candidate
+                </span>
+              </div>
+            </div>
           </div>
+
+          {strip.length > 0 && (
+            <div className={styles.strip}>
+              <span className={styles.strip__label}>Recent scans</span>
+              <div className={styles.strip__row}>
+                {strip.map((c) => (
+                  <CardThumb key={c.id} src={c.imageUrl} alt={c.name} size="sm" className={styles.strip__card} />
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Title + meta */}
@@ -66,19 +109,22 @@ export function Scanner() {
             </span>
           </div>
           <p className={styles.info__desc}>
-            Drop any card in the tray and our vision model measures centering, edges, and corners in
-            seconds — then predicts the grade it would earn, so you only send the slabs worth sending.
-            Every scan syncs straight to your vault.
+            A Raspberry-Pi-powered capture device that reads any card in seconds. Drop it in the tray and
+            our vision model measures centering, edges, corners, and surface — then predicts the grade it
+            would earn, so you only send the slabs worth sending. Every scan syncs straight to your vault.
           </p>
           <ul className={styles.highlights}>
-            {SCANNER_HIGHLIGHTS.map((text) => (
-              <li key={text} className={styles.highlights__item}>
-                <span className={styles.highlights__icon}>
-                  <Check size={15} />
-                </span>
-                {text}
-              </li>
-            ))}
+            {SCANNER_HIGHLIGHTS.map((text, i) => {
+              const Icon = HL_ICONS[i] ?? Check;
+              return (
+                <li key={text} className={styles.highlights__item}>
+                  <span className={styles.highlights__icon}>
+                    <Icon size={15} />
+                  </span>
+                  {text}
+                </li>
+              );
+            })}
           </ul>
         </div>
 
@@ -87,6 +133,7 @@ export function Scanner() {
           <div className={styles.buybox__price}>
             <span className={styles.buybox__now}>{scannerPriceLabel()}</span>
             <span className={styles.buybox__was}>{scannerPriceLabel(SCANNER_LIST_PRICE)}</span>
+            <span className={styles.buybox__save}>Save 37%</span>
           </div>
           <p className={styles.buybox__due}>
             <strong>$0.00 due today</strong> — reserve free, pay when invited.
@@ -115,12 +162,7 @@ export function Scanner() {
             </div>
           </div>
 
-          <Button
-            block
-            size="lg"
-            leadingIcon={<Sparkles size={18} />}
-            onClick={() => setCheckoutOpen(true)}
-          >
+          <Button block size="lg" leadingIcon={<Sparkles size={18} />} onClick={() => setCheckoutOpen(true)}>
             Join the waitlist
           </Button>
           <Button
@@ -130,7 +172,7 @@ export function Scanner() {
             leadingIcon={<ScanLine size={18} />}
             onClick={() => setCheckoutOpen(true)}
           >
-            Reserve & checkout
+            Reserve &amp; checkout
           </Button>
 
           <ul className={styles.buybox__assurances}>
@@ -141,7 +183,7 @@ export function Scanner() {
               <Truck size={15} /> Free shipping at launch
             </li>
             <li>
-              <Check size={15} /> Cancel anytime before you're invited
+              <Zap size={15} /> Priority access in signup order
             </li>
           </ul>
         </aside>
@@ -178,7 +220,7 @@ export function Scanner() {
         <div className={styles.cta__inner}>
           <h2 className={styles.cta__title}>Be first in line for the Loupe Scanner</h2>
           <p className={styles.cta__sub}>
-            {reserved.toLocaleString()} collectors have reserved. Lock your spot — it's free.
+            {reserved.toLocaleString()} collectors have reserved at {scannerPriceLabel()}. Lock your spot — it's free.
           </p>
           <Button size="lg" leadingIcon={<Sparkles size={18} />} onClick={() => setCheckoutOpen(true)}>
             Join the waitlist
@@ -186,7 +228,7 @@ export function Scanner() {
         </div>
       </section>
 
-      <WaitlistCheckout open={checkoutOpen} onOpenChange={setCheckoutOpen} quantity={qty} />
+      <WaitlistCheckout open={checkoutOpen} onOpenChange={setCheckoutOpen} quantity={qty} card={hero} />
     </div>
   );
 }

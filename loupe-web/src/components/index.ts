@@ -39,5 +39,6 @@ export { Banner } from "./Banner/Banner";
 export { Markdown } from "./Markdown/Markdown";
 export { FeatureGate } from "./FeatureGate/FeatureGate";
 export { ScrollToTop } from "./ScrollToTop/ScrollToTop";
+export { TiltCard } from "./TiltCard/TiltCard";
 export { Flaggable, useFlaggable } from "./Flaggable/Flaggable";
 export { InspectOverlay } from "./InspectOverlay/InspectOverlay";

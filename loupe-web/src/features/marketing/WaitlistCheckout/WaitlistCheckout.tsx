@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import { Check, Loader2, ShieldCheck, Sparkles } from "lucide-react";
-import { useJoinWaitlist, type WaitlistJoined } from "@loupe/core";
-import { Modal, Button, TextField } from "@/components";
+import { Check, Loader2, ScanLine, ShieldCheck, Sparkles, Truck, Zap } from "lucide-react";
+import { useJoinWaitlist, type CardSummary, type WaitlistJoined } from "@loupe/core";
+import { Modal, Button, TextField, CardThumb } from "@/components";
 import { useAuth } from "@/auth/AuthProvider";
 import { SCANNER_PRICE, scannerPriceLabel } from "../scannerProduct";
 import styles from "./WaitlistCheckout.module.scss";
@@ -10,14 +10,16 @@ export interface WaitlistCheckoutProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   quantity?: number;
+  /** A real card from the showcase, shown in the order review for flavor. */
+  card?: CardSummary;
 }
 
 /**
- * The scanner "checkout" — styled like an Amazon order review, but pressing
- * the CTA reserves a waitlist spot instead of charging a card. (Stripe will
- * slot in here later; for now $0 is due and we capture the signup.)
+ * The scanner "checkout" — styled like a real order review, but pressing the
+ * CTA reserves a waitlist spot instead of charging a card. (Stripe slots in
+ * here later; for now $0 is due and we capture the signup.)
  */
-export function WaitlistCheckout({ open, onOpenChange, quantity = 1 }: WaitlistCheckoutProps) {
+export function WaitlistCheckout({ open, onOpenChange, quantity = 1, card }: WaitlistCheckoutProps) {
   const { user } = useAuth();
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
@@ -25,9 +27,7 @@ export function WaitlistCheckout({ open, onOpenChange, quantity = 1 }: WaitlistC
   const [emailError, setEmailError] = useState<string>();
   const [done, setDone] = useState<WaitlistJoined | null>(null);
 
-  const join = useJoinWaitlist({
-    onSuccess: (res) => setDone(res),
-  });
+  const join = useJoinWaitlist({ onSuccess: (res) => setDone(res) });
 
   // Pre-fill from the signed-in account, and reset on each open.
   useEffect(() => {
@@ -91,21 +91,55 @@ export function WaitlistCheckout({ open, onOpenChange, quantity = 1 }: WaitlistC
     >
       <div className={styles.checkout}>
         <div className={styles.summary}>
-          <div className={styles.summary__row}>
-            <span className={styles.summary__name}>
-              Loupe Scanner
-              <span className={styles.summary__qty}>Qty {quantity}</span>
+          {/* Product line */}
+          <div className={styles.product}>
+            <span className={styles.product__icon}>
+              <ScanLine size={22} />
             </span>
-            <span className={styles.summary__price}>{scannerPriceLabel(subtotal)}</span>
+            <span className={styles.product__body}>
+              <span className={styles.product__name}>Loupe Scanner</span>
+              <span className={styles.product__meta}>Pre-order · ships at launch</span>
+            </span>
+            {card && (
+              <span className={styles.product__card} title={`Grade cards like ${card.name}`}>
+                <CardThumb src={card.imageUrl} alt={card.name} size="sm" />
+              </span>
+            )}
           </div>
-          <div className={styles.summary__divider} />
-          <div className={styles.summary__row}>
-            <span className={styles.summary__muted}>Due today</span>
-            <span className={styles.summary__due}>$0.00</span>
+
+          {/* Price breakdown */}
+          <div className={styles.breakdown}>
+            <div className={styles.breakdown__row}>
+              <span>
+                {scannerPriceLabel()} × {quantity}
+              </span>
+              <span>{scannerPriceLabel(subtotal)}</span>
+            </div>
+            <div className={styles.breakdown__row}>
+              <span>Shipping</span>
+              <span className={styles.breakdown__free}>Free</span>
+            </div>
+            <div className={styles.summary__divider} />
+            <div className={styles.breakdown__total}>
+              <span>Due today</span>
+              <span>
+                <s className={styles.breakdown__strike}>{scannerPriceLabel(subtotal)}</s>
+                <strong className={styles.breakdown__due}>$0.00</strong>
+              </span>
+            </div>
           </div>
-          <p className={styles.summary__note}>
-            <ShieldCheck size={14} /> No card required to reserve. Cancel anytime.
-          </p>
+
+          <ul className={styles.trust}>
+            <li>
+              <ShieldCheck size={14} /> No card to reserve
+            </li>
+            <li>
+              <Truck size={14} /> Free shipping
+            </li>
+            <li>
+              <Zap size={14} /> Priority access
+            </li>
+          </ul>
         </div>
 
         <div className={styles.form}>
