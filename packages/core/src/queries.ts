@@ -116,8 +116,11 @@ export const usePublicTrending = (params: PublicTrendingParams = {}) =>
 /** Real price history for a card. `range` is a backend bucket
  *  (`7d|30d|90d|1y|all`); omit for the default window. Keyed by range so
  *  switching timeframes refetches the correctly-grained series. */
-export const usePriceHistory = (id: string, range?: string) =>
-  useApiQuery<PriceSeries>(["prices", id, range ?? "default"], () => api.cards.prices(id, range), {
+export const usePriceHistory = (id: string, range?: string, house?: string, grade?: string) =>
+  useApiQuery<PriceSeries>(
+    ["prices", id, range ?? "default", house ?? "raw", grade ?? "all"],
+    () => api.cards.prices(id, range, house, grade),
+    {
     enabled: Boolean(id),
     staleTime: 300_000,
   });

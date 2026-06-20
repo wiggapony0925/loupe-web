@@ -177,9 +177,9 @@ export const api = {
     },
     /** Public price history → series. `range` maps to a backend bucket
      *  (`7d|30d|90d|1y|all`); `all` walks back to the card's release year. */
-    prices: async (id: string, range?: string): Promise<PriceSeries> => {
+    prices: async (id: string, range?: string, house?: string, grade?: string): Promise<PriceSeries> => {
       const d = await apiFetch<{ currency?: string; points?: Array<{ price: number; ts?: string }> }>(
-        ENDPOINTS.cards.prices(id, range),
+        ENDPOINTS.cards.prices(id, range, house, grade),
       );
       return toPriceSeries(d);
     },

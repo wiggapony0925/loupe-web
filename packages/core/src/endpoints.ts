@@ -17,8 +17,14 @@ export const ENDPOINTS = {
     trending: `${V1}/cards/trending`,
     resolve: `${V1}/cards/resolve`,
     item: (id: string) => `${V1}/cards/${id}`,
-    prices: (id: string, range?: string) =>
-      `${V1}/cards/${id}/prices${range ? `?range=${encodeURIComponent(range)}` : ""}`,
+    prices: (id: string, range?: string, house?: string, grade?: string) => {
+      const q = new URLSearchParams();
+      if (range) q.set("range", range);
+      if (house) q.set("house", house);
+      if (grade) q.set("grade", grade);
+      const qs = q.toString();
+      return `${V1}/cards/${id}/prices${qs ? `?${qs}` : ""}`;
+    },
     market: (id: string) => `${V1}/cards/${id}/market`,
     canonical: (id: string) => `${V1}/cards/${id}/canonical`,
     marketplacePrices: (id: string) => `${V1}/cards/${id}/marketplace-prices`,

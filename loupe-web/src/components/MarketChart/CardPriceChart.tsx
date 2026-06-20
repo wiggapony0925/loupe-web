@@ -17,6 +17,10 @@ interface CardPriceChartProps {
   title?: string;
   /** Starting range. Defaults to 1M (a month) like the app. */
   defaultRange?: CardChartRange;
+  /** Grading house ("raw" | "psa" | "bgs" | "cgc" | "sgc") to chart. */
+  house?: string;
+  /** Grade within the house (e.g. "10", "9.5") — omit for raw. */
+  grade?: string;
 }
 
 /**
@@ -35,9 +39,16 @@ export function CardPriceChart({
   header = true,
   title,
   defaultRange = "1M",
+  house,
+  grade,
 }: CardPriceChartProps) {
   const [range, setRange] = useState<CardChartRange>(defaultRange);
-  const { data: series, isLoading } = usePriceHistory(cardId, CARD_CHART_RANGE_TO_BACKEND[range]);
+  const { data: series, isLoading } = usePriceHistory(
+    cardId,
+    CARD_CHART_RANGE_TO_BACKEND[range],
+    house,
+    grade,
+  );
 
   const fmtMoney = (v: number) =>
     formatMoney({ amount: v, currency: series?.currency ?? "USD" });

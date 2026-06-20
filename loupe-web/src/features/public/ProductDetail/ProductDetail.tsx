@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { ExternalLink, ScanLine, ShieldCheck } from "lucide-react";
 import {
@@ -12,6 +13,7 @@ import {
 } from "@loupe/core";
 import { CardThumb, Panel, Badge, Button, CardPriceChart, Skeleton, NoteCard, Stat, Delta } from "@/components";
 import { ScanButton } from "@/features/scan";
+import { GradeSelector, tierLabel, type PriceTier } from "./GradeSelector";
 import { WatchlistButton } from "../WatchlistButton/WatchlistButton";
 import { AddToCollectionButton } from "@/features/collection";
 import { formatMoney } from "@/lib/format";
@@ -55,6 +57,7 @@ export function ProductDetail() {
   const { data: series } = usePriceHistory(id, CARD_CHART_RANGE_TO_BACKEND["1M"]);
   const { data: quotes } = useMarketplacePrices(id);
   const { data: valuation } = useValuation(id);
+  const [tier, setTier] = useState<PriceTier>({ house: "raw" });
 
   if (isLoading) return <ProductDetailSkeleton />;
   if (isError || !card) {
@@ -196,12 +199,22 @@ export function ProductDetail() {
 
       <section className={styles.product__section}>
         <div className={styles.product__chart}>
-          <h2 className={styles.product__h2}>Price history</h2>
+          <div className={styles.product__chartHead}>
+            <h2 className={styles.product__h2}>Price history</h2>
+            <GradeSelector value={tier} onChange={setTier} />
+          </div>
           <Panel padding="lg">
-            <CardPriceChart cardId={card.id} cardName={card.name} height={300} />
+            <CardPriceChart
+              cardId={card.id}
+              cardName={`${card.name} · ${tierLabel(tier)}`}
+              height={300}
+              house={tier.house}
+              grade={tier.grade}
+            />
             <p className={styles["product__chart-note"]}>
-              Tap a timeframe — 1W to ALL (back to the card's release year). Drag across the chart to scrub
-              historical prices; the line turns green when the period is up, red when it's down.
+              Showing <strong>{tierLabel(tier)}</strong> prices — switch between Raw and the major grading
+              companies above. Tap a timeframe (1W–ALL) and drag to scrub; the line is green when the
+              period is up, red when down.
             </p>
           </Panel>
         </div>

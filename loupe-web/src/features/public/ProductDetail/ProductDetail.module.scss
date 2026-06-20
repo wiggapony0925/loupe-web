@@ -430,3 +430,13 @@
     margin-top: var(--space-xs);
   }
 }
+
+// Chart header: title + grade-tier selector
+.product__chartHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-md);
+  margin-bottom: var(--space-md);
+}
