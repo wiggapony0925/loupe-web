@@ -21,6 +21,7 @@ import { useAuth } from "@/auth/AuthProvider";
 import { formatMoney } from "@/lib/format";
 import { FeaturedHero } from "../FeaturedHero/FeaturedHero";
 import { PortfolioChart } from "../PortfolioChart/PortfolioChart";
+import { TopMovers } from "../TopMovers/TopMovers";
 import styles from "./CommandCenter.module.scss";
 
 /** Authenticated home — personalized header, your watchlist, and the live market. */
@@ -29,6 +30,7 @@ export function CommandCenter() {
   const { user } = useAuth();
   const trending = usePublicTrending({ sort: "trending", limit: 20 });
   const valuable = usePublicTrending({ sort: "value", limit: 20 });
+  const steals = usePublicTrending({ maxPrice: 5, limit: 20 });
   const watchlist = useWatchlist();
   const analytics = useAnalyticsOverview();
   const vault = useGrades({ sort: "value_desc", limit: 12 });
@@ -137,6 +139,9 @@ export function CommandCenter() {
             </div>
           </Flaggable>
 
+          {/* Your biggest 1-year movers (owned cards) — mobile parity. */}
+          <TopMovers onCard={go} />
+
           {/* Discovery: today's #1 trending card — clearly secondary to the
               collection above (it's the market, not your cards). */}
           {featured && (
@@ -215,6 +220,16 @@ export function CommandCenter() {
           >
             {tiles(valuable.data, valuable.isLoading)}
           </Carousel>
+
+          {(steals.data?.length ?? 0) >= 4 && (
+            <Carousel
+              title="Steals under $5"
+              subtitle="Affordable pickups, priced live."
+              action={seeAll("/cards")}
+            >
+              {tiles(steals.data, steals.isLoading)}
+            </Carousel>
+          )}
         </>
       )}
     </div>
