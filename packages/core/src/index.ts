@@ -1,6 +1,12 @@
 /** @loupe/core — shared logic for web + mobile (API client, types, hooks). */
 export { configureApi, getApiConfig, type ApiConfig } from "./config";
-export { apiFetch, apiFetchEnvelope, ApiError, type Envelope, type ErrorDetail } from "./client";
+export {
+  apiFetch,
+  apiFetchEnvelope,
+  ApiError,
+  type Envelope,
+  type ErrorDetail,
+} from "./client";
 export { ENDPOINTS } from "./endpoints";
 export { api } from "./api";
 export * from "./types";
@@ -18,6 +24,7 @@ export {
   usePublicSearch,
   usePublicTrending,
   usePublicBrowse,
+  usePublicSparklines,
   usePriceHistory,
   useMarket,
   useMarketplacePrices,

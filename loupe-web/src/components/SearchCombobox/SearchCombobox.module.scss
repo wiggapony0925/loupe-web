@@ -11,11 +11,14 @@
     border: 1px solid var(--line);
     border-radius: var(--radius-md);
     overflow: hidden;
-    transition: border-color var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast) var(--ease-out);
+    transition:
+      border-color var(--dur-fast) var(--ease-out),
+      box-shadow var(--dur-fast) var(--ease-out);
 
     &:focus-within {
       border-color: var(--accent-blue);
-      box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-blue) 18%, transparent);
+      box-shadow: 0 0 0 3px
+        color-mix(in srgb, var(--accent-blue) 18%, transparent);
     }
   }
 
@@ -201,11 +204,21 @@
     @include line-clamp(1);
   }
 
+  // Sparkline + price, right-aligned (StockX-style row tail).
+  &__rowRight {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+  }
+
   &__rowPrice {
     flex-shrink: 0;
     font-size: var(--text-sm);
     font-weight: 700;
     color: var(--ink);
+    min-width: 56px;
+    text-align: right;
     @include tabular;
   }
 

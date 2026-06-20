@@ -9,8 +9,13 @@ import {
 } from "react";
 import { DropdownMenu } from "radix-ui";
 import { Check, ChevronDown, Loader2, Search, X } from "lucide-react";
-import { usePublicSearch, type CardSummary } from "@loupe/core";
+import {
+  usePublicSearch,
+  usePublicSparklines,
+  type CardSummary,
+} from "@loupe/core";
 import { CardThumb } from "@/components/CardThumb/CardThumb";
+import { Sparkline } from "@/components/Sparkline/Sparkline";
 import { formatMoney } from "@/lib/format";
 import { cx } from "@/lib/cx";
 import styles from "./SearchCombobox.module.scss";
@@ -72,6 +77,16 @@ export function SearchCombobox({
   );
   const showPanel = open && debounced.length >= 2;
   const itemCount = suggestions.length + 1; // + the "search all" row
+
+  // One batched request for the visible rows' mini trend lines (StockX-style).
+  const sparkIds = useMemo(() => suggestions.map((c) => c.id), [suggestions]);
+  const { data: sparks } = usePublicSparklines(sparkIds, showPanel);
+  const sparkMap = useMemo(() => {
+    const m = new Map<string, number[]>();
+    for (const s of sparks ?? [])
+      if (s.points.length > 1) m.set(s.cardId, s.points);
+    return m;
+  }, [sparks]);
 
   // Reset highlight whenever the result set changes.
   useEffect(() => setActive(-1), [debounced, suggestions.length]);
@@ -213,35 +228,49 @@ export function SearchCombobox({
               {category.tcg === "all" ? "cards" : category.label}.
             </div>
           ) : (
-            suggestions.map((c, i) => (
-              <button
-                key={c.id}
-                type="button"
-                role="option"
-                aria-selected={i === active}
-                className={cx(
-                  styles.combo__row,
-                  i === active && styles["combo__row--active"],
-                )}
-                onMouseEnter={() => setActive(i)}
-                onClick={() => selectCard(c)}
-              >
-                <span className={styles.combo__thumb}>
-                  <CardThumb src={c.imageUrl} alt={c.name} size="sm" />
-                </span>
-                <span className={styles.combo__rowText}>
-                  <span className={styles.combo__rowName}>{c.name}</span>
-                  <span className={styles.combo__rowMeta}>
-                    {[c.setName, c.rarity].filter(Boolean).join(" · ")}
+            suggestions.map((c, i) => {
+              const spark = sparkMap.get(c.id);
+              return (
+                <button
+                  key={c.id}
+                  type="button"
+                  role="option"
+                  aria-selected={i === active}
+                  className={cx(
+                    styles.combo__row,
+                    i === active && styles["combo__row--active"],
+                  )}
+                  onMouseEnter={() => setActive(i)}
+                  onClick={() => selectCard(c)}
+                >
+                  <span className={styles.combo__thumb}>
+                    <CardThumb src={c.imageUrl} alt={c.name} size="sm" />
                   </span>
-                </span>
-                {c.price && (
-                  <span className={styles.combo__rowPrice}>
-                    {formatMoney(c.price)}
+                  <span className={styles.combo__rowText}>
+                    <span className={styles.combo__rowName}>{c.name}</span>
+                    <span className={styles.combo__rowMeta}>
+                      {[c.setName, c.rarity].filter(Boolean).join(" · ")}
+                    </span>
                   </span>
-                )}
-              </button>
-            ))
+                  <span className={styles.combo__rowRight}>
+                    {spark && (
+                      <Sparkline
+                        data={spark}
+                        width={56}
+                        height={24}
+                        fill={false}
+                        strokeWidth={1.5}
+                      />
+                    )}
+                    {c.price && (
+                      <span className={styles.combo__rowPrice}>
+                        {formatMoney(c.price)}
+                      </span>
+                    )}
+                  </span>
+                </button>
+              );
+            })
           )}
 
           <button

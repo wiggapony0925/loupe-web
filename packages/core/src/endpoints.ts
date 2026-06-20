@@ -36,6 +36,7 @@ export const ENDPOINTS = {
     search: `${V1}/public/search`,
     trending: `${V1}/public/trending`,
     browse: `${V1}/public/browse`,
+    sparklines: `${V1}/public/sparklines`,
   },
   grades: {
     mine: `${V1}/grades`,
@@ -58,7 +59,8 @@ export const ENDPOINTS = {
     jobs: `${V1}/careers/jobs`,
     job: (slug: string) => `${V1}/careers/jobs/${encodeURIComponent(slug)}`,
     apply: (jobId: string) => `${V1}/careers/jobs/${jobId}/apply`,
-    track: (applicationId: string) => `${V1}/careers/applications/${applicationId}`,
+    track: (applicationId: string) =>
+      `${V1}/careers/applications/${applicationId}`,
   },
   blog: {
     posts: `${V1}/blog/posts`,
@@ -89,7 +91,8 @@ export const ENDPOINTS = {
     user: (id: string) => `${V1}/admin/users/${id}`,
     flags: `${V1}/admin/flags`,
     flag: (id: string) => `${V1}/admin/flags/${id}`,
-    flagByKey: (key: string) => `${V1}/admin/flags/key/${encodeURIComponent(key)}`,
+    flagByKey: (key: string) =>
+      `${V1}/admin/flags/key/${encodeURIComponent(key)}`,
     waitlist: `${V1}/admin/waitlist`,
     waitlistStatus: (id: string) => `${V1}/admin/waitlist/${id}/status`,
     waitlistEntry: (id: string) => `${V1}/admin/waitlist/${id}`,

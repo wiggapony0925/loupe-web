@@ -72,6 +72,15 @@ export interface CardSummary {
   low?: Money;
 }
 
+/** A compact trend series for a list-row sparkline (Robinhood/StockX style). */
+export interface CardSparkline {
+  cardId: string;
+  /** Recent prices, oldest → newest. */
+  points: number[];
+  /** Period change %, signed (drives the up/down colour). */
+  changePct?: number | null;
+}
+
 /** A normalized price history series (from `/v1/cards/:id/prices`). */
 /** One marketplace's live quote for a card (from `/marketplace-prices`). */
 export interface MarketplaceQuote {
@@ -336,7 +345,11 @@ export interface SignUpRequest {
 
 // ── Developer portal: careers + blog (mirrors app/schemas/portal.py) ──
 
-export type EmploymentType = "full_time" | "part_time" | "contract" | "internship";
+export type EmploymentType =
+  | "full_time"
+  | "part_time"
+  | "contract"
+  | "internship";
 export type JobStatus = "draft" | "open" | "closed";
 export type ApplicationStatus =
   | "submitted"

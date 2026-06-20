@@ -26,6 +26,7 @@ import type {
   BlogPost,
   BlogPostInput,
   CardMarket,
+  CardSparkline,
   CardSummary,
   CardValuation,
   ScanResult,
@@ -118,6 +119,14 @@ export const usePublicBrowse = (params: PublicBrowseParams, enabled = true) =>
       staleTime: 60_000,
       placeholderData: (prev) => prev,
     },
+  );
+
+/** Batch sparklines for a set of visible cards (one request, keyed by id). */
+export const usePublicSparklines = (ids: string[], enabled = true) =>
+  useApiQuery<CardSparkline[]>(
+    ["public-sparklines", ids],
+    () => api.cards.sparklines(ids),
+    { enabled: enabled && ids.length > 0, staleTime: 60_000 },
   );
 
 /** Server-derived trending variant (e.g. value-sorted, price-capped). */
