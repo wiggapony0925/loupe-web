@@ -1,6 +1,8 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { ScanLine, TrendingUp } from "lucide-react";
 import { usePortfolioHistory } from "@loupe/core";
-import { Panel } from "@/components";
+import { Panel, Button } from "@/components";
 import {
   MarketChart,
   type RangeKey,
@@ -11,20 +13,22 @@ import styles from "./PortfolioChart.module.scss";
 const RANGES: RangeKey[] = ["1W", "1M", "3M", "1Y", "ALL"];
 
 /**
- * The dashboard's hero: the user's collection value over time — the web twin
- * of the mobile Command Center's portfolio chart. Reuses the same interactive
- * `MarketChart` as every other price surface (scrub, range pills, green/red by
- * period), fed by the real `/v1/grades/history` series.
+ * The dashboard hero: the user's collection value over time — the web twin of
+ * the mobile Command Center's portfolio chart. Always present so the dashboard
+ * leads with "what's mine"; reuses the interactive `MarketChart` (scrub, range
+ * pills, green/red) fed by real `/v1/grades/history`, with a first-run
+ * onboarding state when the vault is still empty.
  */
 export function PortfolioChart() {
+  const navigate = useNavigate();
   const [range, setRange] = useState<RangeKey>("1Y");
   const { data, isLoading } = usePortfolioHistory(range);
   const points = data?.points ?? [];
   const hasData = points.length > 1;
 
-  return (
-    <Panel padding="lg" raised className={styles.portfolio}>
-      {hasData ? (
+  if (hasData) {
+    return (
+      <Panel padding="lg" raised className={styles.portfolio}>
         <MarketChart
           title="Collection value"
           series={[
@@ -43,13 +47,43 @@ export function PortfolioChart() {
           onRangeChange={(r) => setRange(r)}
           format={(v) => formatMoney({ amount: v, currency: "USD" })}
         />
-      ) : (
-        <div className={styles.empty} style={{ height: 300 }}>
-          {isLoading
-            ? "Loading your collection value…"
-            : "Add graded cards to your vault to track your collection value over time."}
-        </div>
-      )}
+      </Panel>
+    );
+  }
+
+  return (
+    <Panel padding="lg" raised className={styles.portfolio}>
+      <div className={styles.empty}>
+        {isLoading ? (
+          <span className={styles.emptyLoading}>Loading your collection…</span>
+        ) : (
+          <>
+            <span className={styles.emptyIcon} aria-hidden>
+              <TrendingUp size={26} />
+            </span>
+            <span className={styles.emptyEyebrow}>Your collection</span>
+            <h3 className={styles.emptyTitle}>
+              Track your cards like a portfolio
+            </h3>
+            <p className={styles.emptyText}>
+              Scan or add graded cards to your vault and watch your
+              collection&rsquo;s value move over time — charted right here, like
+              a stock ticker.
+            </p>
+            <div className={styles.emptyActions}>
+              <Button
+                leadingIcon={<ScanLine size={16} />}
+                onClick={() => navigate("/scanner")}
+              >
+                Scan a card
+              </Button>
+              <Button variant="secondary" onClick={() => navigate("/cards")}>
+                Browse cards
+              </Button>
+            </div>
+          </>
+        )}
+      </div>
     </Panel>
   );
 }

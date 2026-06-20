@@ -94,10 +94,13 @@ export function CommandCenter() {
         />
       ) : (
         <>
-          {portfolio && portfolio.holdings > 0 && (
-            <Flaggable flag="cc_portfolio" label="Portfolio">
-              <div className={styles.portfolioSection}>
-                <PortfolioChart />
+          {/* Collection-first: the dashboard leads with the user's own
+              portfolio chart (mobile Command Center parity), with an
+              onboarding state when the vault is still empty. */}
+          <Flaggable flag="cc_portfolio" label="Collection">
+            <div className={styles.portfolioSection}>
+              <PortfolioChart />
+              {portfolio && portfolio.holdings > 0 && (
                 <Panel padding="lg" raised className={styles.portfolio}>
                   <div className={styles.portfolioStats}>
                     <Stat
@@ -130,12 +133,14 @@ export function CommandCenter() {
                     View analytics
                   </Button>
                 </Panel>
-              </div>
-            </Flaggable>
-          )}
+              )}
+            </div>
+          </Flaggable>
 
+          {/* Discovery: today's #1 trending card — clearly secondary to the
+              collection above (it's the market, not your cards). */}
           {featured && (
-            <Flaggable flag="cc_featured" label="Featured card">
+            <Flaggable flag="cc_featured" label="Trending card">
               <FeaturedHero card={featured} />
             </Flaggable>
           )}
