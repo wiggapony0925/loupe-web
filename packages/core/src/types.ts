@@ -7,6 +7,56 @@ export interface Money {
 
 export type Trend = "up" | "down" | "flat";
 
+/** One rung of the per-grade price ladder (UNGRADED, PSA 10, BGS 9.5, …). */
+export interface GradePrice {
+  /** Display label, e.g. "UNGRADED" or "PSA 10". */
+  grade: string;
+  /** Grading house, lowercased ("psa" | "bgs" | "cgc"), or null for raw. */
+  house?: string | null;
+  lastSale?: Money | null;
+  lastSaleAt?: string | null;
+  lastSaleUrl?: string | null;
+  medianRecent?: Money | null;
+  salesCount: number;
+  /** 30-day median-vs-median change. */
+  deltaPct?: number | null;
+}
+
+/** Loupe Value — equilibrium fair value + the signals behind it + grade ladder. */
+export interface CardValuation {
+  cardId: string;
+  /** The blended equilibrium price for the raw card. */
+  fairValue?: Money | null;
+  /** How many independent signals agreed (0–3): more = tighter estimate. */
+  confidence: number;
+  signals: {
+    soldComps?: Money | null;
+    listings?: Money | null;
+    catalog?: Money | null;
+  };
+  grades: GradePrice[];
+}
+
+/** One ranked match from a card scan (POST /v1/cards/identify). */
+export interface ScanCandidate {
+  /** Route id for the card detail page (the composite "<source>:<id>"). */
+  id: string;
+  name: string;
+  setName?: string;
+  number?: string;
+  imageUrl?: string;
+  tcg?: string;
+  /** 0–1 match confidence. */
+  confidence: number;
+}
+
+/** Result of identifying a card from a photo. */
+export interface ScanResult {
+  candidates: ScanCandidate[];
+  /** Confidence of the top candidate (0 if none). */
+  accuracy: number;
+}
+
 /** A card as shown in lists/grids — mapped from trending/search results. */
 export interface CardSummary {
   id: string;

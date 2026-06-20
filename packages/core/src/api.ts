@@ -8,6 +8,7 @@ import {
   canonicalToSummary,
   toCardMarket,
   toCardSummary,
+  toCardValuation,
   toMarketplaceQuotes,
   toPriceSeries,
   type ApiCard,
@@ -48,6 +49,8 @@ import type {
   BlogPostInput,
   CardMarket,
   CardSummary,
+  CardValuation,
+  ScanResult,
   CreateGradeInput,
   FeatureFlag,
   FeatureFlagCreateInput,
@@ -81,6 +84,21 @@ import type {
   WaitlistStatus,
   WatchlistItem,
 } from "./types";
+
+interface RawIdentifyCandidate {
+  card_id?: string | null;
+  upstream_id?: string | null;
+  name: string;
+  set_name?: string | null;
+  number?: string | null;
+  image_url?: string | null;
+  tcg?: string | null;
+  confidence?: number;
+}
+interface RawIdentify {
+  candidates?: RawIdentifyCandidate[];
+  accuracy_score?: number;
+}
 
 export const api = {
   cards: {
@@ -174,6 +192,30 @@ export const api = {
     marketplacePrices: async (id: string): Promise<MarketplaceQuote[]> => {
       const d = await apiFetch<Parameters<typeof toMarketplaceQuotes>[0]>(ENDPOINTS.cards.marketplacePrices(id));
       return toMarketplaceQuotes(d);
+    },
+    /** Loupe Value — equilibrium fair value + signals + per-grade ladder. */
+    valuation: async (id: string): Promise<CardValuation> => {
+      const d = await apiFetch<Parameters<typeof toCardValuation>[0]>(ENDPOINTS.cards.valuation(id));
+      return toCardValuation(d);
+    },
+    /** Identify a card from a photo (multipart upload) → ranked candidates. */
+    identify: async (image: Blob, tcg?: string): Promise<ScanResult> => {
+      const form = new FormData();
+      form.append("image", image, "scan.jpg");
+      if (tcg) form.append("tcg", tcg);
+      const d = await apiFetch<RawIdentify>(ENDPOINTS.cards.identify, { method: "POST", form });
+      const candidates = (d.candidates ?? [])
+        .map((c) => ({
+          id: c.upstream_id ?? c.card_id ?? "",
+          name: c.name,
+          setName: c.set_name ?? undefined,
+          number: c.number ?? undefined,
+          imageUrl: c.image_url ?? undefined,
+          tcg: c.tcg ?? undefined,
+          confidence: typeof c.confidence === "number" ? c.confidence : 0,
+        }))
+        .filter((c) => c.id);
+      return { candidates, accuracy: typeof d.accuracy_score === "number" ? d.accuracy_score : 0 };
     },
     /** Public canonical identity. */
     canonical: async (id: string): Promise<CardSummary> => {

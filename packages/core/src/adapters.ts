@@ -1,5 +1,66 @@
 /** Maps raw backend card payloads onto the web/mobile view models. */
-import type { CardMarket, CardSummary, MarketplaceQuote, Money, PriceSeries } from "./types";
+import type {
+  CardMarket,
+  CardSummary,
+  CardValuation,
+  GradePrice,
+  MarketplaceQuote,
+  Money,
+  PriceSeries,
+} from "./types";
+
+type RawMoney = { amount?: number; currency?: string } | null | undefined;
+
+function money(m: RawMoney): Money | null {
+  return m && typeof m.amount === "number"
+    ? { amount: m.amount, currency: m.currency ?? "USD" }
+    : null;
+}
+
+interface RawGradePrice {
+  grade: string;
+  house?: string | null;
+  last_sale?: (RawMoney & { sold_at?: string | null; url?: string | null }) | null;
+  median_recent?: number | null;
+  sales_count?: number;
+  delta_pct?: number | null;
+}
+
+interface RawValuation {
+  card_id: string;
+  fair_value?: RawMoney;
+  confidence?: number;
+  signals?: { sold_comps?: RawMoney; listings?: RawMoney; catalog?: RawMoney };
+  grades?: RawGradePrice[];
+}
+
+/** `/cards/{id}/valuation` payload → Loupe Value view model. */
+export function toCardValuation(d: RawValuation): CardValuation {
+  const toGrade = (g: RawGradePrice): GradePrice => ({
+    grade: g.grade,
+    house: g.house ?? null,
+    lastSale: money(g.last_sale),
+    lastSaleAt: g.last_sale?.sold_at ?? null,
+    lastSaleUrl: g.last_sale?.url ?? null,
+    medianRecent:
+      typeof g.median_recent === "number"
+        ? { amount: g.median_recent, currency: money(g.last_sale)?.currency ?? "USD" }
+        : null,
+    salesCount: g.sales_count ?? 0,
+    deltaPct: g.delta_pct ?? null,
+  });
+  return {
+    cardId: d.card_id,
+    fairValue: money(d.fair_value),
+    confidence: d.confidence ?? 0,
+    signals: {
+      soldComps: money(d.signals?.sold_comps),
+      listings: money(d.signals?.listings),
+      catalog: money(d.signals?.catalog),
+    },
+    grades: (d.grades ?? []).map(toGrade),
+  };
+}
 
 interface RawQuote {
   source?: string;

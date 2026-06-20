@@ -41,6 +41,9 @@ type QueryValue = string | number | boolean | undefined;
 
 export interface ApiFetchInit extends Omit<RequestInit, "body"> {
   json?: unknown;
+  /** Multipart body (file uploads, e.g. card scan). The browser sets the
+   *  multipart Content-Type + boundary, so we never set it ourselves. */
+  form?: FormData;
   query?: Record<string, QueryValue>;
   skipAuth?: boolean;
 }
@@ -73,13 +76,15 @@ export async function apiFetchEnvelope<T = unknown>(
   init: ApiFetchInit = {},
 ): Promise<Envelope<T>> {
   const cfg = getApiConfig();
-  const { json, query, skipAuth, headers, ...rest } = init;
+  const { json, form, query, skipAuth, headers, ...rest } = init;
   const finalHeaders: Record<string, string> = {
     Accept: "application/json",
     ...((headers as Record<string, string>) ?? {}),
   };
   let body: BodyInit | undefined;
-  if (json !== undefined) {
+  if (form !== undefined) {
+    body = form; // do NOT set Content-Type — the browser adds the boundary
+  } else if (json !== undefined) {
     finalHeaders["Content-Type"] = "application/json";
     body = JSON.stringify(json);
   }

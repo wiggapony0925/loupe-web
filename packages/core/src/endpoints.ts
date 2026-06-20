@@ -22,6 +22,8 @@ export const ENDPOINTS = {
     market: (id: string) => `${V1}/cards/${id}/market`,
     canonical: (id: string) => `${V1}/cards/${id}/canonical`,
     marketplacePrices: (id: string) => `${V1}/cards/${id}/marketplace-prices`,
+    valuation: (id: string) => `${V1}/cards/${id}/valuation`,
+    identify: `${V1}/cards/identify`,
   },
   /** Public web storefront — server-side search/trending derivation. */
   public: {

@@ -1,11 +1,38 @@
 import { Link, useParams } from "react-router-dom";
-import { ExternalLink } from "lucide-react";
-import { useCard, useMarket, useMarketplacePrices, usePriceHistory, CARD_CHART_RANGE_TO_BACKEND } from "@loupe/core";
+import { ExternalLink, ScanLine, ShieldCheck } from "lucide-react";
+import {
+  useCard,
+  useMarket,
+  useMarketplacePrices,
+  usePriceHistory,
+  useValuation,
+  CARD_CHART_RANGE_TO_BACKEND,
+  type GradePrice,
+  type Money,
+} from "@loupe/core";
 import { CardThumb, Panel, Badge, Button, CardPriceChart, Skeleton, NoteCard, Stat, Delta } from "@/components";
+import { ScanButton } from "@/features/scan";
 import { WatchlistButton } from "../WatchlistButton/WatchlistButton";
 import { AddToCollectionButton } from "@/features/collection";
 import { formatMoney } from "@/lib/format";
 import styles from "./ProductDetail.module.scss";
+
+const CONFIDENCE_LABEL = ["Estimate", "Low confidence", "Good confidence", "High confidence"];
+
+/** "PSA 10" → nice label; "UNGRADED" → "Raw". */
+function gradeLabel(g: GradePrice): string {
+  return g.grade === "UNGRADED" ? "Raw" : g.grade;
+}
+
+function ValuationSignal({ label, money, hint }: { label: string; money?: Money | null; hint: string }) {
+  return (
+    <div className={styles.signal}>
+      <span className={styles.signal__label}>{label}</span>
+      <span className={styles.signal__value}>{money ? formatMoney(money) : "—"}</span>
+      <span className={styles.signal__hint}>{hint}</span>
+    </div>
+  );
+}
 
 /** Real marketplace search links for a card name. */
 function marketplaces(name: string) {
@@ -27,6 +54,7 @@ export function ProductDetail() {
   // its own range-aware series.
   const { data: series } = usePriceHistory(id, CARD_CHART_RANGE_TO_BACKEND["1M"]);
   const { data: quotes } = useMarketplacePrices(id);
+  const { data: valuation } = useValuation(id);
 
   if (isLoading) return <ProductDetailSkeleton />;
   if (isError || !card) {
@@ -120,6 +148,52 @@ export function ProductDetail() {
         </Panel>
       </div>
 
+      {valuation && (valuation.fairValue || valuation.grades.length > 0) && (
+        <section className={styles.valuation}>
+          <div className={styles.valuation__head}>
+            <div>
+              <h2 className={styles.product__h2}>Loupe Value</h2>
+              <p className={styles.valuation__sub}>
+                Our equilibrium estimate — where actual sold comps, live listings, and catalog prices
+                meet. One honest number instead of a wall of figures.
+              </p>
+            </div>
+            {valuation.fairValue && (
+              <div className={styles.valuation__fair}>
+                <span className={styles.valuation__amount}>{formatMoney(valuation.fairValue)}</span>
+                <span className={styles.valuation__conf} data-level={valuation.confidence}>
+                  <ShieldCheck size={13} /> {CONFIDENCE_LABEL[valuation.confidence] ?? "Estimate"}
+                </span>
+              </div>
+            )}
+          </div>
+
+          <div className={styles.valuation__signals}>
+            <ValuationSignal label="Sold comps" money={valuation.signals.soldComps} hint="Actual recent sales" />
+            <ValuationSignal label="Lowest listings" money={valuation.signals.listings} hint="Live asking prices" />
+            <ValuationSignal label="Catalog market" money={valuation.signals.catalog} hint="Aggregated market" />
+          </div>
+
+          {valuation.grades.length > 0 && (
+            <div className={styles.grades}>
+              <h3 className={styles.grades__title}>Price by grade</h3>
+              <div className={styles.grades__row}>
+                {valuation.grades.map((g) => (
+                  <div key={g.grade} className={styles.grade}>
+                    <span className={styles.grade__label}>{gradeLabel(g)}</span>
+                    <span className={styles.grade__price}>{g.lastSale ? formatMoney(g.lastSale) : "—"}</span>
+                    <span className={styles.grade__meta}>
+                      {g.deltaPct != null && <Delta percent={g.deltaPct} variant="arrow" />}
+                      {g.salesCount > 0 && <span className={styles.grade__count}>{g.salesCount} sold</span>}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </section>
+      )}
+
       <section className={styles.product__section}>
         <div className={styles.product__chart}>
           <h2 className={styles.product__h2}>Price history</h2>
@@ -169,6 +243,29 @@ export function ProductDetail() {
               </div>
             </a>
           ))}
+        </div>
+      </section>
+
+      {/* Loupe Grade — grading happens on-device via the app + Scanner. */}
+      <section className={styles.gradeCta}>
+        <div className={styles.gradeCta__body}>
+          <span className={styles.gradeCta__eyebrow}>
+            <ScanLine size={14} /> Loupe Grade
+          </span>
+          <h2 className={styles.gradeCta__title}>What would this card grade?</h2>
+          <p className={styles.gradeCta__sub}>
+            Loupe measures centering, edges, corners, and surface and predicts the PSA / BGS / CGC grade —
+            scan {card.name} with the Loupe app or the Loupe Scanner to get an instant estimate and see
+            what it's worth slabbed.
+          </p>
+          <div className={styles.gradeCta__actions}>
+            <ScanButton label="Scan a card" size="lg" />
+            <Link to="/scanner">
+              <Button variant="secondary" size="lg">
+                Get the Scanner
+              </Button>
+            </Link>
+          </div>
         </div>
       </section>
     </div>

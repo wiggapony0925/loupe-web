@@ -27,6 +27,8 @@ import type {
   BlogPostInput,
   CardMarket,
   CardSummary,
+  CardValuation,
+  ScanResult,
   CreateGradeInput,
   FeatureFlag,
   FeatureFlagCreateInput,
@@ -130,6 +132,18 @@ export const useMarketplacePrices = (id: string) =>
     enabled: Boolean(id),
     staleTime: 120_000,
   });
+
+/** Loupe Value — equilibrium fair value + signals + per-grade ladder. */
+export const useValuation = (id: string) =>
+  useApiQuery<CardValuation>(["valuation", id], () => api.cards.valuation(id), {
+    enabled: Boolean(id),
+    staleTime: 120_000,
+  });
+
+/** Identify a card from a photo (the web scan flow). */
+export const useIdentifyCard = (
+  options?: Omit<UseMutationOptions<ScanResult, ApiError, { image: Blob; tcg?: string }>, "mutationFn">,
+) => useApiMutation<ScanResult, { image: Blob; tcg?: string }>(({ image, tcg }) => api.cards.identify(image, tcg), options);
 
 /** Canonical identity for a single card. */
 export const useCard = (id: string) =>

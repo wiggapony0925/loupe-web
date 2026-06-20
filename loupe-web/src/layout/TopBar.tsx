@@ -6,6 +6,7 @@ import { IconButton } from "@/components/IconButton/IconButton";
 import { ThemeToggle } from "@/components/ThemeToggle/ThemeToggle";
 import { Tooltip } from "@/components/Tooltip/Tooltip";
 import { SearchCombobox } from "@/components";
+import { ScanButton } from "@/features/scan";
 import { useAuth } from "@/auth/AuthProvider";
 import styles from "./TopBar.module.scss";
 
@@ -24,6 +25,7 @@ export function TopBar() {
       />
 
       <div className={styles.actions}>
+        <ScanButton label="Scan" size="sm" />
         <span className={styles.themeToggle}>
           <ThemeToggle compact />
         </span>

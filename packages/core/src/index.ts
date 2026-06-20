@@ -21,6 +21,8 @@ export {
   usePriceHistory,
   useMarket,
   useMarketplacePrices,
+  useValuation,
+  useIdentifyCard,
   useCard,
   useMe,
   useLogin,
