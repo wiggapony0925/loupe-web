@@ -339,6 +339,35 @@ export function MarketChart({
   const yTicks = 4;
   const change = onRangeChange;
 
+  // Per-series values at the scrubbed point — powers the multi-line tooltip.
+  const scrubT = active !== null ? primaryPts[active]?.t : undefined;
+  const tipRows =
+    active !== null && scrubT !== undefined
+      ? geo.built
+          .map((b) => {
+            const j = nearestIndexByT(b.series.points, scrubT);
+            return {
+              label: b.series.label ?? b.series.id,
+              color: b.color,
+              v: b.series.points[j]?.v,
+            };
+          })
+          .filter(
+            (r): r is { label: string; color: string; v: number } =>
+              r.v != null,
+          )
+      : [];
+  // "Equilibrium": when the compared lines have converged to ~the same price,
+  // collapse to a single green readout instead of N near-identical rows.
+  const tipVals = tipRows.map((r) => r.v);
+  const tipMax = tipVals.length ? Math.max(...tipVals) : 0;
+  const tipMin = tipVals.length ? Math.min(...tipVals) : 0;
+  const equilibrium =
+    tipRows.length > 1 && tipMin > 0 && (tipMax - tipMin) / tipMax < 0.015;
+  // Flip the tooltip to the other side near the right edge so it never clips.
+  const tipLeft = crossX > geo.innerW * 0.6 ? crossX - 8 : crossX + 8;
+  const tipAlignRight = crossX > geo.innerW * 0.6;
+
   return (
     <div
       className={styles.chart}
@@ -502,15 +531,55 @@ export function MarketChart({
           )}
         </svg>
 
-        {/* scrub value flag */}
-        {active !== null && primary && (
-          <div
-            className={styles.chart__flag}
-            style={{ left: Math.min(Math.max(crossX, 30), geo.innerW - 30) }}
-          >
-            {format(shownV)}
-          </div>
-        )}
+        {/* scrub readout — single price flag, or a multi-line tooltip when comparing */}
+        {active !== null &&
+          primary &&
+          (isSingle ? (
+            <div
+              className={styles.chart__flag}
+              style={{ left: Math.min(Math.max(crossX, 30), geo.innerW - 30) }}
+            >
+              {format(shownV)}
+            </div>
+          ) : (
+            <div
+              className={cx(
+                styles.chart__tip,
+                tipAlignRight && styles["chart__tip--right"],
+              )}
+              style={{ left: tipLeft }}
+            >
+              {scrubT !== undefined && (
+                <div className={styles.chart__tipDate}>{fmtTime(scrubT)}</div>
+              )}
+              {equilibrium ? (
+                <div className={styles.chart__tipRow}>
+                  <span
+                    className={styles.chart__tipDot}
+                    style={{ background: "var(--up)" }}
+                  />
+                  <span className={styles.chart__tipLabel}>Equilibrium</span>
+                  <span
+                    className={styles.chart__tipVal}
+                    style={{ color: "var(--up)" }}
+                  >
+                    {format((tipMax + tipMin) / 2)}
+                  </span>
+                </div>
+              ) : (
+                tipRows.map((r, i) => (
+                  <div key={i} className={styles.chart__tipRow}>
+                    <span
+                      className={styles.chart__tipDot}
+                      style={{ background: r.color }}
+                    />
+                    <span className={styles.chart__tipLabel}>{r.label}</span>
+                    <span className={styles.chart__tipVal}>{format(r.v)}</span>
+                  </div>
+                ))
+              )}
+            </div>
+          ))}
       </div>
 
       <div

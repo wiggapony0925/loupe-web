@@ -2,28 +2,37 @@
 .tiers {
   display: flex;
   flex-direction: column;
-  gap: var(--space-sm);
+  gap: var(--space-md);
 
+  // Segmented control of grading companies.
   &__companies {
     display: inline-flex;
     align-self: flex-start;
-    flex-wrap: wrap;
-    gap: 4px;
-    padding: 4px;
+    max-width: 100%;
+    gap: 2px;
+    padding: 3px;
     border-radius: var(--radius-pill);
     background: var(--bg-sunken);
     border: 1px solid var(--line);
+    overflow-x: auto;
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
   }
 
   &__company {
-    padding: 6px 16px;
+    flex: 0 0 auto;
+    padding: 6px 18px;
     font-size: var(--text-sm);
     font-weight: 700;
     color: var(--ink-dim);
     border-radius: var(--radius-pill);
     transition:
       background-color var(--dur-fast) var(--ease-out),
-      color var(--dur-fast) var(--ease-out);
+      color var(--dur-fast) var(--ease-out),
+      box-shadow var(--dur-fast) var(--ease-out);
 
     &:hover {
       color: var(--ink);
@@ -36,13 +45,13 @@
     }
   }
 
-  // Horizontal, scrollable grade rail — the full scale fits without wrapping
-  // into a tall block on mobile.
+  // Horizontal, scrollable grade rail.
   &__grades {
     display: flex;
+    align-items: stretch; // every chip is the same height → row never jumps
     gap: var(--space-sm);
     overflow-x: auto;
-    padding-bottom: 4px;
+    padding: 2px 2px 6px;
     scrollbar-width: none;
     -webkit-overflow-scrolling: touch;
 
@@ -51,22 +60,32 @@
     }
   }
 
+  // One grade chip — fixed footprint so tag / no-tag chips never resize the
+  // row (which made the rail "jump" when switching houses).
   &__grade {
     flex: 0 0 auto;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 1px;
-    padding: 5px 12px;
-    border: 1px solid var(--line-strong);
-    border-radius: var(--radius-pill);
+    justify-content: center;
+    gap: 2px;
+    min-width: 66px;
+    min-height: 62px;
+    padding: 8px 12px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    background: var(--bg-elevated);
     transition:
       border-color var(--dur-fast) var(--ease-out),
-      color var(--dur-fast) var(--ease-out),
-      background-color var(--dur-fast) var(--ease-out);
+      background-color var(--dur-fast) var(--ease-out),
+      transform var(--dur-fast) var(--ease-out),
+      box-shadow var(--dur-fast) var(--ease-out);
 
     &:hover {
       border-color: var(--ink-dim);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-card);
+
       .tiers__gradeNum {
         color: var(--ink);
       }
@@ -75,6 +94,8 @@
     &--active {
       background: var(--accent-mint);
       border-color: var(--accent-mint);
+      box-shadow: 0 6px 16px
+        color-mix(in srgb, var(--accent-mint) 38%, transparent);
 
       .tiers__gradeNum,
       .tiers__gradeTag,
@@ -87,28 +108,38 @@
     &--readout {
       cursor: default;
       border-style: dashed;
+
+      &:hover {
+        transform: none;
+        box-shadow: none;
+        border-color: var(--line);
+      }
     }
   }
 
   &__gradeNum {
     font-size: var(--text-xs);
-    font-weight: 700;
-    color: var(--ink-dim);
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    color: var(--ink);
     white-space: nowrap;
   }
 
+  // Flagship designation badge (Gem Mint, Pristine, Black Label…).
   &__gradeTag {
-    font-size: 9px;
+    font-size: 8px;
     font-weight: 800;
-    letter-spacing: 0.05em;
+    line-height: 1;
+    letter-spacing: 0.06em;
     text-transform: uppercase;
     color: var(--accent-amber);
+    white-space: nowrap;
   }
 
-  // The per-tier price, in theme green — the whole point of the chip.
+  // The per-tier price, in theme green — the focal point of the chip.
   &__gradePrice {
     margin-top: 1px;
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 800;
     color: var(--accent-mint);
     white-space: nowrap;

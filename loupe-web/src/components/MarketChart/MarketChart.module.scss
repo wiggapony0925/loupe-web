@@ -120,6 +120,71 @@
     font-variant-numeric: tabular-nums;
   }
 
+  // Multi-line compare tooltip — a floating card listing each series' value
+  // at the scrubbed point (best-in-class financial-chart crosshair readout).
+  &__tip {
+    position: absolute;
+    top: 6px;
+    transform: translateX(0);
+    min-width: 132px;
+    padding: 8px 10px;
+    border-radius: var(--radius-md);
+    background: color-mix(in srgb, var(--bg-elevated) 92%, transparent);
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+    border: 1px solid var(--line-strong);
+    box-shadow: var(--shadow-pop);
+    pointer-events: none;
+    z-index: 3;
+
+    // Flip anchor when near the right edge so it never clips.
+    &--right {
+      transform: translateX(-100%);
+    }
+  }
+
+  &__tipDate {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--ink-dim);
+    margin-bottom: 6px;
+  }
+
+  &__tipRow {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 2px 0;
+
+    & + & {
+      margin-top: 1px;
+    }
+  }
+
+  &__tipDot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  &__tipLabel {
+    font-size: var(--text-xs);
+    color: var(--ink-dim);
+    margin-right: auto;
+    white-space: nowrap;
+  }
+
+  &__tipVal {
+    font-size: var(--text-xs);
+    font-weight: 800;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
   &__ranges {
     display: flex;
     justify-content: center;
