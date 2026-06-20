@@ -9,6 +9,7 @@
   height: var(--topbar-h);
   padding: 0 var(--space-2xl);
   background: color-mix(in srgb, var(--bg-base) 82%, transparent);
+  -webkit-backdrop-filter: saturate(180%) blur(16px);
   backdrop-filter: saturate(180%) blur(16px);
   border-bottom: 1px solid var(--line);
 

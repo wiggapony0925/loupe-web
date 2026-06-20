@@ -27,6 +27,7 @@
     position: fixed;
     inset: 0;
     background: color-mix(in srgb, #000 55%, transparent);
+    -webkit-backdrop-filter: blur(2px);
     backdrop-filter: blur(2px);
     z-index: 99;
     animation: modal-fade var(--dur-fast) var(--ease-out);

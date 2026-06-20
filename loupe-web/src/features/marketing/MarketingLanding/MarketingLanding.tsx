@@ -12,7 +12,7 @@ import {
   Wallet,
 } from "lucide-react";
 import { usePriceHistory, useTrending } from "@loupe/core";
-import { Button, ThemeToggle, Skeleton, CardThumb, Delta, Footer, MarketChart, ScrollToTop } from "@/components";
+import { Button, ThemeToggle, Skeleton, CardThumb, Delta, Footer, MarketChart, ScrollToTop, NavDrawer } from "@/components";
 import { AuroraField, Logo } from "@/assets";
 import { DeviceReveal } from "../DeviceReveal/DeviceReveal";
 import { TrendingCarousels } from "../TrendingCarousels/TrendingCarousels";
@@ -278,6 +278,7 @@ function MarketingNav() {
         <Link to={user ? "/app/vault" : "/login"}>Vault</Link>
         <Link to="/scanner">Scanner</Link>
       </div>
+      {/* Desktop actions (≥ lg) */}
       <div className={styles.navActions}>
         <ThemeToggle compact />
         {user ? (
@@ -296,6 +297,49 @@ function MarketingNav() {
             </Link>
           </>
         )}
+      </div>
+
+      {/* Phone + tablet: a primary CTA + the drawer (< lg) */}
+      <div className={styles.navMobile}>
+        <Link to={user ? "/app" : "/signup"}>
+          <Button size="sm">{user ? "Dashboard" : "Sign up"}</Button>
+        </Link>
+        <NavDrawer>
+          {(close) => (
+            <nav className={styles.drawer}>
+              <Link to="/cards" className={styles.drawer__link} onClick={close}>
+                Markets
+              </Link>
+              <Link
+                to={user ? "/app/vault" : "/login"}
+                className={styles.drawer__link}
+                onClick={close}
+              >
+                Vault
+              </Link>
+              <Link to="/scanner" className={styles.drawer__link} onClick={close}>
+                Scanner
+              </Link>
+              {!user && (
+                <Link to="/login" className={styles.drawer__link} onClick={close}>
+                  Log in
+                </Link>
+              )}
+              <div className={styles.drawer__footer}>
+                <ThemeToggle compact />
+                <Link
+                  to={user ? "/app" : "/signup"}
+                  className={styles.drawer__cta}
+                  onClick={close}
+                >
+                  <Button size="md" block trailingIcon={<ArrowRight size={16} />}>
+                    {user ? "Go to dashboard" : "Create your account"}
+                  </Button>
+                </Link>
+              </div>
+            </nav>
+          )}
+        </NavDrawer>
       </div>
     </nav>
   );

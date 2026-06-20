@@ -1,0 +1,109 @@
+// Block: nav-drawer — hamburger + slide-in glass side panel. BEM.
+
+// Hamburger trigger — visible on phone + tablet portrait, gone on desktop.
+.trigger {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--line);
+  background: var(--bg-elevated);
+  color: var(--ink);
+  transition: background-color var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out);
+
+  &:hover {
+    background: var(--bg-sunken);
+    border-color: var(--line-strong);
+  }
+
+  @include bp-up("lg") {
+    display: none;
+  }
+}
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: color-mix(in srgb, #000 45%, transparent);
+  animation: nd-fade var(--dur-fast) var(--ease-out);
+}
+
+.panel {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  z-index: 61;
+  width: min(86vw, 340px);
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-lg) var(--space-lg) calc(var(--space-lg) + env(safe-area-inset-bottom, 0px));
+  background: color-mix(in srgb, var(--bg-base) 85%, transparent);
+  -webkit-backdrop-filter: saturate(180%) blur(22px);
+  backdrop-filter: saturate(180%) blur(22px);
+  box-shadow: 0 0 40px rgba(0, 0, 0, 0.35);
+
+  &--right {
+    right: 0;
+    border-left: 1px solid var(--line);
+    animation: nd-in-right var(--dur-base, 0.22s) var(--ease-out);
+  }
+  &--left {
+    left: 0;
+    border-right: 1px solid var(--line);
+    animation: nd-in-left var(--dur-base, 0.22s) var(--ease-out);
+  }
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: var(--space-lg);
+  margin-bottom: var(--space-sm);
+  border-bottom: 1px solid var(--line);
+}
+
+.close {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-md);
+  color: var(--ink-dim);
+
+  &:hover {
+    background: var(--bg-sunken);
+    color: var(--ink);
+  }
+}
+
+.body {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.srTitle {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+
+@keyframes nd-fade {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes nd-in-right {
+  from {
+    transform: translateX(100%);
+  }
+}
+@keyframes nd-in-left {
+  from {
+    transform: translateX(-100%);
+  }
+}

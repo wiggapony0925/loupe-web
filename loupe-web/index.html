@@ -4,7 +4,16 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="color-scheme" content="dark light" />
-    <meta name="theme-color" content="#0b0b0d" />
+    <!-- Tint Safari's chrome to match the page (Liquid Glass blends the UI into
+         the page colour) — per scheme so it's right in light and dark. -->
+    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0b0b0d" media="(prefers-color-scheme: dark)" />
+    <!-- Installed-to-home-screen (PWA) — full-bleed, translucent status bar so
+         our own glass nav sits under it. Pairs with viewport-fit=cover + safe-area insets. -->
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="Loupe" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 
     <title>Loupe — Scan, value &amp; track your trading cards</title>
     <meta

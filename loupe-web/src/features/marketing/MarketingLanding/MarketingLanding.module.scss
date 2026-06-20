@@ -15,6 +15,7 @@
   height: var(--topbar-h);
   padding: 0 var(--space-2xl);
   background: color-mix(in srgb, var(--bg-base) 80%, transparent);
+  -webkit-backdrop-filter: saturate(180%) blur(16px);
   backdrop-filter: saturate(180%) blur(16px);
   border-bottom: 1px solid var(--line);
 }
@@ -42,7 +43,8 @@
       color: var(--ink);
     }
   }
-  @include bp-down("md") {
+  // Phone + tablet portrait → links move into the drawer.
+  @include bp-down("lg") {
     display: none;
   }
 }
@@ -50,11 +52,56 @@
   display: flex;
   align-items: center;
   gap: var(--space-md);
+  @include bp-down("lg") {
+    display: none;
+  }
 }
 .loginLink {
   font-size: var(--text-md);
   font-weight: 600;
   color: var(--ink);
+}
+
+// Phone + tablet cluster: primary CTA + hamburger drawer.
+.navMobile {
+  display: none;
+  align-items: center;
+  gap: var(--space-sm);
+  @include bp-down("lg") {
+    display: flex;
+  }
+}
+
+// Drawer body (rendered inside NavDrawer).
+.drawer {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+
+  &__link {
+    display: block;
+    padding: var(--space-md) var(--space-xs);
+    font-size: var(--text-lg);
+    font-weight: 600;
+    color: var(--ink);
+    border-bottom: 1px solid var(--line);
+
+    &:hover {
+      color: var(--accent-mint);
+    }
+  }
+
+  &__footer {
+    margin-top: auto;
+    padding-top: var(--space-lg);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+  }
+
+  &__cta {
+    display: block;
+  }
 }
 
 /* ── Hero ── */

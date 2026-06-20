@@ -40,5 +40,6 @@ export { Markdown } from "./Markdown/Markdown";
 export { FeatureGate } from "./FeatureGate/FeatureGate";
 export { ScrollToTop } from "./ScrollToTop/ScrollToTop";
 export { TiltCard } from "./TiltCard/TiltCard";
+export { NavDrawer } from "./NavDrawer/NavDrawer";
 export { Flaggable, useFlaggable } from "./Flaggable/Flaggable";
 export { InspectOverlay } from "./InspectOverlay/InspectOverlay";

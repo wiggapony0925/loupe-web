@@ -13,6 +13,7 @@
   height: var(--topbar-h);
   padding: 0 var(--space-xl);
   background: color-mix(in srgb, var(--bg-base) 88%, transparent);
+  -webkit-backdrop-filter: blur(12px);
   backdrop-filter: blur(12px);
   @include hairline(bottom);
 
