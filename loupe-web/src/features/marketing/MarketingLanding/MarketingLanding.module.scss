@@ -1,0 +1,424 @@
+.page {
+  min-height: 100vh;
+  background: var(--bg-base);
+}
+
+/* ── Nav ── */
+.nav {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-lg);
+  height: var(--topbar-h);
+  padding: 0 var(--space-2xl);
+  background: color-mix(in srgb, var(--bg-base) 80%, transparent);
+  backdrop-filter: saturate(180%) blur(16px);
+  border-bottom: 1px solid var(--line);
+}
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-sm);
+  font-size: var(--text-lg);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--ink);
+}
+.logo {
+  color: var(--accent-mint);
+  font-size: 22px;
+}
+.navLinks {
+  display: flex;
+  gap: var(--space-xl);
+  a {
+    font-size: var(--text-md);
+    font-weight: 500;
+    color: var(--ink-muted);
+    &:hover {
+      color: var(--ink);
+    }
+  }
+  @include bp-down("md") {
+    display: none;
+  }
+}
+.navActions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+.loginLink {
+  font-size: var(--text-md);
+  font-weight: 600;
+  color: var(--ink);
+}
+
+/* ── Hero ── */
+.hero {
+  position: relative;
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  align-items: center;
+  gap: var(--space-3xl);
+  // max-width: var(--content-max); NOTE: if we want to add a width to fit the apps bounds again add this again 
+  margin: 0 auto;
+  padding: var(--space-3xl) var(--space-2xl);
+
+  @include bp-down("lg") {
+    grid-template-columns: 1fr;
+  }
+}
+.heroAurora {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+.heroText {
+  position: relative;
+  z-index: 1;
+}
+.eyebrow {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--accent-mint);
+  margin-bottom: var(--space-md);
+}
+.headline {
+  font-family: var(--font-serif);
+  font-optical-sizing: auto;
+  font-weight: 600;
+  font-size: clamp(42px, 6.2vw, 74px);
+  line-height: 1.02;
+  letter-spacing: -0.025em;
+  color: var(--ink);
+}
+.sub {
+  margin-top: var(--space-lg);
+  max-width: 48ch;
+  font-size: var(--text-lg);
+  color: var(--ink-muted);
+}
+.ctas {
+  display: flex;
+  gap: var(--space-md);
+  margin-top: var(--space-xl);
+  flex-wrap: wrap;
+}
+.disclaimer {
+  margin-top: var(--space-lg);
+  font-size: var(--text-sm);
+  color: var(--ink-dim);
+}
+
+.heroCard {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  justify-content: center;
+}
+// Hero card — fanned stack of 3 trending cards with a glass tile in front.
+.cardStack {
+  position: relative;
+  width: clamp(250px, 28vw, 320px);
+}
+.stackCard {
+  position: absolute;
+  top: 6%;
+  left: 10%;
+  width: 80%;
+  border-radius: var(--radius-md);
+  box-shadow: 0 20px 40px -16px rgba(0, 0, 0, 0.45);
+}
+.stackBack1 {
+  z-index: 1;
+  transform: rotate(-13deg) translateX(-40%);
+}
+.stackBack2 {
+  z-index: 0;
+  transform: rotate(11deg) translateX(40%);
+}
+.glassCard {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  padding: var(--space-lg);
+  text-align: left;
+  border-radius: var(--radius-xl);
+  background: var(--bg-elevated);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-pop);
+  transform: rotate(2deg);
+  transition: transform var(--dur-med) var(--ease-out);
+  cursor: pointer;
+
+  &:hover {
+    transform: rotate(0deg) translateY(-4px);
+  }
+}
+.glassMeta {
+  margin-top: var(--space-md);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.glassName {
+  font-size: var(--text-lg);
+  font-weight: 700;
+  color: var(--ink);
+}
+.glassSet {
+  font-size: var(--text-sm);
+  color: var(--ink-dim);
+}
+.glassPrice {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-md);
+  margin-top: var(--space-sm);
+  font-size: var(--text-xl);
+  font-weight: 800;
+  color: var(--ink);
+  @include tabular;
+}
+
+/* ── How it works ── */
+.steps {
+  max-width: var(--content-max);
+  margin: 0 auto;
+  padding: var(--space-3xl) var(--space-2xl) var(--space-xl);
+}
+.stepsHead {
+  margin-bottom: var(--space-2xl);
+}
+.stepsTitle {
+  font-family: var(--font-serif);
+  font-optical-sizing: auto;
+  font-weight: 600;
+  font-size: clamp(28px, 3.6vw, 40px);
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  margin-top: var(--space-sm);
+}
+.stepsGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-xl);
+
+  @include bp-down("md") {
+    grid-template-columns: 1fr;
+  }
+}
+.step {
+  padding: var(--space-xl);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--line);
+  background: var(--bg-elevated);
+}
+.stepNum {
+  font-family: var(--font-serif);
+  font-size: var(--text-2xl);
+  font-weight: 600;
+  color: var(--accent-mint);
+}
+.stepIcon {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  margin: var(--space-md) 0;
+  border-radius: var(--radius-md);
+  color: var(--ink);
+  background: var(--bg-sunken);
+}
+.stepTitle {
+  font-size: var(--text-lg);
+  font-weight: 700;
+  color: var(--ink);
+}
+.stepBody {
+  margin-top: 6px;
+  font-size: var(--text-md);
+  color: var(--ink-dim);
+}
+
+/* ── Live market showcase ── */
+.showcase {
+  display: grid;
+  grid-template-columns: 0.9fr 1.1fr;
+  align-items: center;
+  gap: var(--space-3xl);
+  max-width: var(--content-max);
+  margin: 0 auto;
+  padding: var(--space-2xl);
+
+  @include bp-down("lg") {
+    grid-template-columns: 1fr;
+    gap: var(--space-xl);
+  }
+}
+.showcaseTitle {
+  font-family: var(--font-serif);
+  font-optical-sizing: auto;
+  font-weight: 600;
+  font-size: clamp(28px, 3.6vw, 42px);
+  line-height: 1.06;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  margin: var(--space-sm) 0 var(--space-md);
+}
+.showcaseSub {
+  max-width: 46ch;
+  font-size: var(--text-lg);
+  color: var(--ink-muted);
+  margin-bottom: var(--space-xl);
+}
+.showcaseChart {
+  padding: var(--space-lg);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--line);
+  background: var(--bg-elevated);
+  box-shadow: var(--shadow-card);
+}
+
+/* ── Movers ── */
+.movers {
+  max-width: var(--content-max);
+  margin: 0 auto;
+  padding: var(--space-2xl);
+}
+.sectionHead {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  margin-bottom: var(--space-lg);
+  h2 {
+    font-size: var(--text-2xl);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+  }
+}
+.sectionSub {
+  max-width: 60ch;
+  margin: calc(-1 * var(--space-sm)) 0 var(--space-lg);
+  font-size: var(--text-md);
+  color: var(--ink-dim);
+}
+.live {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--accent-mint);
+}
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--accent-mint);
+  box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent-mint) 60%, transparent);
+  animation: pulse 1.8s infinite;
+}
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent-mint) 50%, transparent);
+  }
+  100% {
+    box-shadow: 0 0 0 10px transparent;
+  }
+}
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: var(--space-lg);
+}
+
+/* ── Features ── */
+.features {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-xl);
+  max-width: var(--content-max);
+  margin: 0 auto;
+  padding: var(--space-2xl);
+
+  @include bp-down("md") {
+    grid-template-columns: 1fr;
+  }
+}
+.feature {
+  padding: var(--space-xl);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--line);
+  background: var(--bg-elevated);
+
+  h3 {
+    margin-top: var(--space-md);
+    font-size: var(--text-lg);
+    font-weight: 700;
+    color: var(--ink);
+  }
+  p {
+    margin-top: 6px;
+    font-size: var(--text-md);
+    color: var(--ink-dim);
+  }
+}
+.featureIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-md);
+  color: var(--accent-mint);
+  background: color-mix(in srgb, var(--accent-mint) 14%, transparent);
+  svg {
+    width: 22px;
+    height: 22px;
+  }
+}
+
+/* ── CTA + footer ── */
+.cta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-lg);
+  text-align: center;
+  padding: var(--space-3xl) var(--space-2xl);
+  h2 {
+    font-family: var(--font-serif);
+    font-size: clamp(28px, 4vw, 40px);
+    letter-spacing: -0.02em;
+    color: var(--ink);
+  }
+}
+.ctaSub {
+  max-width: 52ch;
+  font-size: var(--text-md);
+  color: var(--ink-muted);
+}
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+  padding: var(--space-xl) var(--space-2xl);
+  border-top: 1px solid var(--line);
+  color: var(--ink-muted);
+  font-weight: 700;
+}
+.footNote {
+  font-weight: 500;
+  font-size: var(--text-sm);
+  color: var(--ink-dim);
+}

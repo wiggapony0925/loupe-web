@@ -1,0 +1,39 @@
+.group {
+  display: inline-flex;
+  padding: 3px;
+  gap: 2px;
+  background: var(--bg-sunken);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+}
+
+.item {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  color: var(--ink-dim);
+  font-weight: 600;
+  transition: background-color var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out);
+  @include focus-ring;
+
+  &:hover {
+    color: var(--ink);
+  }
+  &[data-state="on"] {
+    background: var(--bg-elevated);
+    color: var(--ink);
+    box-shadow: var(--shadow-card);
+  }
+}
+
+.sm .item {
+  height: 26px;
+  padding: 0 12px;
+  font-size: var(--text-xs);
+}
+.md .item {
+  height: 32px;
+  padding: 0 16px;
+  font-size: var(--text-sm);
+}

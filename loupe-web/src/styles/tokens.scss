@@ -1,0 +1,110 @@
+// ───────────────────────────────────────────────────────────────────────────
+// tokens.scss — the "Precision" palette as CSS custom properties.
+// 1:1 mirror of loupe-frontend/src/presentation/theme/tokens.ts so the web
+// client and the Expo app are visually identical. Flips on the `data-theme`
+// attribute stamped on <html> (see index.html bootstrap + ThemeProvider).
+// ───────────────────────────────────────────────────────────────────────────
+
+:root {
+  // ── Radius (px → rem-ish, kept as px to match RN tokens) ──
+  --radius-xs: 2px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+  --radius-pill: 999px;
+
+  // ── Spacing scale ──
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 12px;
+  --space-lg: 16px;
+  --space-xl: 24px;
+  --space-2xl: 32px;
+  --space-3xl: 48px;
+
+  // ── Typography ──
+  /* Inter for UI/body; falls back to the platform sans before it loads. */
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "SF Pro Text",
+    "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-mono: "SF Mono", "JetBrains Mono", ui-monospace, Menlo, monospace;
+  /* Fraunces — editorial display serif (optical sizing) for marketing headlines. */
+  --font-serif: "Fraunces", "New York", "Iowan Old Style", "Palatino Linotype",
+    Georgia, "Times New Roman", serif;
+
+  --text-xs: 11px;
+  --text-sm: 13px;
+  --text-md: 15px;
+  --text-lg: 17px;
+  --text-xl: 22px;
+  --text-2xl: 28px;
+  --text-3xl: 36px;
+  --text-4xl: 48px;
+
+  // ── Layout rails ──
+  --sidebar-w: 248px;
+  --sidebar-w-collapsed: 76px;
+  --topbar-h: 64px;
+  --content-max: 1280px;
+
+  // ── Motion ──
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --dur-fast: 120ms;
+  --dur-med: 200ms;
+}
+
+// ── DARK (default) — OLED-grade ──
+:root,
+[data-theme="dark"] {
+  --bg-base: #121214;
+  --bg-elevated: #1c1c1e;
+  --bg-sunken: #0b0b0d;
+
+  --line: #2a2a2e;
+  --line-strong: #3a3a40;
+
+  --ink: #f5f5f7;
+  --ink-muted: #a1a1a6;
+  --ink-dim: #6e6e73;
+
+  --accent-mint: #00f59b;
+  --accent-blue: #0a84ff;
+  --accent-amber: #ffb020;
+  --accent-rose: #ff453a;
+  --accent-purple: #9d6bff;
+
+  // Semantic deltas (gains/losses) lean on mint/rose like Robinhood.
+  --up: var(--accent-mint);
+  --down: var(--accent-rose);
+
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.5), 0 8px 24px rgba(0, 0, 0, 0.35);
+  --shadow-pop: 0 12px 40px rgba(0, 0, 0, 0.55);
+  color-scheme: dark;
+}
+
+// ── LIGHT — Notion/Linear-clean ──
+[data-theme="light"] {
+  --bg-base: #f7f7f8;
+  --bg-elevated: #ffffff;
+  --bg-sunken: #efeff2;
+
+  --line: #e5e5ea;
+  --line-strong: #d1d1d6;
+
+  --ink: #0b0b0d;
+  --ink-muted: #48484a;
+  --ink-dim: #8e8e93;
+
+  --accent-mint: #00a86e;
+  --accent-blue: #0a84ff;
+  --accent-amber: #b8860b;
+  --accent-rose: #d63b30;
+  --accent-purple: #7a4fe8;
+
+  --up: var(--accent-mint);
+  --down: var(--accent-rose);
+
+  --shadow-card: 0 1px 2px rgba(16, 24, 40, 0.06), 0 8px 24px rgba(16, 24, 40, 0.06);
+  --shadow-pop: 0 12px 40px rgba(16, 24, 40, 0.16);
+  color-scheme: light;
+}

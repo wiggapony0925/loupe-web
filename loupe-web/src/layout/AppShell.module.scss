@@ -1,0 +1,35 @@
+.shell {
+  display: flex;
+  min-height: 100vh;
+  background: var(--bg-base);
+}
+
+/* Sidebar pinned to the right (user preference). */
+.shellRight {
+  flex-direction: row-reverse;
+}
+
+.main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.content {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.container {
+  width: 100%;
+  max-width: var(--content-max);
+  margin: 0 auto;
+  padding: var(--space-2xl);
+
+  @include bp-down("md") {
+    // Leave room for the fixed bottom tab bar (56px + safe-area).
+    padding: var(--space-lg) var(--space-lg)
+      calc(var(--space-lg) + 56px + env(safe-area-inset-bottom, 0px));
+  }
+}

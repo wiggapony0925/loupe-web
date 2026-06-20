@@ -1,0 +1,82 @@
+// Block: watchlist — BEM.
+.watchlist {
+  &__head {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-md);
+    margin-bottom: var(--space-xl);
+  }
+
+  &__title {
+    font-size: var(--text-2xl);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+  }
+
+  &__count {
+    font-size: var(--text-sm);
+    color: var(--ink-dim);
+  }
+
+  &__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: var(--space-lg);
+  }
+
+  &__card {
+    position: relative;
+    padding: var(--space-md);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    background: var(--bg-elevated);
+    transition: border-color var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast) var(--ease-out);
+
+    &:hover {
+      border-color: var(--line-strong);
+      box-shadow: var(--shadow-card);
+    }
+  }
+
+  &__link {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+  }
+
+  &__thumb {
+    display: block;
+  }
+
+  &__name {
+    font-size: var(--text-sm);
+    font-weight: 600;
+    color: var(--ink);
+    @include line-clamp(2);
+  }
+
+  &__remove {
+    position: absolute;
+    top: var(--space-sm);
+    right: var(--space-sm);
+    width: 30px;
+    height: 30px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--bg-base) 70%, transparent);
+    color: var(--ink-dim);
+    opacity: 0;
+    transition: opacity var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out);
+    @include focus-ring;
+
+    &:hover {
+      color: var(--down);
+    }
+
+    .watchlist__card:hover & {
+      opacity: 1;
+    }
+  }
+}

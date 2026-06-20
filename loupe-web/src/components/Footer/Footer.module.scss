@@ -1,0 +1,126 @@
+// Block: footer — BEM, mobile-first.
+.footer {
+  position: relative;
+  z-index: 1;
+  border-top: 1px solid var(--line);
+  background: var(--bg-elevated);
+
+  &__inner {
+    max-width: var(--content-max, 1240px);
+    margin: 0 auto;
+    padding: var(--space-2xl);
+    display: grid;
+    grid-template-columns: 1.4fr 2.6fr;
+    gap: var(--space-2xl);
+
+    @include bp-down("lg") {
+      grid-template-columns: 1fr;
+      gap: var(--space-xl);
+    }
+  }
+
+  &__brand {
+    max-width: 340px;
+  }
+
+  &__tagline {
+    margin-top: var(--space-md);
+    font-size: var(--text-sm);
+    line-height: 1.6;
+    color: var(--ink-dim);
+  }
+
+  &__social {
+    display: flex;
+    gap: var(--space-sm);
+    margin-top: var(--space-lg);
+  }
+
+  &__social-link {
+    width: 38px;
+    height: 38px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    border: 1px solid var(--line);
+    color: var(--ink-muted);
+    transition: color var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out),
+      transform var(--dur-fast) var(--ease-out);
+    @include focus-ring;
+
+    &:hover {
+      color: var(--accent-mint);
+      border-color: var(--accent-mint);
+      transform: translateY(-2px);
+    }
+  }
+
+  &__cols {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--space-xl);
+
+    @include bp-down("md") {
+      grid-template-columns: repeat(2, 1fr);
+      gap: var(--space-lg);
+    }
+  }
+
+  &__heading {
+    font-size: var(--text-sm);
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: var(--space-md);
+  }
+
+  &__list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+    list-style: none;
+  }
+
+  &__link {
+    font-size: var(--text-sm);
+    color: var(--ink-dim);
+    transition: color var(--dur-fast) var(--ease-out);
+
+    &:hover {
+      color: var(--accent-mint);
+    }
+  }
+
+  &__legal {
+    max-width: var(--content-max, 1240px);
+    margin: 0 auto;
+    padding: var(--space-lg) var(--space-2xl);
+    border-top: 1px solid var(--line);
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--space-md);
+    font-size: var(--text-xs);
+    color: var(--ink-dim);
+
+    a {
+      color: var(--ink-dim);
+      &:hover {
+        color: var(--ink);
+      }
+    }
+  }
+
+  &__legal-links {
+    display: flex;
+    gap: var(--space-lg);
+  }
+
+  &__disclaimer {
+    margin-left: auto;
+
+    @include bp-down("md") {
+      margin-left: 0;
+      flex-basis: 100%;
+    }
+  }
+}

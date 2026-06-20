@@ -1,0 +1,55 @@
+// Block: pagination — BEM.
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-xs);
+
+  &__item,
+  &__arrow {
+    min-width: 40px;
+    height: 40px;
+    padding: 0 var(--space-sm);
+    display: grid;
+    place-items: center;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--line);
+    background: var(--bg-elevated);
+    color: var(--ink);
+    font-size: var(--text-sm);
+    font-weight: 600;
+    transition: background-color var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out);
+    @include focus-ring;
+
+    &:hover:not(:disabled) {
+      border-color: var(--line-strong);
+      background: var(--bg-sunken);
+    }
+
+    &:disabled {
+      opacity: 0.4;
+      pointer-events: none;
+    }
+  }
+
+  &__item--active {
+    background: var(--accent-blue);
+    border-color: var(--accent-blue);
+    color: #fff;
+
+    &:hover {
+      background: var(--accent-blue);
+    }
+  }
+
+  &__arrow svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  &__gap {
+    width: 32px;
+    text-align: center;
+    color: var(--ink-dim);
+  }
+}

@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" fill="none">
+  <rect width="1200" height="630" fill="#0b0b0d" />
+  <rect x="0" y="0" width="1200" height="6" fill="#00a86e" />
+
+  <!-- Brand accent + wordmark lockup -->
+  <circle cx="120" cy="285" r="20" fill="#00a86e" />
+  <text x="170" y="320" font-family="Inter, Helvetica, Arial, sans-serif" font-size="120" font-weight="800" fill="#f4f4f5">Loupe</text>
+  <text x="176" y="398" font-family="Inter, Helvetica, Arial, sans-serif" font-size="42" font-weight="600" fill="#9b9ba3">Scan, value &amp; track your trading cards</text>
+  <text x="176" y="456" font-family="Inter, Helvetica, Arial, sans-serif" font-size="28" font-weight="500" fill="#00a86e">Pok&#233;mon &#183; Magic &#183; Yu-Gi-Oh! &#183; grade-aware valuations</text>
+</svg>

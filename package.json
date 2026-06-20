@@ -1,0 +1,10 @@
+{
+  "name": "loupe-workspace",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Loupe monorepo — shared logic (@loupe/core) consumed by the web client and (next) the Expo app.",
+  "workspaces": [
+    "packages/*",
+    "loupe-web"
+  ]
+}

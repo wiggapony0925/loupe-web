@@ -1,0 +1,49 @@
+// Block: admin-waitlist — per-row controls layered on the shared admin table.
+.linked {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: var(--space-sm);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--accent-mint);
+}
+
+.select {
+  font: inherit;
+  font-size: var(--text-sm);
+  padding: 6px 10px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--line-strong);
+  background: var(--bg-elevated);
+  color: var(--ink);
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: none;
+    border-color: var(--accent-blue);
+  }
+  &:disabled {
+    opacity: 0.5;
+  }
+}
+
+.remove {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--line);
+  background: var(--bg-elevated);
+  color: var(--ink-dim);
+  transition: color var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out);
+
+  &:hover:not(:disabled) {
+    color: var(--down);
+    border-color: var(--down);
+  }
+  &:disabled {
+    opacity: 0.5;
+  }
+}

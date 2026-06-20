@@ -1,0 +1,34 @@
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Build output
+**/dist/
+**/build/
+**/*.tsbuildinfo
+
+# Environment / secrets (never commit real values)
+.env
+.env.*
+!.env.example
+**/.env
+**/.env.*
+!**/.env.example
+*.pem
+*.key
+
+# Sibling projects with their own repos / not part of the web client
+loupe-backend/
+loupe-frontend/
+tools/
+
+# Internal planning docs
+PLAN.md
+DEVELOPER_PORTAL.md
+
+# Editor / OS / tooling
+.claude/
+.DS_Store
+*.log
+.vscode/
+.idea/

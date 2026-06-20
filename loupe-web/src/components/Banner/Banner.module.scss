@@ -1,0 +1,75 @@
+// Block: banner — global notice host pinned to the top of the viewport. BEM.
+.host {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+}
+
+.banner {
+  --tone-color: var(--ink);
+
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: 10px var(--space-lg);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--tone-color);
+  background: color-mix(in srgb, var(--tone-color) 14%, var(--bg-elevated));
+  border-bottom: 1px solid color-mix(in srgb, var(--tone-color) 40%, transparent);
+  animation: slideDown var(--dur-med) var(--ease-out);
+
+  &[data-tone="error"] {
+    --tone-color: var(--accent-rose);
+  }
+  &[data-tone="warning"] {
+    --tone-color: var(--accent-amber);
+  }
+  &[data-tone="info"] {
+    --tone-color: var(--accent-blue);
+  }
+  &[data-tone="success"] {
+    --tone-color: var(--accent-mint);
+  }
+
+  &__icon {
+    flex-shrink: 0;
+  }
+
+  &__message {
+    flex: 1;
+    color: var(--ink);
+  }
+
+  &__close {
+    display: grid;
+    place-items: center;
+    width: 24px;
+    height: 24px;
+    color: var(--ink-muted);
+    background: none;
+    border: 0;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+
+    &:hover {
+      color: var(--ink);
+      background: color-mix(in srgb, var(--ink) 10%, transparent);
+    }
+  }
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}

@@ -1,0 +1,104 @@
+// Block: aurora — animated decorative background. BEM.
+.aurora {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+
+  &--subtle {
+    opacity: 0.5;
+  }
+  &--hero {
+    opacity: 0.9;
+  }
+
+  &__blob {
+    position: absolute;
+    width: 46vw;
+    height: 46vw;
+    max-width: 720px;
+    max-height: 720px;
+    border-radius: 50%;
+    filter: blur(80px);
+    will-change: transform;
+    mix-blend-mode: screen;
+
+    &--mint {
+      top: -12%;
+      left: -6%;
+      background: radial-gradient(circle at 50% 50%, var(--accent-mint), transparent 62%);
+      animation: aurora-drift-a 22s var(--ease-in-out, ease-in-out) infinite alternate;
+    }
+    &--blue {
+      top: -18%;
+      right: -10%;
+      background: radial-gradient(circle at 50% 50%, var(--accent-blue), transparent 64%);
+      animation: aurora-drift-b 28s var(--ease-in-out, ease-in-out) infinite alternate;
+    }
+    &--purple {
+      bottom: -24%;
+      left: 28%;
+      background: radial-gradient(circle at 50% 50%, var(--accent-purple, #8b5cf6), transparent 66%);
+      animation: aurora-drift-c 34s var(--ease-in-out, ease-in-out) infinite alternate;
+    }
+  }
+
+  // Faint market grid, masked to fade toward edges.
+  &__grid {
+    position: absolute;
+    inset: 0;
+    background-image: linear-gradient(to right, color-mix(in srgb, var(--ink) 9%, transparent) 1px, transparent 1px),
+      linear-gradient(to bottom, color-mix(in srgb, var(--ink) 9%, transparent) 1px, transparent 1px);
+    background-size: 44px 44px;
+    mask-image: radial-gradient(ellipse 80% 70% at 50% 40%, #000 30%, transparent 75%);
+    -webkit-mask-image: radial-gradient(ellipse 80% 70% at 50% 40%, #000 30%, transparent 75%);
+  }
+
+  // Slow drifting ticker line near the lower third.
+  &__line {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 8%;
+    width: 100%;
+    height: 38%;
+  }
+
+  &__line-path {
+    stroke: var(--accent-mint);
+    stroke-width: 2;
+    opacity: 0.35;
+    stroke-dasharray: 14 10;
+    animation: aurora-march 9s linear infinite;
+    vector-effect: non-scaling-stroke;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .aurora__blob,
+    .aurora__line-path {
+      animation: none;
+    }
+  }
+}
+
+@keyframes aurora-drift-a {
+  to {
+    transform: translate3d(12%, 16%, 0) scale(1.12);
+  }
+}
+@keyframes aurora-drift-b {
+  to {
+    transform: translate3d(-14%, 12%, 0) scale(1.08);
+  }
+}
+@keyframes aurora-drift-c {
+  to {
+    transform: translate3d(8%, -14%, 0) scale(1.15);
+  }
+}
+@keyframes aurora-march {
+  to {
+    stroke-dashoffset: -240;
+  }
+}

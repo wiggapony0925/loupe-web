@@ -1,0 +1,20 @@
+// Global entry — pulled in once from main.tsx. Order matters: tokens → reset → utilities.
+@use "./tokens";
+@use "./reset";
+
+// A few global utility helpers used across features (kept tiny on purpose).
+.app-scroll {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+// Respect reduced-motion users everywhere.
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}

@@ -1,0 +1,15 @@
+# Keep the Cloud Build upload small — only ship what the web build needs.
+.git
+.claude
+node_modules
+**/node_modules
+**/dist
+**/*.tsbuildinfo
+.DS_Store
+
+# Sibling projects not part of the web build.
+loupe-backend
+loupe-frontend
+tools
+PLAN.md
+README.md

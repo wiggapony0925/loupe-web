@@ -1,0 +1,71 @@
+.hero {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+}
+
+.head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-lg);
+
+  @include bp-down("sm") {
+    flex-direction: column;
+  }
+}
+
+.idBtn {
+  display: flex;
+  align-items: center;
+  gap: var(--space-lg);
+  text-align: left;
+  min-width: 0;
+}
+
+.thumb {
+  width: 64px;
+  flex-shrink: 0;
+}
+
+.headText {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.name {
+  font-size: var(--text-xl);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  @include line-clamp(1);
+}
+
+.set {
+  font-size: var(--text-sm);
+  color: var(--ink-dim);
+}
+
+.valueRow {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-md);
+  margin-top: 4px;
+}
+
+.value {
+  font-size: var(--text-2xl);
+  font-weight: 800;
+  color: var(--ink);
+  @include tabular;
+}
+
+.chartLoading {
+  height: 220px;
+  display: grid;
+  place-items: center;
+  font-size: var(--text-sm);
+  color: var(--ink-dim);
+}

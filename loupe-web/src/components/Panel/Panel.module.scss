@@ -1,0 +1,42 @@
+.panel {
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  transition: border-color var(--dur-fast) var(--ease-out),
+    transform var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast) var(--ease-out);
+}
+
+.bg-elevated {
+  background: var(--bg-elevated);
+}
+.bg-sunken {
+  background: var(--bg-sunken);
+}
+.bg-base {
+  background: var(--bg-base);
+}
+
+.pad-none {
+  padding: 0;
+}
+.pad-sm {
+  padding: var(--space-md);
+}
+.pad-md {
+  padding: var(--space-lg);
+}
+.pad-lg {
+  padding: var(--space-xl);
+}
+
+.raised {
+  box-shadow: var(--shadow-card);
+}
+
+.interactive {
+  cursor: pointer;
+  &:hover {
+    border-color: var(--line-strong);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-card);
+  }
+}

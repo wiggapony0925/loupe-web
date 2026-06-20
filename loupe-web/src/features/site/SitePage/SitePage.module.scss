@@ -1,0 +1,111 @@
+// Block: page — shared content-page shell. BEM.
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2xl);
+  max-width: 880px;
+  margin: 0 auto;
+  padding: var(--space-2xl) 0 var(--space-3xl);
+
+  &__hero {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+  }
+
+  &__eyebrow {
+    font-size: var(--text-sm);
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent-mint);
+  }
+
+  &__title {
+    font-family: var(--font-serif);
+    font-optical-sizing: auto;
+    font-weight: 600;
+    font-size: clamp(32px, 5vw, 52px);
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+  }
+
+  &__lead {
+    max-width: 60ch;
+    font-size: var(--text-lg);
+    line-height: 1.5;
+    color: var(--ink-muted);
+  }
+
+  &__heroExtra {
+    margin-top: var(--space-sm);
+  }
+
+  &__body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2xl);
+  }
+}
+
+// Block: section — a titled block within a page body.
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+
+  &__title {
+    font-size: var(--text-xl);
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+  }
+
+  &__body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-lg);
+  }
+}
+
+// Block: prose — long-form copy (legal, articles).
+.prose {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+  font-size: var(--text-md);
+  line-height: 1.7;
+  color: var(--ink-muted);
+
+  h2 {
+    margin-top: var(--space-md);
+    font-size: var(--text-lg);
+    font-weight: 700;
+    color: var(--ink);
+  }
+
+  h3 {
+    font-size: var(--text-md);
+    font-weight: 700;
+    color: var(--ink);
+  }
+
+  a {
+    color: var(--accent-mint);
+    text-decoration: underline;
+  }
+
+  ul {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+    padding-left: var(--space-xl);
+    list-style: disc;
+  }
+
+  strong {
+    color: var(--ink);
+    font-weight: 700;
+  }
+}

@@ -1,0 +1,73 @@
+// Block: filter-pill — BEM.
+.filter-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-sm);
+  height: 38px;
+  padding: 0 var(--space-md);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--line-strong);
+  background: var(--bg-elevated);
+  color: var(--ink);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  white-space: nowrap;
+  transition: border-color var(--dur-fast) var(--ease-out), background-color var(--dur-fast) var(--ease-out);
+  @include focus-ring;
+
+  &:hover {
+    border-color: var(--ink-dim);
+  }
+
+  &--active {
+    border-color: var(--accent-blue);
+    color: var(--accent-blue);
+    background: color-mix(in srgb, var(--accent-blue) 8%, transparent);
+  }
+
+  &__chevron,
+  &__clear {
+    width: 15px;
+    height: 15px;
+    color: var(--ink-dim);
+  }
+
+  &__clear:hover {
+    color: var(--accent-blue);
+  }
+
+  &__menu {
+    min-width: 200px;
+    max-height: 320px;
+    overflow-y: auto;
+    padding: var(--space-xs);
+    background: var(--bg-elevated);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-pop);
+    z-index: 60;
+  }
+
+  &__option {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 36px;
+    padding: 0 var(--space-md);
+    border-radius: var(--radius-sm);
+    font-size: var(--text-sm);
+    color: var(--ink);
+    cursor: pointer;
+    outline: none;
+
+    &[data-highlighted] {
+      background: tint(var(--ink), 8%);
+    }
+  }
+
+  &__check {
+    width: 16px;
+    height: 16px;
+    color: var(--accent-mint);
+  }
+}

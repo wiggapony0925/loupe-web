@@ -1,0 +1,63 @@
+.row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: var(--space-lg);
+  width: 100%;
+  padding: var(--space-md) var(--space-lg);
+  text-align: left;
+  border-radius: var(--radius-md);
+  transition: background-color var(--dur-fast) var(--ease-out);
+  @include focus-ring;
+
+  &:hover {
+    background: tint(var(--ink), 4%);
+  }
+}
+
+.meta {
+  min-width: 0;
+}
+
+.titleLine {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.title {
+  font-size: var(--text-md);
+  font-weight: 600;
+  color: var(--ink);
+  @include truncate;
+}
+
+.subtitle {
+  display: block;
+  margin-top: 2px;
+  font-size: var(--text-sm);
+  color: var(--ink-dim);
+  @include truncate;
+}
+
+.spark {
+  width: 104px;
+  @include bp-down("md") {
+    display: none;
+  }
+}
+
+.price {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  min-width: 92px;
+}
+
+.amount {
+  font-size: var(--text-md);
+  font-weight: 700;
+  color: var(--ink);
+  @include tabular;
+}

@@ -1,0 +1,96 @@
+.form {
+  display: grid;
+  grid-template-columns: 2fr 2fr auto;
+  align-items: end;
+  gap: var(--space-md);
+
+  @include bp-down("sm") {
+    grid-template-columns: 1fr;
+  }
+}
+
+.result {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xl);
+}
+
+.summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+  padding: var(--space-lg) var(--space-xl);
+  @include surface;
+
+  &__role {
+    display: block;
+    font-size: var(--text-lg);
+    font-weight: 700;
+    color: var(--ink);
+  }
+
+  &__meta {
+    font-size: var(--text-sm);
+    color: var(--ink-dim);
+  }
+}
+
+.badge {
+  @include tone-badge;
+}
+
+.timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding-left: var(--space-sm);
+}
+
+.event {
+  position: relative;
+  display: flex;
+  gap: var(--space-md);
+  padding: 0 0 var(--space-lg) var(--space-lg);
+  border-left: 2px solid var(--line);
+
+  &:last-child {
+    border-left-color: transparent;
+    padding-bottom: 0;
+  }
+
+  &__dot {
+    @include tone-vars;
+    position: absolute;
+    left: -7px;
+    top: 2px;
+    width: 12px;
+    height: 12px;
+    border-radius: var(--radius-pill);
+    background: var(--tone);
+    box-shadow: 0 0 0 3px var(--bg-base);
+  }
+
+  &__body {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  &__status {
+    font-size: var(--text-md);
+    font-weight: 700;
+    color: var(--ink);
+  }
+
+  &__message {
+    font-size: var(--text-sm);
+    line-height: 1.6;
+    color: var(--ink-muted);
+  }
+
+  &__time {
+    font-size: var(--text-xs);
+    color: var(--ink-dim);
+  }
+}

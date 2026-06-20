@@ -1,0 +1,39 @@
+.root {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--bg-sunken);
+  border: 1px solid var(--line);
+  user-select: none;
+  flex-shrink: 0;
+}
+
+.sm {
+  width: 30px;
+  height: 30px;
+  font-size: var(--text-xs);
+}
+.md {
+  width: 38px;
+  height: 38px;
+  font-size: var(--text-sm);
+}
+
+.image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  font-weight: 700;
+  color: var(--ink-muted);
+  background: linear-gradient(135deg, tint(var(--accent-purple), 30%), tint(var(--accent-blue), 30%));
+}

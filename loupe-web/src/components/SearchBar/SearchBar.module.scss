@@ -1,0 +1,74 @@
+// Block: search-bar — BEM, mobile-first.
+.search-bar {
+  display: flex;
+  align-items: stretch;
+  width: 100%;
+  height: 44px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  transition: border-color var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast) var(--ease-out);
+
+  &:focus-within {
+    border-color: var(--accent-blue);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-blue) 18%, transparent);
+  }
+
+  &--lg {
+    height: 52px;
+  }
+
+  &__category {
+    flex-shrink: 0;
+    max-width: 130px;
+    padding: 0 var(--space-md);
+    border: none;
+    border-right: 1px solid var(--line);
+    background: var(--bg-sunken);
+    color: var(--ink);
+    font-size: var(--text-sm);
+    font-weight: 600;
+    cursor: pointer;
+    outline: none;
+
+    // Hide the category on very small screens to keep the field usable.
+    @include bp-down("sm") {
+      display: none;
+    }
+  }
+
+  &__input {
+    flex: 1;
+    min-width: 0;
+    padding: 0 var(--space-md);
+    border: none;
+    outline: none;
+    background: transparent;
+    font-size: var(--text-md);
+    color: var(--ink);
+
+    &::placeholder {
+      color: var(--ink-dim);
+    }
+  }
+
+  &__button {
+    flex-shrink: 0;
+    width: 52px;
+    display: grid;
+    place-items: center;
+    color: #06140d;
+    background: var(--accent-mint);
+    transition: filter var(--dur-fast) var(--ease-out);
+
+    &:hover {
+      filter: brightness(1.06);
+    }
+
+    svg {
+      width: 20px;
+      height: 20px;
+    }
+  }
+}

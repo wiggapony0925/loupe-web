@@ -1,0 +1,84 @@
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  font-weight: 600;
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+  white-space: nowrap;
+  transition: background-color var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out),
+    transform var(--dur-fast) var(--ease-out), opacity var(--dur-fast) var(--ease-out);
+  @include focus-ring;
+
+  &:active {
+    transform: translateY(0.5px) scale(0.99);
+  }
+  &:disabled {
+    opacity: 0.45;
+    pointer-events: none;
+  }
+}
+
+.icon {
+  display: inline-flex;
+  align-items: center;
+  svg {
+    width: 1em;
+    height: 1em;
+  }
+}
+
+/* ── Sizes ── */
+.sm {
+  height: 32px;
+  padding: 0 var(--space-md);
+  font-size: var(--text-sm);
+}
+.md {
+  height: 40px;
+  padding: 0 var(--space-lg);
+  font-size: var(--text-md);
+}
+.lg {
+  height: 48px;
+  padding: 0 var(--space-xl);
+  font-size: var(--text-lg);
+}
+
+/* ── Variants ── */
+.primary {
+  background: var(--accent-mint);
+  color: #06140d; // dark ink on bright accent (allowed exception per design rules)
+  &:hover {
+    filter: brightness(1.05);
+  }
+}
+.secondary {
+  background: var(--bg-elevated);
+  border-color: var(--line-strong);
+  color: var(--ink);
+  &:hover {
+    background: color-mix(in srgb, var(--bg-elevated) 80%, var(--ink) 6%);
+  }
+}
+.ghost {
+  background: transparent;
+  color: var(--ink-muted);
+  &:hover {
+    background: tint(var(--ink), 8%);
+    color: var(--ink);
+  }
+}
+.danger {
+  background: var(--accent-rose);
+  color: #fff;
+  &:hover {
+    filter: brightness(1.05);
+  }
+}
+
+.block {
+  width: 100%;
+}

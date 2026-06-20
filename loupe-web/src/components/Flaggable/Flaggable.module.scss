@@ -1,0 +1,81 @@
+// A flaggable region while inspect mode is active. BEM-ish.
+.region {
+  position: relative;
+  border-radius: var(--radius-md);
+  outline: 2px dashed color-mix(in srgb, var(--accent-blue) 55%, transparent);
+  outline-offset: 2px;
+  transition: outline-color var(--dur-fast) var(--ease-out);
+
+  &:hover {
+    outline-color: var(--accent-blue);
+    outline-style: solid;
+  }
+
+  // Hidden regions are shown ghosted so an admin can find + re-enable them.
+  &.hidden {
+    outline-color: color-mix(in srgb, var(--accent-rose) 60%, transparent);
+
+    &:hover {
+      outline-color: var(--accent-rose);
+    }
+
+    .region__inner {
+      opacity: 0.4;
+      filter: grayscale(0.6);
+    }
+  }
+
+  &__inner {
+    transition: opacity var(--dur-fast) var(--ease-out);
+  }
+}
+
+// The floating tag with the eye toggle.
+.tag {
+  position: absolute;
+  top: -12px;
+  left: 10px;
+  z-index: 40;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  font-size: var(--text-xs);
+  font-weight: 700;
+  color: #fff;
+  background: var(--accent-blue);
+  border: 0;
+  border-radius: var(--radius-pill);
+  box-shadow: var(--shadow-card);
+  cursor: pointer;
+  transition: transform var(--dur-fast) var(--ease-out), background-color var(--dur-fast) var(--ease-out);
+
+  &:hover {
+    transform: translateY(-1px);
+  }
+  &:disabled {
+    opacity: 0.7;
+    cursor: default;
+  }
+
+  .hidden & {
+    background: var(--accent-rose);
+  }
+
+  &__eye {
+    font-size: 13px;
+    line-height: 1;
+  }
+
+  &__label {
+    @include truncate;
+    max-width: 160px;
+  }
+
+  &__state {
+    padding-left: 6px;
+    margin-left: 2px;
+    border-left: 1px solid rgba(255, 255, 255, 0.4);
+    opacity: 0.95;
+  }
+}

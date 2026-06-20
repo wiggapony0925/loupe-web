@@ -1,0 +1,48 @@
+// Block: device — the Loupe Scanner SVG. BEM. Tray slides out on reveal.
+.device {
+  width: 100%;
+  height: auto;
+  display: block;
+
+  &__glow {
+    opacity: 0;
+    transform-box: fill-box;
+    transform-origin: center;
+    transition: opacity 1.1s var(--ease-out, ease-out);
+  }
+
+  &__tray {
+    transform: translateY(-16px);
+    opacity: 0;
+    transition: transform 0.9s var(--ease-out, ease-out) 0.15s, opacity 0.7s ease 0.15s;
+  }
+
+  &--in {
+    .device__glow {
+      opacity: 1;
+      animation: device-glow 4s ease-in-out 1.1s infinite alternate;
+    }
+    .device__tray {
+      transform: translateY(34px);
+      opacity: 1;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .device__tray {
+      transition: none;
+    }
+    &--in .device__glow {
+      animation: none;
+    }
+  }
+}
+
+@keyframes device-glow {
+  from {
+    opacity: 0.7;
+  }
+  to {
+    opacity: 1;
+  }
+}

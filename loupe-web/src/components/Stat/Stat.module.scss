@@ -1,0 +1,29 @@
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  &[data-align="end"] {
+    align-items: flex-end;
+    text-align: right;
+  }
+}
+
+.label {
+  font-size: var(--text-xs);
+  font-weight: 500;
+  color: var(--ink-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.value {
+  font-size: var(--text-xl);
+  font-weight: 700;
+  color: var(--ink);
+  @include tabular;
+}
+
+.hint {
+  font-size: var(--text-sm);
+}

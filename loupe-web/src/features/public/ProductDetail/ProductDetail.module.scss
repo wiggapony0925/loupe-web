@@ -1,0 +1,242 @@
+// Block: product — public product detail. BEM, mobile-first.
+.product {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2xl);
+
+  &__crumbs {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    font-size: var(--text-sm);
+    color: var(--ink-dim);
+
+    a:hover {
+      color: var(--accent-blue);
+    }
+  }
+
+  &__crumbs-current {
+    color: var(--ink);
+    font-weight: 600;
+  }
+
+  &__hero {
+    display: grid;
+    grid-template-columns: 300px 1fr 320px;
+    gap: var(--space-xl);
+    align-items: start;
+
+    @include bp-down("lg") {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  &__art {
+    align-self: start;
+  }
+
+  &__info {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+  }
+
+  &__title {
+    font-size: var(--text-2xl);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+  }
+
+  &__details {
+    margin-top: var(--space-sm);
+    display: flex;
+    flex-direction: column;
+  }
+
+  &__detail-row {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--space-lg);
+    padding: var(--space-md) 0;
+    border-bottom: 1px solid var(--line);
+
+    dt {
+      font-size: var(--text-sm);
+      font-weight: 600;
+      color: var(--ink-muted);
+    }
+
+    dd {
+      font-size: var(--text-sm);
+      color: var(--ink);
+      text-align: right;
+    }
+  }
+
+  &__buybox {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+    position: sticky;
+    top: 84px;
+  }
+
+  &__buybox-label {
+    font-size: var(--text-sm);
+    color: var(--ink-dim);
+  }
+
+  &__buybox-price {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-md);
+    font-size: var(--text-3xl);
+    font-weight: 800;
+    color: var(--ink);
+    @include tabular;
+  }
+
+  &__buybox-sub {
+    font-size: var(--text-sm);
+    color: var(--ink-dim);
+  }
+
+  &__buybox-cta {
+    display: block;
+    margin-top: var(--space-sm);
+  }
+
+  &__buybox-watch {
+    margin-top: var(--space-sm);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+  }
+
+  &__buybox-note {
+    font-size: var(--text-xs);
+    color: var(--ink-dim);
+    text-align: center;
+  }
+
+  &__section {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr;
+    gap: var(--space-xl);
+    align-items: start;
+
+    @include bp-down("lg") {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  &__h2 {
+    font-size: var(--text-lg);
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: var(--space-md);
+  }
+
+  &__chart-note {
+    margin-top: var(--space-md);
+    padding-top: var(--space-md);
+    border-top: 1px solid var(--line);
+    font-size: var(--text-sm);
+    line-height: 1.5;
+    color: var(--ink-dim);
+  }
+
+  &__points-card {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-lg);
+  }
+
+  &__markets-head {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-md);
+    flex-wrap: wrap;
+    margin-bottom: var(--space-md);
+
+    h2 {
+      margin-bottom: 0;
+    }
+  }
+
+  &__markets-sub {
+    font-size: var(--text-sm);
+    color: var(--ink-dim);
+  }
+
+  &__markets {
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    background: var(--bg-elevated);
+  }
+
+  &__market-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-md);
+    padding: var(--space-md) var(--space-lg);
+    border-bottom: 1px solid var(--line);
+    transition: background-color var(--dur-fast) var(--ease-out);
+
+    &:last-child {
+      border-bottom: 0;
+    }
+    &:hover {
+      background: var(--bg-sunken);
+    }
+  }
+
+  &__market-id {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+
+  &__market-name {
+    font-size: var(--text-md);
+    font-weight: 700;
+    color: var(--ink);
+  }
+
+  &__market-sub {
+    font-size: var(--text-xs);
+    color: var(--ink-dim);
+  }
+
+  &__market-right {
+    display: flex;
+    align-items: center;
+    gap: var(--space-lg);
+    flex-shrink: 0;
+  }
+
+  &__market-price {
+    font-size: var(--text-lg);
+    font-weight: 800;
+    color: var(--ink);
+    @include tabular;
+  }
+
+  &__market-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 14px;
+    border-radius: var(--radius-md);
+    background: var(--accent-mint);
+    color: #06140d;
+    font-size: var(--text-sm);
+    font-weight: 700;
+    white-space: nowrap;
+  }
+}

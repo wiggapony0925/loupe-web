@@ -1,0 +1,267 @@
+// Block: device — "coming soon" hardware band. Fixed dark palette (brand moment),
+// stands out in both themes. White phone mock. Scroll-revealed. BEM.
+.device {
+  position: relative;
+  overflow: hidden;
+  background: radial-gradient(120% 100% at 80% 0%, #11202a 0%, #0a0d12 55%);
+  color: #fff;
+
+  &__glow {
+    position: absolute;
+    top: -160px;
+    right: -120px;
+    width: 620px;
+    height: 620px;
+    border-radius: 50%;
+    background: radial-gradient(circle, color-mix(in srgb, var(--accent-mint) 38%, transparent), transparent 62%);
+    filter: blur(20px);
+    opacity: 0.6;
+    pointer-events: none;
+  }
+
+  &__inner {
+    position: relative;
+    z-index: 1;
+    max-width: var(--content-max, 1240px);
+    margin: 0 auto;
+    padding: var(--space-3xl) var(--space-2xl);
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: center;
+    gap: var(--space-3xl);
+
+    @include bp-down("lg") {
+      grid-template-columns: 1fr;
+      gap: var(--space-2xl);
+    }
+  }
+
+  // Copy reveals (slide up + fade).
+  &__copy {
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity 0.7s var(--ease-out, ease-out), transform 0.7s var(--ease-out, ease-out);
+  }
+
+  &__eyebrow {
+    font-size: var(--text-sm);
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent-mint);
+    margin-bottom: var(--space-md);
+  }
+
+  &__headline {
+    font-family: var(--font-serif);
+    font-optical-sizing: auto;
+    font-weight: 600;
+    font-size: clamp(32px, 4.6vw, 52px);
+    line-height: 1.04;
+    letter-spacing: -0.025em;
+    color: #fff;
+  }
+
+  &__sub {
+    margin-top: var(--space-lg);
+    max-width: 46ch;
+    font-size: var(--text-lg);
+    line-height: 1.6;
+    color: rgba(255, 255, 255, 0.68);
+  }
+
+  &__features {
+    margin: var(--space-xl) 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+    list-style: none;
+  }
+
+  &__feature {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    font-size: var(--text-md);
+    color: rgba(255, 255, 255, 0.86);
+  }
+
+  &__feature-icon {
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
+    display: grid;
+    place-items: center;
+    border-radius: var(--radius-md);
+    color: var(--accent-mint);
+    background: color-mix(in srgb, var(--accent-mint) 16%, transparent);
+  }
+
+  // ── Scene (device + phone) ──
+  &__scene {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 360px;
+  }
+
+  &__hardware {
+    width: 100%;
+    max-width: 480px;
+    opacity: 0;
+    transform: translateY(28px) scale(0.97);
+    transition: opacity 0.8s var(--ease-out, ease-out), transform 0.8s var(--ease-out, ease-out);
+  }
+
+  // Revealed state.
+  &--in {
+    .device__copy {
+      opacity: 1;
+      transform: none;
+    }
+    .device__hardware {
+      opacity: 1;
+      transform: none;
+    }
+    .phone {
+      opacity: 1;
+      transform: rotate(-3deg) translateY(0);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .device__copy,
+    .device__hardware,
+    .phone {
+      transition: none;
+    }
+  }
+}
+
+// Block: phone — companion-app mock (always a light iOS screen).
+.phone {
+  position: absolute;
+  right: -6px;
+  bottom: -10px;
+  width: 208px;
+  padding: 14px 14px 18px;
+  border-radius: 30px;
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.55), 0 0 0 6px rgba(255, 255, 255, 0.04);
+  color: #16181c;
+  opacity: 0;
+  transform: rotate(-3deg) translateY(26px);
+  transition: opacity 0.8s var(--ease-out, ease-out) 0.25s, transform 0.8s var(--ease-out, ease-out) 0.25s;
+
+  @include bp-down("md") {
+    position: static;
+    margin: var(--space-lg) auto 0;
+    transform: rotate(0) translateY(26px);
+
+    .device--in & {
+      transform: rotate(0);
+    }
+  }
+
+  &__notch {
+    display: block;
+    width: 52px;
+    height: 6px;
+    margin: 0 auto 12px;
+    border-radius: 99px;
+    background: #16181c;
+  }
+
+  &__status {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 10px;
+  }
+
+  &__time {
+    font-size: 11px;
+    font-weight: 600;
+    color: #6b7280;
+  }
+
+  &__title {
+    flex: 1;
+    text-align: center;
+    font-size: 12px;
+    font-weight: 700;
+    color: #16181c;
+  }
+
+  &__share {
+    color: var(--accent-blue);
+  }
+
+  &__card {
+    display: block;
+    width: 94px;
+    height: auto;
+    margin: 0 auto 12px;
+    filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.18));
+  }
+
+  &__grades {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 4px;
+    padding: 10px 0;
+    border-top: 1px solid #eceef1;
+  }
+
+  &__grade {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+  }
+
+  &__grade-label {
+    font-size: 9px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #8a9099;
+  }
+
+  &__grade-value {
+    font-size: 17px;
+    font-weight: 800;
+    color: #16181c;
+    font-variant-numeric: tabular-nums;
+  }
+
+  &__verdict {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding-top: 12px;
+    border-top: 1px solid #eceef1;
+  }
+
+  &__psa {
+    font-size: 26px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: #16181c;
+  }
+
+  &__pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    border-radius: 99px;
+    background: #16a34a;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
+  }
+}

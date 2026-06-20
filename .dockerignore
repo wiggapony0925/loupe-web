@@ -1,0 +1,10 @@
+.git
+.claude
+node_modules
+**/node_modules
+**/dist
+**/*.tsbuildinfo
+.DS_Store
+loupe-backend
+loupe-frontend
+tools

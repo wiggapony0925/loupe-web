@@ -1,0 +1,41 @@
+.delta {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-weight: 600;
+  @include tabular;
+}
+
+.sm {
+  font-size: var(--text-sm);
+}
+.md {
+  font-size: var(--text-md);
+}
+
+.up {
+  color: var(--up);
+}
+.down {
+  color: var(--down);
+}
+.flat {
+  color: var(--ink-dim);
+}
+
+.arrow {
+  width: 1em;
+  height: 1em;
+  margin-right: -1px;
+}
+
+.money {
+  font-weight: 600;
+}
+
+/* Pill treatment tints the background with the current direction color. */
+.pill {
+  padding: 3px 9px;
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, currentColor 14%, transparent);
+}

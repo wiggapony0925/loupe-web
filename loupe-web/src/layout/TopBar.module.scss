@@ -1,0 +1,125 @@
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-xl);
+  height: var(--topbar-h);
+  padding: 0 var(--space-2xl);
+  background: color-mix(in srgb, var(--bg-base) 82%, transparent);
+  backdrop-filter: saturate(180%) blur(16px);
+  border-bottom: 1px solid var(--line);
+
+  // Phones: tighter chrome so search + account fit the narrow bar.
+  @include bp-down("md") {
+    gap: var(--space-md);
+    padding: 0 var(--space-lg);
+  }
+}
+
+/* Width wrapper — the SearchCombobox brings its own bar styling. */
+.search {
+  width: 100%;
+  max-width: 460px;
+}
+.searchIcon {
+  width: 18px;
+  height: 18px;
+  color: var(--ink-dim);
+  flex-shrink: 0;
+}
+.input {
+  flex: 1;
+  background: none;
+  border: none;
+  outline: none;
+  font-size: var(--text-md);
+  color: var(--ink);
+  &::placeholder {
+    color: var(--ink-dim);
+  }
+}
+.kbd {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--ink-dim);
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line-strong);
+  background: var(--bg-base);
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  flex-shrink: 0;
+
+  @include bp-down("md") {
+    gap: var(--space-sm);
+  }
+}
+
+/* The 3-segment theme switch is the widest control — fold it into Settings on phones. */
+.themeToggle {
+  display: inline-flex;
+  @include bp-down("md") {
+    display: none;
+  }
+}
+
+.account {
+  border-radius: 999px;
+  &:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--bg-base), 0 0 0 4px var(--accent-blue);
+  }
+}
+
+.menu {
+  min-width: 220px;
+  padding: var(--space-xs);
+  background: var(--bg-elevated);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-pop);
+  z-index: 60;
+}
+
+.menuHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--space-md);
+  border-bottom: 1px solid var(--line);
+  margin-bottom: var(--space-xs);
+}
+.menuName {
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: var(--ink);
+}
+.menuEmail {
+  font-size: var(--text-xs);
+  color: var(--ink-dim);
+}
+
+.menuItem {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  height: 38px;
+  padding: 0 var(--space-md);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--ink);
+  cursor: pointer;
+  outline: none;
+
+  &[data-highlighted] {
+    background: tint(var(--ink), 8%);
+  }
+}

@@ -1,0 +1,235 @@
+// Block: combo — custom search with category dropdown + live suggestions. BEM.
+.combo {
+  position: relative;
+  width: 100%;
+
+  &__bar {
+    display: flex;
+    align-items: stretch;
+    height: 44px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    transition: border-color var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast) var(--ease-out);
+
+    &:focus-within {
+      border-color: var(--accent-blue);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-blue) 18%, transparent);
+    }
+  }
+
+  &--lg .combo__bar {
+    height: 52px;
+  }
+
+  &__category {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    max-width: 140px;
+    padding: 0 var(--space-md);
+    border-right: 1px solid var(--line);
+    background: var(--bg-sunken);
+    color: var(--ink);
+    font-size: var(--text-sm);
+    font-weight: 600;
+    white-space: nowrap;
+
+    svg {
+      color: var(--ink-dim);
+    }
+
+    @include bp-down("sm") {
+      display: none;
+    }
+  }
+
+  &__field {
+    position: relative;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    min-width: 0;
+  }
+
+  &__input {
+    flex: 1;
+    min-width: 0;
+    height: 100%;
+    padding: 0 var(--space-md);
+    border: none;
+    outline: none;
+    background: transparent;
+    font-size: var(--text-md);
+    color: var(--ink);
+
+    &::placeholder {
+      color: var(--ink-dim);
+    }
+  }
+
+  &__clear {
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+    width: 32px;
+    height: 100%;
+    color: var(--ink-dim);
+
+    &:hover {
+      color: var(--ink);
+    }
+  }
+
+  &__submit {
+    flex-shrink: 0;
+    width: 52px;
+    display: grid;
+    place-items: center;
+    color: #06140d;
+    background: var(--accent-mint);
+    transition: filter var(--dur-fast) var(--ease-out);
+
+    &:hover {
+      filter: brightness(1.06);
+    }
+    svg {
+      width: 20px;
+      height: 20px;
+    }
+  }
+
+  // ── Category dropdown (Radix) ──
+  &__menu {
+    min-width: 180px;
+    padding: var(--space-xs);
+    background: var(--bg-elevated);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-pop);
+    z-index: 70;
+  }
+
+  &__option {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 36px;
+    padding: 0 var(--space-md);
+    border-radius: var(--radius-sm);
+    font-size: var(--text-sm);
+    color: var(--ink);
+    cursor: pointer;
+    outline: none;
+
+    &[data-highlighted] {
+      background: tint(var(--ink), 8%);
+    }
+  }
+
+  &__check {
+    color: var(--accent-mint);
+  }
+
+  // ── Live suggestions panel ──
+  &__panel {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    right: 0;
+    max-height: 420px;
+    overflow-y: auto;
+    padding: var(--space-xs);
+    background: var(--bg-elevated);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-pop);
+    z-index: 60;
+  }
+
+  &__status {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-md);
+    font-size: var(--text-sm);
+    color: var(--ink-dim);
+  }
+
+  &__spin {
+    animation: combo-spin 0.8s linear infinite;
+  }
+
+  &__row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    width: 100%;
+    padding: var(--space-sm) var(--space-md);
+    border-radius: var(--radius-sm);
+    text-align: left;
+
+    &--active {
+      background: tint(var(--ink), 8%);
+    }
+  }
+
+  &__thumb {
+    flex-shrink: 0;
+    width: 34px;
+  }
+
+  &__rowText {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  &__rowName {
+    font-size: var(--text-sm);
+    font-weight: 600;
+    color: var(--ink);
+    @include line-clamp(1);
+  }
+
+  &__rowMeta {
+    font-size: var(--text-xs);
+    color: var(--ink-dim);
+    @include line-clamp(1);
+  }
+
+  &__rowPrice {
+    flex-shrink: 0;
+    font-size: var(--text-sm);
+    font-weight: 700;
+    color: var(--ink);
+    @include tabular;
+  }
+
+  &__all {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    width: 100%;
+    margin-top: var(--space-xs);
+    padding: var(--space-sm) var(--space-md);
+    border-top: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    font-size: var(--text-sm);
+    font-weight: 600;
+    color: var(--accent-blue);
+
+    &--active {
+      background: tint(var(--ink), 8%);
+    }
+  }
+}
+
+@keyframes combo-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

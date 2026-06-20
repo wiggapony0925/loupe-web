@@ -1,0 +1,195 @@
+// Block: chart — custom interactive financial chart. BEM.
+.chart {
+  --chart-accent: var(--accent-blue);
+  width: 100%;
+
+  &__head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--space-md);
+    margin-bottom: var(--space-sm);
+  }
+
+  &__title {
+    display: block;
+    font-size: var(--text-sm);
+    color: var(--ink-dim);
+    margin-bottom: 2px;
+  }
+
+  &__value {
+    font-size: var(--text-3xl);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+    @include tabular;
+  }
+
+  &__metric {
+    text-align: right;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  &__delta {
+    font-size: var(--text-md);
+    font-weight: 700;
+    color: var(--up);
+    @include tabular;
+
+    &--down {
+      color: var(--down);
+    }
+  }
+
+  &__period {
+    font-size: var(--text-xs);
+    color: var(--ink-dim);
+  }
+
+  &__plot {
+    position: relative;
+    width: 100%;
+    touch-action: pan-y; // horizontal scrub, vertical page scroll
+    cursor: crosshair;
+  }
+
+  &__svg {
+    display: block;
+    overflow: visible;
+  }
+
+  &__grid {
+    stroke: color-mix(in srgb, var(--ink) 8%, transparent);
+    stroke-width: 1;
+  }
+
+  &__axis {
+    fill: var(--ink-dim);
+    font-size: 10px;
+    font-variant-numeric: tabular-nums;
+
+    &--time {
+      text-anchor: middle;
+    }
+  }
+
+  &__area {
+    animation: chart-fade 0.6s var(--ease-out, ease-out) both;
+  }
+
+  &__line {
+    fill: none;
+    stroke-width: 2.25;
+    stroke-linejoin: round;
+    stroke-linecap: round;
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+    animation: chart-draw 0.7s var(--ease-out, ease-out) forwards;
+    vector-effect: non-scaling-stroke;
+  }
+
+  &__crossline {
+    stroke: var(--ink-dim);
+    stroke-width: 1;
+    stroke-dasharray: 3 3;
+    opacity: 0.7;
+  }
+
+  &__dot {
+    fill: var(--bg-elevated);
+    stroke-width: 3;
+  }
+
+  &__flag {
+    position: absolute;
+    top: -2px;
+    transform: translateX(-50%);
+    padding: 2px 8px;
+    border-radius: var(--radius-sm);
+    background: var(--ink);
+    color: var(--bg-elevated);
+    font-size: var(--text-xs);
+    font-weight: 700;
+    white-space: nowrap;
+    pointer-events: none;
+    font-variant-numeric: tabular-nums;
+  }
+
+  &__ranges {
+    display: flex;
+    justify-content: center;
+    gap: var(--space-xs);
+    margin-top: var(--space-md);
+  }
+
+  &__range {
+    min-width: 46px;
+    height: 32px;
+    padding: 0 var(--space-sm);
+    border-radius: var(--radius-md);
+    font-size: var(--text-sm);
+    font-weight: 700;
+    color: var(--ink-muted);
+    transition: background-color var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out);
+    @include focus-ring;
+
+    &:hover {
+      color: var(--ink);
+      background: var(--bg-sunken);
+    }
+
+    &--active {
+      color: var(--chart-accent);
+      background: color-mix(in srgb, var(--chart-accent) 12%, transparent);
+    }
+  }
+
+  &__legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-lg);
+    margin-top: var(--space-md);
+    justify-content: center;
+  }
+
+  &__legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-sm);
+    font-size: var(--text-sm);
+    color: var(--ink-muted);
+  }
+
+  &__legend-swatch {
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .chart__line {
+      animation: none;
+      stroke-dashoffset: 0;
+    }
+    .chart__area {
+      animation: none;
+    }
+  }
+}
+
+@keyframes chart-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes chart-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}

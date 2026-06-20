@@ -1,0 +1,20 @@
+// Block: trending — stack of live carousels on the landing. BEM.
+.trending {
+  // max-width: var(--content-max, 1240px); NOTE: if we want to add a width to fit the apps bounds again add this again
+  margin: 0 auto;
+  padding: var(--space-2xl);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3xl);
+
+  &__seeall {
+    font-size: var(--text-sm);
+    font-weight: 700;
+    color: var(--accent-blue);
+    margin-right: var(--space-sm);
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}

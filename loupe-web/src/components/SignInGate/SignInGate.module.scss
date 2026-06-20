@@ -1,0 +1,44 @@
+.gate {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--space-md);
+  padding: var(--space-3xl) var(--space-xl);
+}
+
+.icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-lg);
+  color: var(--accent-mint);
+  background: tint(var(--accent-mint), 14%);
+  margin-bottom: var(--space-sm);
+
+  svg {
+    width: 26px;
+    height: 26px;
+  }
+}
+
+.title {
+  font-size: var(--text-2xl);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+
+.message {
+  max-width: 44ch;
+  font-size: var(--text-md);
+  color: var(--ink-dim);
+}
+
+.actions {
+  display: flex;
+  gap: var(--space-md);
+  margin-top: var(--space-md);
+}

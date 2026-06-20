@@ -1,0 +1,66 @@
+// ───────────────────────────────────────────────────────────────────────────
+// breakpoints.scss — THE single source of truth for responsive breakpoints.
+//
+// One mental model across the whole product (these mirror the mobile app's
+// Tailwind tiers, so "md" means the same thing on web and native). Edit values
+// here and every `*.module.scss` updates — nothing else defines breakpoints.
+//
+// Device tiers:
+//   sm   640px  → large phone
+//   md   768px  → tablet portrait / iPad portrait
+//   lg  1024px  → tablet landscape / iPad landscape / small laptop
+//   xl  1280px  → desktop
+//   2xl 1536px  → large desktop
+//
+// Usage:
+//   @include bp-up("lg")  { … }   // ≥ 1024px  (mobile-first)
+//   @include bp-down("md"){ … }   // < 768px   (desktop-first)
+//   @include bp-between("md","lg"){ … } // iPad-portrait band only
+// No CSS output — safe to inject into every module.
+// ───────────────────────────────────────────────────────────────────────────
+
+@use "sass:map";
+
+$breakpoints: (
+  "sm": 640px,
+  "md": 768px,
+  "lg": 1024px,
+  "xl": 1280px,
+  "2xl": 1536px,
+);
+
+@function bp-value($name) {
+  $v: map.get($breakpoints, $name);
+  @if $v == null {
+    @error "Unknown breakpoint '#{$name}'. Use one of: #{map.keys($breakpoints)}.";
+  }
+  @return $v;
+}
+
+// ≥ breakpoint (mobile-first).
+@mixin bp-up($name) {
+  @media (min-width: bp-value($name)) {
+    @content;
+  }
+}
+
+// Back-compat alias for `bp-up`.
+@mixin bp($name) {
+  @include bp-up($name) {
+    @content;
+  }
+}
+
+// < breakpoint (desktop-first).
+@mixin bp-down($name) {
+  @media (max-width: (bp-value($name) - 0.02px)) {
+    @content;
+  }
+}
+
+// [min, max) — e.g. `bp-between("md","lg")` targets iPad portrait only.
+@mixin bp-between($min, $max) {
+  @media (min-width: bp-value($min)) and (max-width: (bp-value($max) - 0.02px)) {
+    @content;
+  }
+}
