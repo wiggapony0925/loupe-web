@@ -25,15 +25,19 @@
 
 .cols {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  // minmax(0,1fr) lets the tracks shrink below content min-content — without
+  // it a row (thumb + sparkline + value) blows the column out and the change%
+  // on the right gets clipped.
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: var(--space-lg);
 
   @include bp-down("md") {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
 .col {
+  min-width: 0;
   overflow: hidden;
 }
 
@@ -62,6 +66,7 @@
   align-items: center;
   gap: var(--space-md);
   width: 100%;
+  min-width: 0;
   padding: var(--space-sm) var(--space-lg);
   text-align: left;
   border-top: 1px solid var(--line);
@@ -114,4 +119,5 @@
   font-weight: 800;
   color: var(--ink);
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }

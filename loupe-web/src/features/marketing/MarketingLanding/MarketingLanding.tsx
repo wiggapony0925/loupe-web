@@ -11,11 +11,22 @@ import {
   ShieldCheck,
   Wallet,
 } from "lucide-react";
-import { usePriceHistory, useTrending } from "@loupe/core";
-import { Button, ThemeToggle, Skeleton, CardThumb, Delta, Footer, CardPriceChart, ScrollToTop, NavDrawer } from "@/components";
+import { usePriceHistory } from "@loupe/core";
+import {
+  Button,
+  ThemeToggle,
+  Skeleton,
+  CardThumb,
+  Delta,
+  Footer,
+  CardPriceChart,
+  ScrollToTop,
+  NavDrawer,
+} from "@/components";
 import { AuroraField, Logo } from "@/assets";
 import { DeviceReveal } from "../DeviceReveal/DeviceReveal";
 import { TrendingCarousels } from "../TrendingCarousels/TrendingCarousels";
+import { useMixedTrending } from "@/hooks/useMixedTrending";
 import { formatMoney } from "@/lib/format";
 import { cx } from "@/lib/cx";
 import { useAuth } from "@/auth/AuthProvider";
@@ -23,14 +34,17 @@ import styles from "./MarketingLanding.module.scss";
 
 /** Public, unauthenticated home — the informational page (Robinhood-style). */
 export function MarketingLanding() {
-  const { data, isLoading } = useTrending();
+  // Mixed Pokémon · Magic · Yu-Gi-Oh! trending so the hero's featured card
+  // varies across games day to day (shared/deduped with the carousels below).
+  const { data, isLoading } = useMixedTrending("trending");
   const navigate = useNavigate();
   const { user } = useAuth();
   // Top trending cards → a fanned stack of 3 in the hero. Prefer cards with
   // both art and a price so the hero never features a "—" priceless card;
   // fall back to any with art if the priced set is too thin.
   const priced = (data ?? []).filter((c) => c.imageUrl && c.price);
-  const pool = priced.length >= 3 ? priced : (data ?? []).filter((c) => c.imageUrl);
+  const pool =
+    priced.length >= 3 ? priced : (data ?? []).filter((c) => c.imageUrl);
   const featured = pool[0];
   const behind = pool.slice(1, 3);
   const { data: featuredHist } = usePriceHistory(featured?.id ?? "");
@@ -53,24 +67,39 @@ export function MarketingLanding() {
             Trade them like one.
           </h1>
           <p className={styles.sub}>
-            Track every card like a position. Real-time prices, grade-aware valuations, and a vault that
-            tracks your collection like a portfolio — on the web and in your pocket.
+            Track every card like a position. Real-time prices, grade-aware
+            valuations, and a vault that tracks your collection like a portfolio
+            — on the web and in your pocket.
           </p>
           <div className={styles.ctas}>
-            <Button size="lg" trailingIcon={<ArrowRight size={18} />} onClick={() => navigate("/cards")}>
+            <Button
+              size="lg"
+              trailingIcon={<ArrowRight size={18} />}
+              onClick={() => navigate("/cards")}
+            >
               Browse cards
             </Button>
             {user ? (
-              <Button size="lg" variant="secondary" onClick={() => navigate("/app")}>
+              <Button
+                size="lg"
+                variant="secondary"
+                onClick={() => navigate("/app")}
+              >
                 Go to dashboard
               </Button>
             ) : (
-              <Button size="lg" variant="secondary" onClick={() => navigate("/signup")}>
+              <Button
+                size="lg"
+                variant="secondary"
+                onClick={() => navigate("/signup")}
+              >
                 Get started — free
               </Button>
             )}
           </div>
-          <p className={styles.disclaimer}>Live market data shown below. No mock numbers — ever.</p>
+          <p className={styles.disclaimer}>
+            Live market data shown below. No mock numbers — ever.
+          </p>
         </div>
 
         <div className={styles.heroCard}>
@@ -97,16 +126,26 @@ export function MarketingLanding() {
               <button
                 type="button"
                 className={styles.glassCard}
-                onClick={() => navigate(`/cards/${encodeURIComponent(featured.id)}`)}
+                onClick={() =>
+                  navigate(`/cards/${encodeURIComponent(featured.id)}`)
+                }
                 aria-label={`View ${featured.name}`}
               >
-                <CardThumb src={featured.imageUrl} alt={featured.name} size="lg" />
+                <CardThumb
+                  src={featured.imageUrl}
+                  alt={featured.name}
+                  size="lg"
+                />
                 <div className={styles.glassMeta}>
                   <span className={styles.glassName}>{featured.name}</span>
                   <span className={styles.glassSet}>{featured.setName}</span>
                   <div className={styles.glassPrice}>
-                    <span>{featured.price ? formatMoney(featured.price) : "—"}</span>
-                    {featuredChange !== undefined && <Delta percent={featuredChange} variant="arrow" />}
+                    <span>
+                      {featured.price ? formatMoney(featured.price) : "—"}
+                    </span>
+                    {featuredChange !== undefined && (
+                      <Delta percent={featuredChange} variant="arrow" />
+                    )}
                   </div>
                 </div>
               </button>
@@ -121,15 +160,20 @@ export function MarketingLanding() {
         <section className={styles.showcase}>
           <div className={styles.showcaseText}>
             <p className={styles.eyebrow}>Live markets</p>
-            <h2 className={styles.showcaseTitle}>A real-time market for every card.</h2>
+            <h2 className={styles.showcaseTitle}>
+              A real-time market for every card.
+            </h2>
             <p className={styles.showcaseSub}>
-              Every card gets a custom, interactive chart you can scrub by the day — the same model you know
-              from Robinhood and Webull, powered by live sales data, never mock numbers.
+              Every card gets a custom, interactive chart you can scrub by the
+              day — the same model you know from Robinhood and Webull, powered
+              by live sales data, never mock numbers.
             </p>
             <Button
               variant="secondary"
               trailingIcon={<ArrowRight size={16} />}
-              onClick={() => navigate(`/cards/${encodeURIComponent(featured.id)}`)}
+              onClick={() =>
+                navigate(`/cards/${encodeURIComponent(featured.id)}`)
+              }
             >
               Open {featured.name}
             </Button>
@@ -137,7 +181,11 @@ export function MarketingLanding() {
           <div className={styles.showcaseChart}>
             {/* The same reusable, range-aware chart as the card detail — 1W…ALL
                 back to the card's release, not a single clipped 30-day series. */}
-            <CardPriceChart cardId={featured.id} cardName={featured.name} height={260} />
+            <CardPriceChart
+              cardId={featured.id}
+              cardName={featured.name}
+              height={260}
+            />
           </div>
         </section>
       )}
@@ -159,7 +207,11 @@ export function MarketingLanding() {
       <TrendingCarousels />
 
       <section className={styles.cta}>
-        <h2>{user ? "Your collection, in real time." : "Start tracking your collection today."}</h2>
+        <h2>
+          {user
+            ? "Your collection, in real time."
+            : "Start tracking your collection today."}
+        </h2>
         <p className={styles.ctaSub}>
           {user
             ? "Jump back into your dashboard for live prices, your watchlist, and portfolio analytics."
@@ -205,7 +257,9 @@ function HowItWorks() {
     <section className={styles.steps}>
       <div className={styles.stepsHead}>
         <p className={styles.eyebrow}>How it works</p>
-        <h2 className={styles.stepsTitle}>From shoebox to portfolio in three steps.</h2>
+        <h2 className={styles.stepsTitle}>
+          From shoebox to portfolio in three steps.
+        </h2>
       </div>
       <div className={styles.stepsGrid}>
         {STEPS.map((s) => (
@@ -308,11 +362,19 @@ function MarketingNav() {
               >
                 Vault
               </Link>
-              <Link to="/scanner" className={styles.drawer__link} onClick={close}>
+              <Link
+                to="/scanner"
+                className={styles.drawer__link}
+                onClick={close}
+              >
                 Scanner
               </Link>
               {!user && (
-                <Link to="/login" className={styles.drawer__link} onClick={close}>
+                <Link
+                  to="/login"
+                  className={styles.drawer__link}
+                  onClick={close}
+                >
                   Log in
                 </Link>
               )}
@@ -323,7 +385,11 @@ function MarketingNav() {
                   className={styles.drawer__cta}
                   onClick={close}
                 >
-                  <Button size="md" block trailingIcon={<ArrowRight size={16} />}>
+                  <Button
+                    size="md"
+                    block
+                    trailingIcon={<ArrowRight size={16} />}
+                  >
                     {user ? "Go to dashboard" : "Create your account"}
                   </Button>
                 </Link>
