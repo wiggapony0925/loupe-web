@@ -96,7 +96,13 @@ export function Sidebar() {
           <Tooltip content={stored ? "Expand" : "Collapse"} side={tipSide}>
             <button
               className={styles.collapseBtn}
-              onClick={toggle}
+              onClick={() => {
+                // Clear the hover-peek so a collapse takes effect immediately
+                // even though the cursor is still over the rail (otherwise
+                // hoverExpand would keep it open and the button looks dead).
+                setHovered(false);
+                toggle();
+              }}
               aria-label="Toggle sidebar"
             >
               {stored ? <ExpandIcon /> : <CollapseIcon />}
