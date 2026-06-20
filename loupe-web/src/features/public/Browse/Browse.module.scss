@@ -5,15 +5,36 @@
     font-weight: 800;
     letter-spacing: -0.02em;
     color: var(--ink);
+  }
+
+  // Full-width discovery band (Best from …) — breaks out of the page's
+  // max-width container so the rails span the viewport like the landing page.
+  &__discover {
+    position: relative;
+    left: 50%;
+    width: 100vw;
+    margin-left: -50vw;
+    padding: 0 var(--space-2xl);
+    margin-bottom: var(--space-3xl);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3xl);
+
+    @include bp-down("md") {
+      padding: 0 var(--space-lg);
+    }
+  }
+
+  // Catalog section header (title + supporting line) above the grid.
+  &__catalogHead {
     margin-bottom: var(--space-lg);
   }
 
-  // Discovery rails (Best from …) above the catalog grid.
-  &__rails {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-xl);
-    margin-bottom: var(--space-2xl);
+  &__sub {
+    margin-top: var(--space-xs);
+    font-size: var(--text-md);
+    color: var(--ink-dim);
+    max-width: 60ch;
   }
 
   &__filters {

@@ -132,16 +132,24 @@ export function Browse() {
 
   return (
     <div className={styles.browse}>
-      <h1 className={styles.browse__heading}>{heading}</h1>
-
-      {/* Discovery rails on the browse landing (hidden while searching). */}
+      {/* Full-width discovery rails — browse landing only (hidden while searching). */}
       {!isSearch && (
-        <div className={styles.browse__rails}>
+        <section className={styles.browse__discover}>
           <GameRails
             onCard={(id) => navigate(`/cards/${encodeURIComponent(id)}`)}
           />
-        </div>
+        </section>
       )}
+
+      <div className={styles.browse__catalogHead}>
+        <h1 className={styles.browse__heading}>{heading}</h1>
+        {!isSearch && SUPPORTED.has(game) && (
+          <p className={styles.browse__sub}>
+            The full {GAME_LABELS[game] ?? "card"} catalog — filter, sort, and
+            open any card for live prices.
+          </p>
+        )}
+      </div>
 
       {isSearch && (
         <div className={styles.browse__filters}>
