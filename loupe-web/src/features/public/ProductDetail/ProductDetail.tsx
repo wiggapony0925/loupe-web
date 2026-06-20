@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { ExternalLink, ScanLine, ShieldCheck } from "lucide-react";
+import { Expand, ExternalLink, ScanLine, ShieldCheck } from "lucide-react";
 import {
   useCard,
   useMarket,
@@ -11,26 +11,52 @@ import {
   type GradePrice,
   type Money,
 } from "@loupe/core";
-import { CardThumb, Panel, Badge, Button, CardPriceChart, Skeleton, NoteCard, Stat, Delta } from "@/components";
+import {
+  CardThumb,
+  Panel,
+  Badge,
+  Button,
+  CardPriceChart,
+  Skeleton,
+  NoteCard,
+  Stat,
+  Delta,
+} from "@/components";
 import { ScanButton } from "@/features/scan";
 import { GradeSelector, tierLabel, type PriceTier } from "./GradeSelector";
+import { Card3DModal } from "./Card3DModal";
 import { WatchlistButton } from "../WatchlistButton/WatchlistButton";
 import { AddToCollectionButton } from "@/features/collection";
 import { formatMoney } from "@/lib/format";
 import styles from "./ProductDetail.module.scss";
 
-const CONFIDENCE_LABEL = ["Estimate", "Low confidence", "Good confidence", "High confidence"];
+const CONFIDENCE_LABEL = [
+  "Estimate",
+  "Low confidence",
+  "Good confidence",
+  "High confidence",
+];
 
 /** "PSA 10" → nice label; "UNGRADED" → "Raw". */
 function gradeLabel(g: GradePrice): string {
   return g.grade === "UNGRADED" ? "Raw" : g.grade;
 }
 
-function ValuationSignal({ label, money, hint }: { label: string; money?: Money | null; hint: string }) {
+function ValuationSignal({
+  label,
+  money,
+  hint,
+}: {
+  label: string;
+  money?: Money | null;
+  hint: string;
+}) {
   return (
     <div className={styles.signal}>
       <span className={styles.signal__label}>{label}</span>
-      <span className={styles.signal__value}>{money ? formatMoney(money) : "—"}</span>
+      <span className={styles.signal__value}>
+        {money ? formatMoney(money) : "—"}
+      </span>
       <span className={styles.signal__hint}>{hint}</span>
     </div>
   );
@@ -40,10 +66,19 @@ function ValuationSignal({ label, money, hint }: { label: string; money?: Money 
 function marketplaces(name: string) {
   const q = encodeURIComponent(name);
   return [
-    { source: "TCGplayer", href: `https://www.tcgplayer.com/search/all/product?q=${q}` },
+    {
+      source: "TCGplayer",
+      href: `https://www.tcgplayer.com/search/all/product?q=${q}`,
+    },
     { source: "eBay", href: `https://www.ebay.com/sch/i.html?_nkw=${q}` },
-    { source: "PriceCharting", href: `https://www.pricecharting.com/search-products?q=${q}` },
-    { source: "Google Shopping", href: `https://www.google.com/search?tbm=shop&q=${q}` },
+    {
+      source: "PriceCharting",
+      href: `https://www.pricecharting.com/search-products?q=${q}`,
+    },
+    {
+      source: "Google Shopping",
+      href: `https://www.google.com/search?tbm=shop&q=${q}`,
+    },
   ];
 }
 
@@ -54,10 +89,14 @@ export function ProductDetail() {
   const { data: market } = useMarket(id);
   // Month series only for the buy-box change% fallback; the chart fetches
   // its own range-aware series.
-  const { data: series } = usePriceHistory(id, CARD_CHART_RANGE_TO_BACKEND["1M"]);
+  const { data: series } = usePriceHistory(
+    id,
+    CARD_CHART_RANGE_TO_BACKEND["1M"],
+  );
   const { data: quotes } = useMarketplacePrices(id);
   const { data: valuation } = useValuation(id);
   const [tier, setTier] = useState<PriceTier>({ house: "raw" });
+  const [viewer, setViewer] = useState(false);
 
   if (isLoading) return <ProductDetailSkeleton />;
   if (isError || !card) {
@@ -65,7 +104,11 @@ export function ProductDetail() {
       <NoteCard
         title="Card not found"
         message="We couldn't resolve this card from the backend."
-        action={<Button variant="secondary" size="sm"><Link to="/cards">Back to browse</Link></Button>}
+        action={
+          <Button variant="secondary" size="sm">
+            <Link to="/cards">Back to browse</Link>
+          </Button>
+        }
       />
     );
   }
@@ -74,7 +117,10 @@ export function ProductDetail() {
   const price = card.price ?? market?.raw;
 
   const details: Array<[string, string]> = [
-    ["Card Number / Rarity", [card.number, card.rarity].filter(Boolean).join(" / ") || "—"],
+    [
+      "Card Number / Rarity",
+      [card.number, card.rarity].filter(Boolean).join(" / ") || "—",
+    ],
     ["Set", card.setName || "—"],
     ["Year", card.year ? String(card.year) : "—"],
   ];
@@ -111,6 +157,16 @@ export function ProductDetail() {
       <div className={styles.product__hero}>
         <Panel padding="lg" className={styles.product__art}>
           <CardThumb src={card.imageUrl} alt={card.name} size="lg" />
+          {card.imageUrl && (
+            <button
+              type="button"
+              className={styles.product__expand}
+              onClick={() => setViewer(true)}
+              aria-label="View card in 3D"
+            >
+              <Expand size={16} />
+            </button>
+          )}
         </Panel>
 
         <div className={styles.product__info}>
@@ -136,9 +192,16 @@ export function ProductDetail() {
             {changePct !== undefined && <Delta percent={changePct} />}
           </div>
           {market?.gradedAvg && (
-            <p className={styles["product__buybox-sub"]}>Graded avg {formatMoney(market.gradedAvg)}</p>
+            <p className={styles["product__buybox-sub"]}>
+              Graded avg {formatMoney(market.gradedAvg)}
+            </p>
           )}
-          <a href={buyHref} target="_blank" rel="noreferrer" className={styles["product__buybox-cta"]}>
+          <a
+            href={buyHref}
+            target="_blank"
+            rel="noreferrer"
+            className={styles["product__buybox-cta"]}
+          >
             <Button block size="lg" trailingIcon={<ExternalLink size={16} />}>
               View listings
             </Button>
@@ -147,7 +210,9 @@ export function ProductDetail() {
             <WatchlistButton card={card} />
             <AddToCollectionButton card={card} />
           </div>
-          <p className={styles["product__buybox-note"]}>Live prices from connected marketplaces.</p>
+          <p className={styles["product__buybox-note"]}>
+            Live prices from connected marketplaces.
+          </p>
         </Panel>
       </div>
 
@@ -157,24 +222,43 @@ export function ProductDetail() {
             <div>
               <h2 className={styles.product__h2}>Loupe Value</h2>
               <p className={styles.valuation__sub}>
-                Our equilibrium estimate — where actual sold comps, live listings, and catalog prices
-                meet. One honest number instead of a wall of figures.
+                Our equilibrium estimate — where actual sold comps, live
+                listings, and catalog prices meet. One honest number instead of
+                a wall of figures.
               </p>
             </div>
             {valuation.fairValue && (
               <div className={styles.valuation__fair}>
-                <span className={styles.valuation__amount}>{formatMoney(valuation.fairValue)}</span>
-                <span className={styles.valuation__conf} data-level={valuation.confidence}>
-                  <ShieldCheck size={13} /> {CONFIDENCE_LABEL[valuation.confidence] ?? "Estimate"}
+                <span className={styles.valuation__amount}>
+                  {formatMoney(valuation.fairValue)}
+                </span>
+                <span
+                  className={styles.valuation__conf}
+                  data-level={valuation.confidence}
+                >
+                  <ShieldCheck size={13} />{" "}
+                  {CONFIDENCE_LABEL[valuation.confidence] ?? "Estimate"}
                 </span>
               </div>
             )}
           </div>
 
           <div className={styles.valuation__signals}>
-            <ValuationSignal label="Sold comps" money={valuation.signals.soldComps} hint="Actual recent sales" />
-            <ValuationSignal label="Lowest listings" money={valuation.signals.listings} hint="Live asking prices" />
-            <ValuationSignal label="Catalog market" money={valuation.signals.catalog} hint="Aggregated market" />
+            <ValuationSignal
+              label="Sold comps"
+              money={valuation.signals.soldComps}
+              hint="Actual recent sales"
+            />
+            <ValuationSignal
+              label="Lowest listings"
+              money={valuation.signals.listings}
+              hint="Live asking prices"
+            />
+            <ValuationSignal
+              label="Catalog market"
+              money={valuation.signals.catalog}
+              hint="Aggregated market"
+            />
           </div>
 
           {valuation.grades.length > 0 && (
@@ -184,10 +268,18 @@ export function ProductDetail() {
                 {valuation.grades.map((g) => (
                   <div key={g.grade} className={styles.grade}>
                     <span className={styles.grade__label}>{gradeLabel(g)}</span>
-                    <span className={styles.grade__price}>{g.lastSale ? formatMoney(g.lastSale) : "—"}</span>
+                    <span className={styles.grade__price}>
+                      {g.lastSale ? formatMoney(g.lastSale) : "—"}
+                    </span>
                     <span className={styles.grade__meta}>
-                      {g.deltaPct != null && <Delta percent={g.deltaPct} variant="arrow" />}
-                      {g.salesCount > 0 && <span className={styles.grade__count}>{g.salesCount} sold</span>}
+                      {g.deltaPct != null && (
+                        <Delta percent={g.deltaPct} variant="arrow" />
+                      )}
+                      {g.salesCount > 0 && (
+                        <span className={styles.grade__count}>
+                          {g.salesCount} sold
+                        </span>
+                      )}
                     </span>
                   </div>
                 ))}
@@ -201,7 +293,12 @@ export function ProductDetail() {
         <div className={styles.product__chart}>
           <div className={styles.product__chartHead}>
             <h2 className={styles.product__h2}>Price history</h2>
-            <GradeSelector value={tier} onChange={setTier} />
+            <GradeSelector
+              value={tier}
+              onChange={setTier}
+              rawBase={price?.amount}
+              year={card.year}
+            />
           </div>
           <Panel padding="lg">
             <CardPriceChart
@@ -212,9 +309,10 @@ export function ProductDetail() {
               grade={tier.grade}
             />
             <p className={styles["product__chart-note"]}>
-              Showing <strong>{tierLabel(tier)}</strong> prices — switch between Raw and the major grading
-              companies above. Tap a timeframe (1W–ALL) and drag to scrub; the line is green when the
-              period is up, red when down.
+              Showing <strong>{tierLabel(tier)}</strong> prices — switch between
+              Raw and the major grading companies above. Tap a timeframe
+              (1W–ALL) and drag to scrub; the line is green when the period is
+              up, red when down.
             </p>
           </Panel>
         </div>
@@ -223,9 +321,24 @@ export function ProductDetail() {
           <h2 className={styles.product__h2}>Price Points</h2>
           <Panel padding="lg" className={styles["product__points-card"]}>
             {price && <Stat label="Market price" value={formatMoney(price)} />}
-            {market?.gradedAvg && <Stat label="Graded average" value={formatMoney(market.gradedAvg)} />}
-            {market?.popTotal !== undefined && <Stat label="Population" value={market.popTotal.toLocaleString()} />}
-            {market?.changePct1y !== undefined && <Stat label="1-year change" value={<Delta percent={market.changePct1y} />} />}
+            {market?.gradedAvg && (
+              <Stat
+                label="Graded average"
+                value={formatMoney(market.gradedAvg)}
+              />
+            )}
+            {market?.popTotal !== undefined && (
+              <Stat
+                label="Population"
+                value={market.popTotal.toLocaleString()}
+              />
+            )}
+            {market?.changePct1y !== undefined && (
+              <Stat
+                label="1-year change"
+                value={<Delta percent={market.changePct1y} />}
+              />
+            )}
           </Panel>
         </div>
       </section>
@@ -233,7 +346,9 @@ export function ProductDetail() {
       <section>
         <div className={styles["product__markets-head"]}>
           <h2 className={styles.product__h2}>Marketplaces</h2>
-          <span className={styles["product__markets-sub"]}>Live lowest prices across connected marketplaces</span>
+          <span className={styles["product__markets-sub"]}>
+            Live lowest prices across connected marketplaces
+          </span>
         </div>
         <div className={styles.product__markets}>
           {marketRows.map((m) => (
@@ -245,13 +360,24 @@ export function ProductDetail() {
               className={styles["product__market-row"]}
             >
               <div className={styles["product__market-id"]}>
-                <span className={styles["product__market-name"]}>{m.label}</span>
-                {m.subtitle && <span className={styles["product__market-sub"]}>{m.subtitle}</span>}
+                <span className={styles["product__market-name"]}>
+                  {m.label}
+                </span>
+                {m.subtitle && (
+                  <span className={styles["product__market-sub"]}>
+                    {m.subtitle}
+                  </span>
+                )}
               </div>
               <div className={styles["product__market-right"]}>
-                {m.price && <span className={styles["product__market-price"]}>{formatMoney(m.price)}</span>}
+                {m.price && (
+                  <span className={styles["product__market-price"]}>
+                    {formatMoney(m.price)}
+                  </span>
+                )}
                 <span className={styles["product__market-cta"]}>
-                  {m.kind === "listing" ? "Buy" : "View"} <ExternalLink size={13} />
+                  {m.kind === "listing" ? "Buy" : "View"}{" "}
+                  <ExternalLink size={13} />
                 </span>
               </div>
             </a>
@@ -265,11 +391,14 @@ export function ProductDetail() {
           <span className={styles.gradeCta__eyebrow}>
             <ScanLine size={14} /> Loupe Grade
           </span>
-          <h2 className={styles.gradeCta__title}>What would this card grade?</h2>
+          <h2 className={styles.gradeCta__title}>
+            What would this card grade?
+          </h2>
           <p className={styles.gradeCta__sub}>
-            Loupe measures centering, edges, corners, and surface and predicts the PSA / BGS / CGC grade —
-            scan {card.name} with the Loupe app or the Loupe Scanner to get an instant estimate and see
-            what it's worth slabbed.
+            Loupe measures centering, edges, corners, and surface and predicts
+            the PSA / BGS / CGC grade — scan {card.name} with the Loupe app or
+            the Loupe Scanner to get an instant estimate and see what it's worth
+            slabbed.
           </p>
           <div className={styles.gradeCta__actions}>
             <ScanButton label="Scan a card" size="lg" />
@@ -281,6 +410,15 @@ export function ProductDetail() {
           </div>
         </div>
       </section>
+
+      {card.imageUrl && (
+        <Card3DModal
+          open={viewer}
+          onOpenChange={setViewer}
+          src={card.imageUrl}
+          alt={card.name}
+        />
+      )}
     </div>
   );
 }
@@ -301,7 +439,14 @@ function ProductDetailSkeleton() {
           <Skeleton width={90} height={22} radius={999} />
           <div style={{ height: 20 }} />
           {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} style={{ display: "flex", justifyContent: "space-between", margin: "10px 0" }}>
+            <div
+              key={i}
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                margin: "10px 0",
+              }}
+            >
               <Skeleton width={120} height={14} radius={6} />
               <Skeleton width={80} height={14} radius={6} />
             </div>

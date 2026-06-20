@@ -1,0 +1,146 @@
+// Block: viewer — full-screen 3D card viewer (mobile Card3DModal twin). BEM.
+.viewer {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-lg);
+  padding: var(--space-xl);
+  animation: viewer-in var(--dur-fast) var(--ease-out);
+
+  &__overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 99;
+    background: color-mix(in srgb, #000 78%, transparent);
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+    animation: viewer-fade var(--dur-fast) var(--ease-out);
+  }
+
+  &__srTitle {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+
+  &__toolbar {
+    position: absolute;
+    top: var(--space-lg);
+    right: var(--space-lg);
+    display: flex;
+    gap: var(--space-sm);
+  }
+
+  &__tool {
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-pill);
+    color: #fff;
+    background: color-mix(in srgb, #fff 12%, transparent);
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+    border: 1px solid color-mix(in srgb, #fff 18%, transparent);
+    transition: background-color var(--dur-fast) var(--ease-out);
+
+    &:hover {
+      background: color-mix(in srgb, #fff 22%, transparent);
+    }
+  }
+
+  // Perspective container; capture the whole stage so dragging anywhere works.
+  &__stage {
+    perspective: 1400px;
+    display: grid;
+    place-items: center;
+    width: 100%;
+    flex: 1;
+    cursor: grab;
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+
+    &:active {
+      cursor: grabbing;
+    }
+  }
+
+  &__card {
+    position: relative;
+    border-radius: var(--radius-lg);
+    transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+    transform-style: preserve-3d;
+    transition:
+      transform 120ms var(--ease-out),
+      box-shadow 200ms var(--ease-out);
+    will-change: transform;
+    box-shadow: 0 calc(28px + var(--active, 0) * 34px)
+      calc(60px + var(--active, 0) * 50px)
+      rgba(0, 0, 0, calc(0.4 + var(--active, 0) * 0.2));
+  }
+
+  &__img {
+    display: block;
+    height: min(72vh, 620px);
+    max-width: calc(100vw - 2 * var(--space-xl));
+    width: auto;
+    border-radius: var(--radius-lg);
+    -webkit-user-drag: none;
+    pointer-events: none;
+  }
+
+  // Foil sheen that tracks the tilt.
+  &__glare {
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    opacity: calc(0.35 + var(--active, 0) * 0.4);
+    transition: opacity 160ms var(--ease-out);
+    background:
+      radial-gradient(
+        220px 220px at var(--gx, 50%) var(--gy, 50%),
+        rgba(255, 255, 255, 0.5),
+        rgba(255, 255, 255, 0) 60%
+      ),
+      linear-gradient(
+        105deg,
+        transparent 35%,
+        color-mix(in srgb, var(--accent-mint) 40%, transparent) 48%,
+        transparent 62%
+      );
+    mix-blend-mode: screen;
+  }
+
+  &__hint {
+    color: color-mix(in srgb, #fff 70%, transparent);
+    font-size: var(--text-sm);
+    font-weight: 600;
+    letter-spacing: 0.01em;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    &__card {
+      transition: none;
+    }
+  }
+}
+
+@keyframes viewer-fade {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes viewer-in {
+  from {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+}

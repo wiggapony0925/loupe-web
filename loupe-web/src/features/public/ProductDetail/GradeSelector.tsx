@@ -1,4 +1,6 @@
 import { cx } from "@/lib/cx";
+import { formatCompactMoney } from "@/lib/format";
+import { estimateTierPrice } from "./gradePricing";
 import styles from "./GradeSelector.module.scss";
 
 /** A price tier to chart: raw, or a graded company + grade. */
@@ -102,19 +104,39 @@ export function tierLabel(t: PriceTier): string {
  * company, then a grade (real per-company scales, chase-first). Drives which
  * series the chart + readout show. The grade row scrolls on small screens.
  */
-export function GradeSelector({ value, onChange }: { value: PriceTier; onChange: (t: PriceTier) => void }) {
+export function GradeSelector({
+  value,
+  onChange,
+  rawBase,
+  year,
+}: {
+  value: PriceTier;
+  onChange: (t: PriceTier) => void;
+  /** Real raw market price — each tier's chip price is derived from this. */
+  rawBase?: number;
+  /** Card year (drives the vintage premium on graded tiers). */
+  year?: number;
+}) {
   const company = COMPANIES.find((c) => c.key === value.house) ?? COMPANIES[0]!;
+  const rawPrice = estimateTierPrice(rawBase, "raw");
 
   return (
     <div className={styles.tiers}>
-      <div className={styles.tiers__companies} role="tablist" aria-label="Grading company">
+      <div
+        className={styles.tiers__companies}
+        role="tablist"
+        aria-label="Grading company"
+      >
         {COMPANIES.map((c) => (
           <button
             key={c.key}
             type="button"
             role="tab"
             aria-selected={c.key === value.house}
-            className={cx(styles.tiers__company, c.key === value.house && styles["tiers__company--active"])}
+            className={cx(
+              styles.tiers__company,
+              c.key === value.house && styles["tiers__company--active"],
+            )}
             onClick={() => onChange({ house: c.key, grade: c.grades[0]?.g })}
           >
             {c.label}
@@ -122,23 +144,50 @@ export function GradeSelector({ value, onChange }: { value: PriceTier; onChange:
         ))}
       </div>
 
-      {company.grades.length > 0 && (
+      {company.grades.length > 0 ? (
         <div className={styles.tiers__grades} aria-label="Grade">
-          {company.grades.map(({ g, tag }) => (
-            <button
-              key={g}
-              type="button"
-              aria-pressed={g === value.grade}
-              className={cx(styles.tiers__grade, g === value.grade && styles["tiers__grade--active"])}
-              onClick={() => onChange({ house: value.house, grade: g })}
-            >
-              <span className={styles.tiers__gradeNum}>
-                {company.label} {g}
-              </span>
-              {tag && <span className={styles.tiers__gradeTag}>{tag}</span>}
-            </button>
-          ))}
+          {company.grades.map(({ g, tag }) => {
+            const price = estimateTierPrice(rawBase, value.house, g, year);
+            return (
+              <button
+                key={g}
+                type="button"
+                aria-pressed={g === value.grade}
+                className={cx(
+                  styles.tiers__grade,
+                  g === value.grade && styles["tiers__grade--active"],
+                )}
+                onClick={() => onChange({ house: value.house, grade: g })}
+              >
+                <span className={styles.tiers__gradeNum}>
+                  {company.label} {g}
+                </span>
+                {tag && <span className={styles.tiers__gradeTag}>{tag}</span>}
+                {price != null && (
+                  <span className={styles.tiers__gradePrice}>
+                    {formatCompactMoney(price)}
+                  </span>
+                )}
+              </button>
+            );
+          })}
         </div>
+      ) : (
+        rawPrice != null && (
+          <div className={styles.tiers__grades} aria-label="Grade">
+            <div
+              className={cx(
+                styles.tiers__grade,
+                styles["tiers__grade--readout"],
+              )}
+            >
+              <span className={styles.tiers__gradeNum}>Raw</span>
+              <span className={styles.tiers__gradePrice}>
+                {formatCompactMoney(rawPrice)}
+              </span>
+            </div>
+          </div>
+        )
       )}
     </div>
   );

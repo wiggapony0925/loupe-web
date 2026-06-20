@@ -21,7 +21,9 @@
     font-weight: 700;
     color: var(--ink-dim);
     border-radius: var(--radius-pill);
-    transition: background-color var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out);
+    transition:
+      background-color var(--dur-fast) var(--ease-out),
+      color var(--dur-fast) var(--ease-out);
 
     &:hover {
       color: var(--ink);
@@ -58,7 +60,9 @@
     padding: 5px 12px;
     border: 1px solid var(--line-strong);
     border-radius: var(--radius-pill);
-    transition: border-color var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out),
+    transition:
+      border-color var(--dur-fast) var(--ease-out),
+      color var(--dur-fast) var(--ease-out),
       background-color var(--dur-fast) var(--ease-out);
 
     &:hover {
@@ -73,9 +77,16 @@
       border-color: var(--accent-mint);
 
       .tiers__gradeNum,
-      .tiers__gradeTag {
+      .tiers__gradeTag,
+      .tiers__gradePrice {
         color: #fff;
       }
+    }
+
+    // Static price readout (the Raw tier has no grade chips of its own).
+    &--readout {
+      cursor: default;
+      border-style: dashed;
     }
   }
 
@@ -92,5 +103,15 @@
     letter-spacing: 0.05em;
     text-transform: uppercase;
     color: var(--accent-amber);
+  }
+
+  // The per-tier price, in theme green — the whole point of the chip.
+  &__gradePrice {
+    margin-top: 1px;
+    font-size: 11px;
+    font-weight: 800;
+    color: var(--accent-mint);
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
   }
 }

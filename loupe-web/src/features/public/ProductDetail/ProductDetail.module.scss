@@ -34,6 +34,36 @@
 
   &__art {
     align-self: start;
+    position: relative;
+  }
+
+  // Corner affordance: "this card opens into a 3D viewer".
+  &__expand {
+    position: absolute;
+    top: var(--space-md);
+    right: var(--space-md);
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    border-radius: var(--radius-pill);
+    color: #fff;
+    background: color-mix(in srgb, #000 42%, transparent);
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+    border: 1px solid color-mix(in srgb, #fff 22%, transparent);
+    box-shadow: var(--shadow-card);
+    opacity: 0.9;
+    transition:
+      opacity var(--dur-fast) var(--ease-out),
+      transform var(--dur-fast) var(--ease-out),
+      background-color var(--dur-fast) var(--ease-out);
+
+    &:hover {
+      opacity: 1;
+      transform: scale(1.06);
+      background: color-mix(in srgb, var(--accent-mint) 88%, #000);
+    }
   }
 
   &__info {
@@ -289,10 +319,16 @@
     font-weight: 700;
     color: var(--ink-dim);
 
-    &[data-level="3"] { color: var(--accent-mint); }
-    &[data-level="2"] { color: var(--accent-blue); }
+    &[data-level="3"] {
+      color: var(--accent-mint);
+    }
+    &[data-level="2"] {
+      color: var(--accent-blue);
+    }
     &[data-level="1"],
-    &[data-level="0"] { color: var(--accent-amber); }
+    &[data-level="0"] {
+      color: var(--accent-amber);
+    }
   }
 
   &__signals {
@@ -390,7 +426,11 @@
   border-radius: var(--radius-xl);
   padding: var(--space-2xl);
   border: 1px solid var(--line);
-  background: linear-gradient(135deg, color-mix(in srgb, var(--accent-mint) 8%, var(--bg-sunken)), var(--bg-elevated));
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--accent-mint) 8%, var(--bg-sunken)),
+    var(--bg-elevated)
+  );
 
   &__body {
     display: flex;
