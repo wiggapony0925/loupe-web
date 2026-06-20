@@ -20,6 +20,25 @@
   width: var(--sidebar-w-collapsed);
 }
 
+/* Hover-to-peek: a manually-collapsed rail expands while hovered. It lifts
+   above the content with a shadow so the reveal reads as an overlay panel
+   (the width animation comes from the base .sidebar transition). */
+.hoverExpand {
+  z-index: 30;
+  box-shadow: var(--shadow-pop);
+
+  // Labels fade in as the rail widens rather than popping.
+  .label {
+    animation: sidebar-label-in var(--dur-med) var(--ease-out);
+  }
+}
+
+@keyframes sidebar-label-in {
+  from {
+    opacity: 0;
+  }
+}
+
 /* Pinned to the right edge — flip the divider. */
 .right {
   border-right: none;
