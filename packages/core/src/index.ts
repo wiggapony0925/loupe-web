@@ -39,6 +39,7 @@ export {
   useAnalyticsOverview,
   useHomeFeed,
   useGrades,
+  usePortfolioHistory,
   useAddGrade,
   useUpdateGrade,
   useDeleteGrade,

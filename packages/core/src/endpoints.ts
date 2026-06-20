@@ -42,6 +42,7 @@ export const ENDPOINTS = {
     mine: `${V1}/grades`,
     create: `${V1}/grades`,
     summary: `${V1}/grades/summary`,
+    history: `${V1}/grades/history`,
     item: (id: string) => `${V1}/grades/${id}`,
   },
   collections: {

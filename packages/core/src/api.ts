@@ -50,6 +50,7 @@ import type {
   CardMarket,
   CardSparkline,
   CardSummary,
+  PortfolioHistory,
   CardValuation,
   ScanResult,
   CreateGradeInput,
@@ -370,6 +371,26 @@ export const api = {
         },
       });
       return (rows ?? []).map(toGradedCard);
+    },
+    /** Collection value over time (for the dashboard portfolio chart). */
+    history: async (range = "1Y"): Promise<PortfolioHistory> => {
+      const d = await apiFetch<{
+        range?: string;
+        points?: Array<{ date: string; priceUsd?: number; price_usd?: number }>;
+        deltaUsd?: number;
+        delta_usd?: number;
+        deltaPct?: number;
+        delta_pct?: number;
+      }>(ENDPOINTS.grades.history, { query: { range } });
+      return {
+        range: d.range ?? range,
+        points: (d.points ?? []).map((p) => ({
+          date: p.date,
+          priceUsd: p.priceUsd ?? p.price_usd ?? 0,
+        })),
+        deltaUsd: d.deltaUsd ?? d.delta_usd ?? 0,
+        deltaPct: d.deltaPct ?? d.delta_pct ?? 0,
+      };
     },
     /** Add a card to the collection (vault). Accepts a public composite
      *  `upstreamId` directly — the backend materializes the local card. */

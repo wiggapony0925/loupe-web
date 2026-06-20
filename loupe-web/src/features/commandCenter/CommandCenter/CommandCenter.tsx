@@ -1,10 +1,26 @@
 import { Link, useNavigate } from "react-router-dom";
 import { ArrowRight, BarChart3 } from "lucide-react";
-import { useAnalyticsOverview, useGrades, usePublicTrending, useWatchlist, type CardSummary } from "@loupe/core";
-import { Carousel, ShopCard, Skeleton, NoteCard, Button, Panel, Stat, Flaggable } from "@/components";
+import {
+  useAnalyticsOverview,
+  useGrades,
+  usePublicTrending,
+  useWatchlist,
+  type CardSummary,
+} from "@loupe/core";
+import {
+  Carousel,
+  ShopCard,
+  Skeleton,
+  NoteCard,
+  Button,
+  Panel,
+  Stat,
+  Flaggable,
+} from "@/components";
 import { useAuth } from "@/auth/AuthProvider";
 import { formatMoney } from "@/lib/format";
 import { FeaturedHero } from "../FeaturedHero/FeaturedHero";
+import { PortfolioChart } from "../PortfolioChart/PortfolioChart";
 import styles from "./CommandCenter.module.scss";
 
 /** Authenticated home — personalized header, your watchlist, and the live market. */
@@ -20,11 +36,14 @@ export function CommandCenter() {
 
   const featured = trending.data?.[0];
   const go = (id: string) => navigate(`/cards/${encodeURIComponent(id)}`);
-  const firstName = user?.display_name?.split(" ")[0] || user?.email?.split("@")[0] || "back";
+  const firstName =
+    user?.display_name?.split(" ")[0] || user?.email?.split("@")[0] || "back";
 
   const tiles = (rows: CardSummary[] | undefined, loading: boolean) =>
     loading
-      ? Array.from({ length: 8 }).map((_, i) => <Skeleton key={i} height={300} radius={14} />)
+      ? Array.from({ length: 8 }).map((_, i) => (
+          <Skeleton key={i} height={300} radius={14} />
+        ))
       : (rows ?? []).map((c) => (
           <ShopCard
             key={c.id}
@@ -50,7 +69,10 @@ export function CommandCenter() {
           <p className={styles.eyebrow}>Your market</p>
           <h1 className={styles.greeting}>Welcome back, {firstName}.</h1>
         </div>
-        <Button trailingIcon={<ArrowRight size={16} />} onClick={() => navigate("/cards")}>
+        <Button
+          trailingIcon={<ArrowRight size={16} />}
+          onClick={() => navigate("/cards")}
+        >
           Browse all cards
         </Button>
       </header>
@@ -61,7 +83,11 @@ export function CommandCenter() {
           title="Couldn't load the market"
           message="The backend is unreachable right now. Please try again."
           action={
-            <Button variant="secondary" size="sm" onClick={() => window.location.reload()}>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => window.location.reload()}
+            >
               Retry
             </Button>
           }
@@ -69,22 +95,42 @@ export function CommandCenter() {
       ) : (
         <>
           {portfolio && portfolio.holdings > 0 && (
-            <Flaggable flag="cc_portfolio" label="Portfolio summary">
-              <Panel padding="lg" raised className={styles.portfolio}>
-                <div className={styles.portfolioStats}>
-                  <Stat label="Collection value" value={formatMoney({ amount: portfolio.totalValueUsd, currency: "USD" })} />
-                  <Stat label="Cards" value={portfolio.holdings.toLocaleString()} />
-                  <Stat label="Sets" value={portfolio.uniqueSets.toLocaleString()} />
-                  <Stat label="Avg grade" value={portfolio.avgGrade ? portfolio.avgGrade.toFixed(1) : "—"} />
-                </div>
-                <Button
-                  variant="secondary"
-                  leadingIcon={<BarChart3 size={16} />}
-                  onClick={() => navigate("/app/analytics")}
-                >
-                  View analytics
-                </Button>
-              </Panel>
+            <Flaggable flag="cc_portfolio" label="Portfolio">
+              <div className={styles.portfolioSection}>
+                <PortfolioChart />
+                <Panel padding="lg" raised className={styles.portfolio}>
+                  <div className={styles.portfolioStats}>
+                    <Stat
+                      label="Collection value"
+                      value={formatMoney({
+                        amount: portfolio.totalValueUsd,
+                        currency: "USD",
+                      })}
+                    />
+                    <Stat
+                      label="Cards"
+                      value={portfolio.holdings.toLocaleString()}
+                    />
+                    <Stat
+                      label="Sets"
+                      value={portfolio.uniqueSets.toLocaleString()}
+                    />
+                    <Stat
+                      label="Avg grade"
+                      value={
+                        portfolio.avgGrade ? portfolio.avgGrade.toFixed(1) : "—"
+                      }
+                    />
+                  </div>
+                  <Button
+                    variant="secondary"
+                    leadingIcon={<BarChart3 size={16} />}
+                    onClick={() => navigate("/app/analytics")}
+                  >
+                    View analytics
+                  </Button>
+                </Panel>
+              </div>
             </Flaggable>
           )}
 
@@ -96,19 +142,27 @@ export function CommandCenter() {
 
           {vault.data && vault.data.length > 0 && (
             <Flaggable flag="cc_vault_rail" label="Vault rail">
-            <Carousel title="Your vault" subtitle="Your most valuable graded cards." action={seeAll("/app/vault")}>
-              {vault.data.map((c) => (
-                <ShopCard
-                  key={c.id}
-                  imageUrl={c.cardImageUrl ?? ""}
-                  title={c.cardName ?? "Card"}
-                  subtitle={c.cardSetName ?? "Graded"}
-                  price={c.estimatedValueUsd ? { amount: c.estimatedValueUsd, currency: "USD" } : undefined}
-                  tag={`${c.house ? c.house.toUpperCase() : "RAW"} ${Number.isInteger(c.grade) ? c.grade : c.grade.toFixed(1)}`}
-                  onClick={() => go(c.cardId)}
-                />
-              ))}
-            </Carousel>
+              <Carousel
+                title="Your vault"
+                subtitle="Your most valuable graded cards."
+                action={seeAll("/app/vault")}
+              >
+                {vault.data.map((c) => (
+                  <ShopCard
+                    key={c.id}
+                    imageUrl={c.cardImageUrl ?? ""}
+                    title={c.cardName ?? "Card"}
+                    subtitle={c.cardSetName ?? "Graded"}
+                    price={
+                      c.estimatedValueUsd
+                        ? { amount: c.estimatedValueUsd, currency: "USD" }
+                        : undefined
+                    }
+                    tag={`${c.house ? c.house.toUpperCase() : "RAW"} ${Number.isInteger(c.grade) ? c.grade : c.grade.toFixed(1)}`}
+                    onClick={() => go(c.cardId)}
+                  />
+                ))}
+              </Carousel>
             </Flaggable>
           )}
 
@@ -129,7 +183,11 @@ export function CommandCenter() {
               title="Your watchlist is empty"
               message="Open any card and tap “Add to watchlist” to track its price right here."
               action={
-                <Button variant="secondary" size="sm" onClick={() => navigate("/cards")}>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => navigate("/cards")}
+                >
                   Find cards
                 </Button>
               }

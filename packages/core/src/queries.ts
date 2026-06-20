@@ -29,6 +29,7 @@ import type {
   CardSparkline,
   CardSummary,
   CardValuation,
+  PortfolioHistory,
   ScanResult,
   CreateGradeInput,
   FeatureFlag,
@@ -237,6 +238,14 @@ export const useWatchlist = (enabled = true) =>
     enabled,
     staleTime: 30_000,
   });
+
+/** The signed-in user's collection value over time (dashboard portfolio chart). */
+export const usePortfolioHistory = (range = "1Y", enabled = true) =>
+  useApiQuery<PortfolioHistory>(
+    ["portfolio-history", range],
+    () => api.grades.history(range),
+    { enabled, staleTime: 60_000 },
+  );
 
 /** The signed-in user's graded/owned cards (the Vault). */
 export const useGrades = (params?: GradesParams, enabled = true) =>

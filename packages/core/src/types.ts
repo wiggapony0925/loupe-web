@@ -72,6 +72,21 @@ export interface CardSummary {
   low?: Money;
 }
 
+/** One point on the portfolio value-over-time chart. */
+export interface PortfolioPoint {
+  /** ISO date (day granularity). */
+  date: string;
+  priceUsd: number;
+}
+
+/** The signed-in user's collection value over time (GET /v1/grades/history). */
+export interface PortfolioHistory {
+  range: string;
+  points: PortfolioPoint[];
+  deltaUsd: number;
+  deltaPct: number;
+}
+
 /** A compact trend series for a list-row sparkline (Robinhood/StockX style). */
 export interface CardSparkline {
   cardId: string;

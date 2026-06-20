@@ -41,6 +41,12 @@
   }
 }
 
+.portfolioSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+}
+
 .portfolio {
   display: flex;
   align-items: center;

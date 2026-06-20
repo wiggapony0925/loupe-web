@@ -1,0 +1,13 @@
+.portfolio {
+  // The hero chart spans the dashboard width.
+  width: 100%;
+}
+
+.empty {
+  display: grid;
+  place-items: center;
+  text-align: center;
+  padding: 0 var(--space-lg);
+  color: var(--ink-dim);
+  font-size: var(--text-sm);
+}
