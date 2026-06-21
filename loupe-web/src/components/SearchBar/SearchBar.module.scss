@@ -58,7 +58,7 @@
     width: 52px;
     display: grid;
     place-items: center;
-    color: #06140d;
+    color: var(--on-accent);
     background: var(--accent-mint);
     transition: filter var(--dur-fast) var(--ease-out);
 

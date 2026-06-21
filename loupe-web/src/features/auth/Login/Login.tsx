@@ -5,6 +5,7 @@ import { ApiError, type User } from "@loupe/core";
 import { Button, TextField } from "@/components";
 import { useAuth } from "@/auth/AuthProvider";
 import { AuthLayout } from "../AuthLayout/AuthLayout";
+import { SocialSignIn } from "../SocialSignIn/SocialSignIn";
 import styles from "../AuthForm.module.scss";
 
 /** Email + password sign-in, wired to `POST /v1/auth/login`. */
@@ -75,6 +76,7 @@ export function Login() {
           {busy ? "Signing in…" : "Sign in"}
         </Button>
       </form>
+      <SocialSignIn onSuccess={(u) => navigate(destFor(u), { replace: true })} />
     </AuthLayout>
   );
 }

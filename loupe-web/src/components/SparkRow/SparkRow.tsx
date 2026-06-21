@@ -11,7 +11,8 @@ export interface SparkRowProps {
   title: string;
   subtitle: string;
   sparkline: number[];
-  price: Money;
+  /** Optional so the row works for catalog cards without a resolved price. */
+  price?: Money;
   changePct: number;
   grade?: number;
   gradeCompany?: string;
@@ -57,7 +58,7 @@ export function SparkRow({
       </div>
 
       <div className={styles.price}>
-        <span className={styles.amount}>{formatMoney(price)}</span>
+        <span className={styles.amount}>{price ? formatMoney(price) : "—"}</span>
         <Delta percent={changePct} />
       </div>
     </Tag>

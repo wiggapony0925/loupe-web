@@ -9,6 +9,7 @@ export * from "./careers.types";
 export * from "./flags.types";
 export * from "./money.types";
 export * from "./portfolio.types";
+export * from "./sealed.types";
 export * from "./search.types";
 export * from "./vault.types";
 export * from "./waitlist.types";

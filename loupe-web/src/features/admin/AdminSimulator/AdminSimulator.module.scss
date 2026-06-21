@@ -130,7 +130,9 @@
   padding: var(--space-lg) 0;
 }
 
-// iPhone frame.
+// iPhone frame. The black body + bezel are literal hardware colors — kept
+// hardcoded on purpose so the device reads as black in BOTH themes (do not
+// swap for --bg-sunken / --line, which would turn it grey in light mode).
 .device {
   position: relative;
   flex-shrink: 0;

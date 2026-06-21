@@ -5,6 +5,7 @@ import { ApiError } from "@loupe/core";
 import { Button, TextField } from "@/components";
 import { useAuth } from "@/auth/AuthProvider";
 import { AuthLayout } from "../AuthLayout/AuthLayout";
+import { SocialSignIn } from "../SocialSignIn/SocialSignIn";
 import styles from "../AuthForm.module.scss";
 
 /** Account creation, wired to `POST /v1/auth/register`. */
@@ -80,6 +81,7 @@ export function Signup() {
           {busy ? "Creating account…" : "Create account"}
         </Button>
       </form>
+      <SocialSignIn onSuccess={() => navigate(from, { replace: true })} />
     </AuthLayout>
   );
 }

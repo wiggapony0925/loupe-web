@@ -1,0 +1,59 @@
+.social {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  color: var(--ink-dim);
+  font-size: var(--text-xs);
+  font-weight: 600;
+
+  &::before,
+  &::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: var(--line);
+  }
+}
+
+/* GSI renders its own button into this slot; just center it. */
+.google {
+  display: flex;
+  justify-content: center;
+  min-height: 44px;
+  color-scheme: light; // GSI iframe reads this; we pass an explicit theme anyway
+}
+
+.apple {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  height: 44px;
+  border-radius: var(--radius-pill);
+  font-size: var(--text-md);
+  font-weight: 600;
+  color: #fff;
+  background: #000;
+  transition: filter var(--dur-fast) var(--ease-out);
+  @include focus-ring;
+
+  &:hover {
+    filter: brightness(1.15);
+  }
+
+  svg {
+    margin-top: -2px;
+  }
+}
+
+.error {
+  font-size: var(--text-sm);
+  color: var(--down);
+  text-align: center;
+}

@@ -1,7 +1,12 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Pencil } from "lucide-react";
-import { useAnalyticsOverview, useGrades, type GradedCard } from "@loupe/core";
+import {
+  useAnalyticsOverview,
+  useGrades,
+  useSealedHoldings,
+  type GradedCard,
+} from "@loupe/core";
 import {
   Panel,
   Stat,
@@ -15,6 +20,7 @@ import {
   type FilterOption,
 } from "@/components";
 import { CollectionForm, gradeLabel } from "@/features/collection";
+import { SealedHoldings } from "@/features/public/Sealed";
 import { formatMoney } from "@/lib/format";
 import styles from "./Vault.module.scss";
 
@@ -37,8 +43,16 @@ export function Vault() {
   const [editing, setEditing] = useState<GradedCard | null>(null);
   const { data: cards, isLoading } = useGrades({ sort, limit: 60 });
   const { data: overview } = useAnalyticsOverview();
+  const { data: sealed } = useSealedHoldings({ sort: "value_desc" });
   const stats = overview?.stats;
   const items = cards ?? [];
+
+  // Sealed product value (qty × estimated value) folds into the headline total.
+  const sealedTotal = (sealed ?? []).reduce(
+    (sum, h) => sum + (h.estimatedValue?.amount ?? 0) * (h.quantity ?? 1),
+    0,
+  );
+  const collectionValue = (stats?.totalValueUsd ?? 0) + sealedTotal;
 
   // Cost-basis P/L over holdings that have a recorded purchase price.
   const withCost = items.filter(
@@ -67,7 +81,10 @@ export function Vault() {
 
       {stats && (
         <Panel padding="lg" raised className={styles.summary}>
-          <Stat label="Collection value" value={usd(stats.totalValueUsd)} />
+          <Stat label="Collection value" value={usd(collectionValue)} />
+          {sealedTotal > 0 && (
+            <Stat label="Sealed" value={usd(sealedTotal)} />
+          )}
           {withCost.length > 0 && (
             <Stat
               label="Total P/L"
@@ -178,6 +195,9 @@ export function Vault() {
           ))}
         </div>
       )}
+
+      {/* The user's sealed product (booster boxes, ETBs, …) — self-hides when empty. */}
+      <SealedHoldings />
 
       {editing && (
         <CollectionForm

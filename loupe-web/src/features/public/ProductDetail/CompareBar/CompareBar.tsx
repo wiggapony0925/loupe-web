@@ -1,5 +1,5 @@
 import { cx } from "@/lib/cx";
-import { COMPARE_PRESETS } from "./compareTiers";
+import { COMPARE_PRESETS } from "../compareTiers";
 import styles from "./CompareBar.module.scss";
 
 /**

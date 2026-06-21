@@ -52,6 +52,7 @@
   display: flex;
   align-items: baseline;
   justify-content: space-between;
+  gap: var(--space-sm);
   margin-top: var(--space-sm);
 }
 
@@ -63,9 +64,12 @@
 }
 
 .tag {
+  margin-top: 2px;
+  max-width: 100%;
   font-size: var(--text-xs);
   font-weight: 600;
   color: var(--ink-dim);
   text-transform: uppercase;
   letter-spacing: 0.03em;
+  @include truncate;
 }

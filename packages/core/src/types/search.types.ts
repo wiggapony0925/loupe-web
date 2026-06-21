@@ -41,7 +41,20 @@ export type BrowseSort = "name" | "newest" | "price_asc" | "price_desc";
 export interface PublicBrowseParams {
   /** pokemon | magic | yugioh | lorcana | onepiece | digimon */
   game?: string;
+  /** Scope the page to a single set (composite id, e.g. "pokemontcg:base1"). */
+  set?: string;
   page?: number;
   pageSize?: number;
   sort?: BrowseSort;
+}
+
+/** A card set in the catalog (from `GET /v1/sets`). */
+export interface CardSet {
+  id: string;
+  code?: string;
+  name: string;
+  tcg: string;
+  imageUrl?: string | null;
+  releaseDate?: string | null;
+  totalCards?: number | null;
 }

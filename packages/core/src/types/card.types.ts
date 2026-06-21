@@ -108,3 +108,120 @@ export interface CardMarket {
   lastSaleAt?: string;
   primaryHouse?: string;
 }
+
+// ─── Full market snapshot (houses + history + summary) ──────────────────
+// Powers the card-detail graded-prices rows, market signals, and quick stats.
+
+/** One (house, grade) tier with population, market price, and 30d change. */
+export interface MarketGradeRow {
+  house: string;
+  grade: number;
+  gradeLabel: string;
+  population: number;
+  market: Money;
+  changePct: number;
+  lastSaleAt?: string | null;
+  listingUrl?: string | null;
+  /** "real" comps vs "synthesized" estimate. */
+  source?: "real" | "synthesized" | string;
+}
+
+/** A grading house with its total population and per-grade rows. */
+export interface MarketHouseBlock {
+  house: string;
+  popTotal: number;
+  grades: MarketGradeRow[];
+}
+
+/** A history bucket (e.g. "30d", "90d", "1y") with points + derived summary. */
+export interface MarketHistorySeries {
+  /** Oldest → newest. `t` is epoch-ms. */
+  points: Array<{ t: number; price: number }>;
+  summary: {
+    min: number | null;
+    max: number | null;
+    avg: number | null;
+    current: number | null;
+    changePct: number | null;
+    nPoints: number;
+  };
+}
+
+export interface MarketSnapshot {
+  summary: {
+    raw?: Money | null;
+    gradedAvg?: Money | null;
+    popTop?: Money | null;
+    popTotal: number;
+    changePct1y: number;
+    lastSaleAt?: string | null;
+    primaryHouse?: string;
+  };
+  /** Keyed by range bucket ("30d" | "90d" | "1y" | …). */
+  history: Record<string, MarketHistorySeries>;
+  houses: MarketHouseBlock[];
+  tiersTotal: number;
+}
+
+/** A recent sold comp (from `/v1/cards/:id/comps`). */
+export interface SoldComp {
+  source: string;
+  title: string;
+  price: Money;
+  soldAt: string;
+  condition?: string | null;
+  grade?: string | null;
+  house?: string | null;
+  url?: string | null;
+  imageUrl?: string | null;
+}
+
+/** A live for-sale listing (from `/v1/cards/:id/listings`). */
+export interface CardListing {
+  source: string;
+  title: string;
+  price: Money;
+  url: string;
+  condition?: string | null;
+  imageUrl?: string | null;
+  isAuction: boolean;
+  timeLeftSeconds?: number | null;
+}
+
+/** A nearby Facebook Marketplace listing (from `/v1/cards/:id/nearby-listings`). */
+export interface NearbyListing {
+  source: string;
+  title: string;
+  price: Money;
+  url: string;
+  condition?: string | null;
+  imageUrl?: string | null;
+  distanceKm?: number | null;
+  locationLabel?: string | null;
+}
+
+/** Per-set completion progress for the signed-in user (from `/v1/sets/progress`). */
+export interface SetProgressRow {
+  setId: string;
+  setName: string;
+  imageUrl?: string | null;
+  owned: number;
+  total: number;
+  /** 0–100. */
+  percent: number;
+  estimatedValueUsd?: number;
+  missingTop: Array<{ cardId: string; name: string; imageUrl?: string | null }>;
+}
+
+/** Per-game attributes from the canonical card (Pokédex / MTG / YGO). */
+export interface CardAttributes {
+  tcg: string;
+  name: string;
+  types?: string[] | null;
+  hp?: number | null;
+  manaCost?: string | null;
+  typeLine?: string | null;
+  oracleText?: string | null;
+  /** Any extra primitive provider fields, for a generic fallback table. */
+  extra: Record<string, string>;
+}

@@ -1,6 +1,6 @@
 import { NavLink } from "react-router-dom";
 import { cx } from "@/lib/cx";
-import { PRIMARY_NAV } from "./nav";
+import { PRIMARY_NAV } from "../nav";
 import styles from "./BottomTabBar.module.scss";
 
 /** Phone-only navigation — a fixed bottom tab bar that mirrors the native app.

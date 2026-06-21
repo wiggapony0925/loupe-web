@@ -6,14 +6,16 @@ import {
   type AnalyticsMoverRow,
 } from "@loupe/core";
 import { Panel, CardThumb, Sparkline, Delta } from "@/components";
+import { cx } from "@/lib/cx";
 import { formatMoney } from "@/lib/format";
 import styles from "./TopMovers.module.scss";
 
 /**
- * Biggest 1-year price swings on the cards you own — the web twin of the
- * mobile Command Center's Top Movers, with a Robinhood-style sparkline per
- * row. Self-hides when the vault has no enriched movers yet. One batched
- * sparkline request covers every visible row.
+ * Biggest 1-year price swings on the cards you own, presented like a brokerage
+ * watchlist: each card is a "ticker" with art, set symbol, a trend-colored
+ * sparkline and a last-price + signed $/% change block (Robinhood styling).
+ * Self-hides when the vault has no enriched movers yet. One batched sparkline
+ * request covers every visible row.
  */
 export function TopMovers({ onCard }: { onCard: (id: string) => void }) {
   const { data } = useAnalyticsOverview();
@@ -41,9 +43,8 @@ export function TopMovers({ onCard }: { onCard: (id: string) => void }) {
     <section className={styles.movers}>
       <div className={styles.head}>
         <h2 className={styles.title}>Your movers</h2>
-        <span className={styles.sub}>
-          Biggest 1-year swings in your collection.
-        </span>
+        <span className={styles.sub}>Biggest swings in your collection.</span>
+        <span className={styles.window}>1Y</span>
       </div>
       <div className={styles.cols}>
         <MoverColumn
@@ -81,53 +82,67 @@ function MoverColumn({
   if (rows.length === 0) return null;
   const Icon = tone === "up" ? TrendingUp : TrendingDown;
   return (
-    <Panel padding="none" className={styles.col}>
+    <Panel
+      padding="none"
+      className={cx(styles.col, tone === "up" ? styles.toneUp : styles.toneDown)}
+    >
       <div className={styles.colHead}>
-        <Icon
-          size={15}
-          className={tone === "up" ? styles.iconUp : styles.iconDown}
-        />
-        <span>{label}</span>
+        <span className={styles.colHeadLabel}>
+          <Icon size={14} className={styles.colIcon} />
+          {label}
+        </span>
+        <span className={styles.colCount}>{rows.length}</span>
       </div>
-      {rows.map((m, i) => {
-        const spark = m.cardId ? sparkMap.get(m.cardId) : undefined;
-        return (
-          <button
-            key={m.gradeId}
-            type="button"
-            className={styles.row}
-            onClick={() => m.cardId && onCard(m.cardId)}
-            data-first={i === 0 || undefined}
-          >
-            <span className={styles.thumb}>
-              <CardThumb
-                src={m.cardImageUrl ?? ""}
-                alt={m.cardName ?? "Card"}
-                size="sm"
-              />
-            </span>
-            <span className={styles.meta}>
-              <span className={styles.name}>{m.cardName ?? "Card"}</span>
-              <span className={styles.set}>{m.setName ?? ""}</span>
-            </span>
-            {spark && (
-              <Sparkline
-                data={spark}
-                width={56}
-                height={24}
-                fill={false}
-                strokeWidth={1.5}
-              />
-            )}
-            <span className={styles.right}>
-              <span className={styles.value}>
-                {formatMoney({ amount: m.valueUsd, currency: "USD" })}
-              </span>
-              <Delta percent={m.changePct1y} variant="arrow" />
-            </span>
-          </button>
-        );
-      })}
+      <ol className={styles.list}>
+        {rows.map((m, i) => {
+          const spark = m.cardId ? sparkMap.get(m.cardId) : undefined;
+          const pct = m.changePct1y ?? 0;
+          // Derive the absolute 1Y move from the % and the current value so the
+          // row reads like a stock ("+$3.57  +31.26%"). Skip when the prior
+          // price was ~0 (pct = -100 would divide by zero).
+          const abs =
+            pct > -100 ? m.valueUsd - m.valueUsd / (1 + pct / 100) : undefined;
+          return (
+            <li key={m.gradeId}>
+              <button
+                type="button"
+                className={styles.row}
+                onClick={() => m.cardId && onCard(m.cardId)}
+              >
+                <span className={styles.rank}>{i + 1}</span>
+                <span className={styles.thumb}>
+                  <CardThumb
+                    src={m.cardImageUrl ?? ""}
+                    alt={m.cardName ?? "Card"}
+                    size="sm"
+                  />
+                </span>
+                <span className={styles.meta}>
+                  <span className={styles.name}>{m.cardName ?? "Card"}</span>
+                  <span className={styles.ticker}>{m.setName ?? "—"}</span>
+                </span>
+                {spark && (
+                  <span className={styles.sparkWrap}>
+                    <Sparkline
+                      data={spark}
+                      width={64}
+                      height={28}
+                      fill
+                      strokeWidth={1.75}
+                    />
+                  </span>
+                )}
+                <span className={styles.right}>
+                  <span className={styles.value}>
+                    {formatMoney({ amount: m.valueUsd, currency: "USD" })}
+                  </span>
+                  <Delta percent={pct} money={abs} variant="arrow" />
+                </span>
+              </button>
+            </li>
+          );
+        })}
+      </ol>
     </Panel>
   );
 }

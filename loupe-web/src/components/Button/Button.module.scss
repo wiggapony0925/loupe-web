@@ -50,7 +50,7 @@
 /* ── Variants ── */
 .primary {
   background: var(--accent-mint);
-  color: #06140d; // dark ink on bright accent (allowed exception per design rules)
+  color: var(--on-accent); // dark ink on the bright accent fill
   &:hover {
     filter: brightness(1.05);
   }

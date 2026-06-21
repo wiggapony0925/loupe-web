@@ -1,0 +1,21 @@
+.wrap {
+  width: 100%;
+}
+
+.value {
+  font-size: var(--text-3xl);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ink-dim);
+  font-size: var(--text-sm);
+}
+
+// Timeframe pills are the shared <RangePills> (RangePills.module.scss).

@@ -33,7 +33,7 @@
 .seeall {
   font-size: var(--text-sm);
   font-weight: 700;
-  color: var(--accent-blue);
+  color: var(--accent-mint);
   margin-right: var(--space-sm);
 
   &:hover {
@@ -55,13 +55,32 @@
   flex-wrap: wrap;
 }
 
+/* Brokerage-style account stat bar: metrics separated by hairline dividers,
+   tabular figures, wraps to a 2-up grid on phones. */
 .portfolioStats {
-  display: grid;
-  grid-template-columns: repeat(4, auto);
-  gap: var(--space-2xl);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-lg) 0;
+
+  > * {
+    padding: 0 var(--space-xl);
+    border-left: 1px solid var(--line);
+
+    &:first-child {
+      padding-left: 0;
+      border-left: 0;
+    }
+  }
 
   @include bp-down("sm") {
+    display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: var(--space-lg);
+
+    > * {
+      padding: 0;
+      border-left: 0;
+    }
   }
 }

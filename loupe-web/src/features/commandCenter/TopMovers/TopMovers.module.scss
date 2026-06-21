@@ -23,6 +23,20 @@
   color: var(--ink-dim);
 }
 
+.window {
+  margin-left: auto;
+  align-self: center;
+  font-size: var(--text-xs);
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: var(--ink-dim);
+  background: var(--bg-sunken);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-pill);
+  padding: 2px 10px;
+  font-variant-numeric: tabular-nums;
+}
+
 .cols {
   display: grid;
   // minmax(0,1fr) lets the tracks shrink below content min-content — without
@@ -36,32 +50,62 @@
   }
 }
 
+/* Each column carries its gain/loss color as --tone so headers, the count
+   pill and the hover accent strip all tint from one source. */
 .col {
   min-width: 0;
   overflow: hidden;
+}
+.toneUp {
+  --tone: var(--up);
+}
+.toneDown {
+  --tone: var(--down);
 }
 
 .colHead {
   display: flex;
   align-items: center;
-  gap: 6px;
+  justify-content: space-between;
+  gap: var(--space-sm);
   padding: var(--space-md) var(--space-lg);
+  border-bottom: 1px solid var(--line);
+  background: color-mix(in srgb, var(--tone) 7%, transparent);
+}
+
+.colHeadLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   font-size: var(--text-xs);
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: var(--ink-dim);
-  border-bottom: 1px solid var(--line);
 }
 
-.iconUp {
-  color: var(--up);
+.colIcon {
+  color: var(--tone);
 }
-.iconDown {
-  color: var(--down);
+
+.colCount {
+  font-size: var(--text-xs);
+  font-weight: 800;
+  color: var(--tone);
+  background: color-mix(in srgb, var(--tone) 14%, transparent);
+  border-radius: var(--radius-pill);
+  padding: 1px 8px;
+  font-variant-numeric: tabular-nums;
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
 }
 
 .row {
+  position: relative;
   display: flex;
   align-items: center;
   gap: var(--space-md);
@@ -72,13 +116,38 @@
   border-top: 1px solid var(--line);
   transition: background-color var(--dur-fast) var(--ease-out);
 
-  &[data-first] {
-    border-top: 0;
+  // Robinhood-style accent strip that grows on hover.
+  &::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 0;
+    background: var(--tone);
+    transition: width var(--dur-fast) var(--ease-out);
   }
 
   &:hover {
     background: var(--bg-sunken);
   }
+  &:hover::before {
+    width: 3px;
+  }
+}
+
+.list li:first-child .row {
+  border-top: 0;
+}
+
+.rank {
+  flex-shrink: 0;
+  width: 14px;
+  text-align: center;
+  font-size: var(--text-xs);
+  font-weight: 700;
+  color: var(--ink-dim);
+  font-variant-numeric: tabular-nums;
 }
 
 .thumb {
@@ -91,19 +160,34 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
+  gap: 1px;
 }
 
 .name {
   font-size: var(--text-sm);
-  font-weight: 600;
+  font-weight: 700;
+  letter-spacing: -0.01em;
   color: var(--ink);
   @include truncate;
 }
 
-.set {
+.ticker {
   font-size: var(--text-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
   color: var(--ink-dim);
   @include truncate;
+}
+
+.sparkWrap {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+
+  @include bp-down("sm") {
+    display: none;
+  }
 }
 
 .right {

@@ -126,6 +126,21 @@ export function CommandCenter() {
                         portfolio.avgGrade ? portfolio.avgGrade.toFixed(1) : "—"
                       }
                     />
+                    <Stat
+                      label="Gem rate"
+                      value={
+                        portfolio.gemRatePct != null
+                          ? `${Math.round(portfolio.gemRatePct)}%`
+                          : "—"
+                      }
+                    />
+                    <Stat
+                      label="Avg value"
+                      value={formatMoney({
+                        amount: portfolio.avgValueUsd,
+                        currency: "USD",
+                      })}
+                    />
                   </div>
                   <Button
                     variant="secondary"

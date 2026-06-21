@@ -7,7 +7,10 @@ export const ENDPOINTS = {
     login: `${V1}/auth/login`,
     register: `${V1}/auth/register`,
     devLogin: `${V1}/auth/dev-login`,
+    google: `${V1}/auth/google`,
+    apple: `${V1}/auth/apple`,
     refresh: `${V1}/auth/refresh`,
+    logout: `${V1}/auth/logout`,
   },
   me: { root: `${V1}/me`, settings: `${V1}/me/settings` },
   home: { feed: `${V1}/home/feed` },
@@ -29,7 +32,73 @@ export const ENDPOINTS = {
     canonical: (id: string) => `${V1}/cards/${id}/canonical`,
     marketplacePrices: (id: string) => `${V1}/cards/${id}/marketplace-prices`,
     valuation: (id: string) => `${V1}/cards/${id}/valuation`,
+    listings: (id: string) => `${V1}/cards/${id}/listings`,
+    nearbyListings: (
+      id: string,
+      coords?: { lat: number; lng: number; radiusKm?: number },
+    ) => {
+      const q = new URLSearchParams();
+      if (coords) {
+        q.set("lat", String(coords.lat));
+        q.set("lng", String(coords.lng));
+        if (coords.radiusKm) q.set("radius_km", String(coords.radiusKm));
+      }
+      const qs = q.toString();
+      return `${V1}/cards/${id}/nearby-listings${qs ? `?${qs}` : ""}`;
+    },
+    comps: (id: string, opts?: { days?: number; grade?: string; house?: string }) => {
+      const q = new URLSearchParams();
+      if (opts?.days) q.set("days", String(opts.days));
+      if (opts?.grade) q.set("grade", opts.grade);
+      if (opts?.house) q.set("house", opts.house);
+      const qs = q.toString();
+      return `${V1}/cards/${id}/comps${qs ? `?${qs}` : ""}`;
+    },
+    gradeSummary: (id: string) => `${V1}/cards/${id}/grade-summary`,
     identify: `${V1}/cards/identify`,
+  },
+  /** Card sets — public catalog list + user-scoped completion progress. */
+  sets: {
+    list: (tcg?: string) => `${V1}/sets${tcg ? `?tcg=${tcg}` : ""}`,
+    progress: `${V1}/sets/progress`,
+  },
+  /** Sealed-product catalog (public) + the user's sealed holdings (auth). */
+  sealed: {
+    search: (params: {
+      q?: string;
+      tcg?: string;
+      product_type?: string;
+      limit?: number;
+      cursor?: number;
+    }) => {
+      const qs = new URLSearchParams();
+      if (params.q) qs.set("q", params.q);
+      if (params.tcg) qs.set("tcg", params.tcg);
+      if (params.product_type) qs.set("product_type", params.product_type);
+      if (params.limit) qs.set("limit", String(params.limit));
+      if (params.cursor) qs.set("cursor", String(params.cursor));
+      const s = qs.toString();
+      return `${V1}/sealed/search${s ? `?${s}` : ""}`;
+    },
+    item: (id: string) => `${V1}/sealed/${id}`,
+  },
+  sealedHoldings: {
+    list: (params?: {
+      include_opened?: boolean;
+      sort?: string;
+      limit?: number;
+      cursor?: number;
+    }) => {
+      const qs = new URLSearchParams();
+      if (params?.include_opened === false) qs.set("include_opened", "false");
+      if (params?.sort) qs.set("sort", params.sort);
+      if (params?.limit) qs.set("limit", String(params.limit));
+      if (params?.cursor) qs.set("cursor", String(params.cursor));
+      const s = qs.toString();
+      return `${V1}/sealed-holdings${s ? `?${s}` : ""}`;
+    },
+    create: `${V1}/sealed-holdings`,
+    item: (id: string) => `${V1}/sealed-holdings/${id}`,
   },
   /** Public web storefront — server-side search/trending derivation. */
   public: {

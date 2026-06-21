@@ -15,8 +15,11 @@
   height: var(--topbar-h);
   padding: 0 var(--space-2xl);
   background: color-mix(in srgb, var(--bg-base) 80%, transparent);
-  -webkit-backdrop-filter: saturate(180%) blur(16px);
-  backdrop-filter: saturate(180%) blur(16px);
+  // Lighter blur than the original 16px — the sticky nav re-samples its backdrop
+  // every scroll frame (and sits over the animated hero), so a smaller radius
+  // cuts scroll cost while keeping the frosted-glass look.
+  -webkit-backdrop-filter: saturate(180%) blur(12px);
+  backdrop-filter: saturate(180%) blur(12px);
   border-bottom: 1px solid var(--line);
 }
 .brand {
@@ -240,6 +243,10 @@
   max-width: var(--content-max);
   margin: 0 auto;
   padding: var(--space-3xl) var(--space-2xl) var(--space-xl);
+  // Skip rendering work for this section until it's near the viewport. `auto`
+  // caches the real height after first paint, so there's no scroll jump.
+  content-visibility: auto;
+  contain-intrinsic-size: auto 480px;
 }
 .stepsHead {
   margin-bottom: var(--space-2xl);
@@ -396,6 +403,8 @@
   max-width: var(--content-max);
   margin: 0 auto;
   padding: var(--space-2xl);
+  content-visibility: auto;
+  contain-intrinsic-size: auto 420px;
 
   @include bp-down("md") {
     grid-template-columns: 1fr;
@@ -442,6 +451,8 @@
   gap: var(--space-lg);
   text-align: center;
   padding: var(--space-3xl) var(--space-2xl);
+  content-visibility: auto;
+  contain-intrinsic-size: auto 320px;
   h2 {
     font-family: var(--font-serif);
     font-size: clamp(28px, 4vw, 40px);

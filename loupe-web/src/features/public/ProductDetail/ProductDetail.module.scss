@@ -4,6 +4,14 @@
   flex-direction: column;
   gap: var(--space-2xl);
 
+  // Tighter grouping for the stacked insight strips (signals/stats/pnl/alerts)
+  // so they read as one cluster rather than four 2xl-spaced sections.
+  &__insights {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+  }
+
   &__crumbs {
     display: flex;
     align-items: center;
@@ -271,7 +279,7 @@
     padding: 6px 14px;
     border-radius: var(--radius-md);
     background: var(--accent-mint);
-    color: #06140d;
+    color: var(--on-accent);
     font-size: var(--text-sm);
     font-weight: 700;
     white-space: nowrap;

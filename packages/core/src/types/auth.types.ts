@@ -28,3 +28,16 @@ export interface SignUpRequest {
   password: string;
   display_name?: string;
 }
+
+/** Body for `POST /v1/auth/google` — an ID token from the Google Identity SDK. */
+export interface GoogleSignInRequest {
+  id_token: string;
+  display_name?: string;
+}
+
+/** Body for `POST /v1/auth/apple` — an identity token from the Apple JS SDK. */
+export interface AppleSignInRequest {
+  identity_token: string;
+  nonce?: string;
+  display_name?: string;
+}

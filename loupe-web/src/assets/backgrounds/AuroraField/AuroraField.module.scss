@@ -5,6 +5,9 @@
   overflow: hidden;
   pointer-events: none;
   z-index: 0;
+  // Isolate the decorative layer: its repaints (blob drift, ticker march) stay
+  // contained and never invalidate the page during scroll.
+  contain: layout paint style;
 
   &--subtle {
     opacity: 0.5;
@@ -20,9 +23,12 @@
     max-width: 720px;
     max-height: 720px;
     border-radius: 50%;
-    filter: blur(80px);
+    // No mix-blend-mode: screen — blend modes force the compositor to re-read
+    // the backdrop every frame (a top scroll-jank cause in Chrome). Plain alpha
+    // over the dark surface reads almost identically. Blur trimmed 80→60px to
+    // cut the GPU cost of the (large) blurred layers.
+    filter: blur(60px);
     will-change: transform;
-    mix-blend-mode: screen;
 
     &--mint {
       top: -12%;
@@ -75,6 +81,16 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
+    .aurora__blob,
+    .aurora__line-path {
+      animation: none;
+    }
+  }
+
+  // Phones: keep the wash but stop the continuous compositing — the drift is
+  // barely perceptible at this size and the always-running animation is what
+  // makes scrolling stutter on lower-powered mobile GPUs.
+  @include bp-down("md") {
     .aurora__blob,
     .aurora__line-path {
       animation: none;

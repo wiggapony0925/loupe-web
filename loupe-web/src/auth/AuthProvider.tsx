@@ -7,7 +7,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { api, configureApi, type User } from "@loupe/core";
+import { api, configureApi, type TokenPair, type User } from "@loupe/core";
 import { notify } from "@/stores/noticeStore";
 
 const TOKEN_KEY = "loupe.auth.token";
@@ -37,6 +37,13 @@ interface AuthValue {
   loading: boolean;
   login: (email: string, password: string) => Promise<User>;
   register: (email: string, password: string, displayName?: string) => Promise<User>;
+  /** Sign in with a Google ID token (from the Google Identity SDK). */
+  signInWithGoogle: (idToken: string) => Promise<User>;
+  /** Sign in with an Apple identity token (from the Apple JS SDK). */
+  signInWithApple: (
+    identityToken: string,
+    opts?: { nonce?: string; displayName?: string },
+  ) => Promise<User>;
   logout: () => void;
 }
 
@@ -70,6 +77,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch {
       /* ignore */
     }
+    // Clear the HttpOnly auth cookie too (JS can't, so the server does).
+    // Best-effort: never block sign-out on the network call.
+    void api.auth.logout().catch(() => {});
     setUser(null);
   }, [setUser]);
 
@@ -102,29 +112,64 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .finally(() => setLoading(false));
   }, [logout, setUser]);
 
-  const login = useCallback(
-    async (email: string, password: string) => {
-      const tp = await api.auth.login({ email, password });
+  // Single place that persists a fresh TokenPair → token + user. Every sign-in
+  // path (email, register, Google, Apple) funnels through here.
+  const setSession = useCallback(
+    (tp: TokenPair) => {
       localStorage.setItem(TOKEN_KEY, tp.access_token);
       setUser(tp.user);
       return tp.user;
     },
     [setUser],
+  );
+
+  const login = useCallback(
+    async (email: string, password: string) =>
+      setSession(await api.auth.login({ email, password })),
+    [setSession],
   );
 
   const register = useCallback(
-    async (email: string, password: string, displayName?: string) => {
-      const tp = await api.auth.register({ email, password, display_name: displayName });
-      localStorage.setItem(TOKEN_KEY, tp.access_token);
-      setUser(tp.user);
-      return tp.user;
-    },
-    [setUser],
+    async (email: string, password: string, displayName?: string) =>
+      setSession(
+        await api.auth.register({ email, password, display_name: displayName }),
+      ),
+    [setSession],
+  );
+
+  const signInWithGoogle = useCallback(
+    async (idToken: string) =>
+      setSession(await api.auth.google({ id_token: idToken })),
+    [setSession],
+  );
+
+  const signInWithApple = useCallback(
+    async (
+      identityToken: string,
+      opts?: { nonce?: string; displayName?: string },
+    ) =>
+      setSession(
+        await api.auth.apple({
+          identity_token: identityToken,
+          nonce: opts?.nonce,
+          display_name: opts?.displayName,
+        }),
+      ),
+    [setSession],
   );
 
   const value = useMemo<AuthValue>(
-    () => ({ user, isAuthed: Boolean(user), loading, login, register, logout }),
-    [user, loading, login, register, logout],
+    () => ({
+      user,
+      isAuthed: Boolean(user),
+      loading,
+      login,
+      register,
+      signInWithGoogle,
+      signInWithApple,
+      logout,
+    }),
+    [user, loading, login, register, signInWithGoogle, signInWithApple, logout],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

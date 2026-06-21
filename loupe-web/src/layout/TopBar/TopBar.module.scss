@@ -9,8 +9,11 @@
   height: var(--topbar-h);
   padding: 0 var(--space-2xl);
   background: color-mix(in srgb, var(--bg-base) 82%, transparent);
-  -webkit-backdrop-filter: saturate(180%) blur(16px);
-  backdrop-filter: saturate(180%) blur(16px);
+  // Lighter blur than the original 16px — a sticky bar re-samples its backdrop
+  // every scroll frame, so a smaller radius cuts scroll cost while keeping the
+  // frosted-glass look.
+  -webkit-backdrop-filter: saturate(180%) blur(12px);
+  backdrop-filter: saturate(180%) blur(12px);
   border-bottom: 1px solid var(--line);
 
   // Phones: tighter chrome so search + account fit the narrow bar.

@@ -6,11 +6,20 @@ import { apiFetch } from "./client";
 import { ENDPOINTS } from "./endpoints";
 import {
   canonicalToSummary,
+  toCardAttributes,
+  toCardListings,
   toCardMarket,
+  toCardSet,
   toCardSummary,
   toCardValuation,
+  toMarketSnapshot,
   toMarketplaceQuotes,
+  toNearbyListings,
   toPriceSeries,
+  toSealedHolding,
+  toSealedProduct,
+  toSetProgress,
+  toSoldComps,
   type ApiCard,
 } from "./adapters";
 import {
@@ -45,13 +54,22 @@ import type {
   ApplicationSubmitted,
   ApplicationTrack,
   ApplyInput,
+  AppleSignInRequest,
   BlogPost,
   BlogPostInput,
+  GoogleSignInRequest,
+  CardAttributes,
+  CardListing,
   CardMarket,
+  CardSet,
   CardSparkline,
   CardSummary,
+  MarketSnapshot,
+  NearbyListing,
   PortfolioHistory,
   CardValuation,
+  SetProgressRow,
+  SoldComp,
   ScanResult,
   CreateGradeInput,
   CreateAlertInput,
@@ -75,6 +93,12 @@ import type {
   PublicSearchParams,
   PublicTrendingParams,
   RawCondition,
+  SealedHolding,
+  SealedHoldingCreateInput,
+  SealedHoldingsParams,
+  SealedHoldingUpdateInput,
+  SealedProduct,
+  SealedSearchParams,
   SearchPage,
   SignInRequest,
   SignUpRequest,
@@ -161,6 +185,7 @@ export const api = {
       }>(ENDPOINTS.public.browse, {
         query: {
           game: params.game ?? "pokemon",
+          set: params.set ?? undefined,
           page: params.page ?? 1,
           page_size: params.pageSize ?? 24,
           sort: params.sort ?? "name",
@@ -227,12 +252,54 @@ export const api = {
       }>(ENDPOINTS.cards.prices(id, range, house, grade));
       return toPriceSeries(d);
     },
-    /** Public market snapshot. */
+    /** Public market snapshot (slim summary — buy box / price points). */
     market: async (id: string): Promise<CardMarket> => {
       const d = await apiFetch<{
         snapshot?: { summary?: Record<string, never> };
       }>(ENDPOINTS.cards.market(id));
       return toCardMarket(d);
+    },
+    /** Full market snapshot — houses × grades, history buckets, summary. */
+    snapshot: async (id: string): Promise<MarketSnapshot | null> => {
+      const d = await apiFetch<Parameters<typeof toMarketSnapshot>[0]>(
+        ENDPOINTS.cards.market(id),
+      );
+      return toMarketSnapshot(d);
+    },
+    /** Recent sold comps. */
+    comps: async (
+      id: string,
+      opts?: { days?: number; grade?: string; house?: string },
+    ): Promise<SoldComp[]> => {
+      const d = await apiFetch<Parameters<typeof toSoldComps>[0]>(
+        ENDPOINTS.cards.comps(id, opts),
+      );
+      return toSoldComps(d);
+    },
+    /** Live for-sale listings. */
+    listings: async (id: string): Promise<CardListing[]> => {
+      const d = await apiFetch<Parameters<typeof toCardListings>[0]>(
+        ENDPOINTS.cards.listings(id),
+      );
+      return toCardListings(d);
+    },
+    /** Nearby Facebook Marketplace listings (location-scoped). */
+    nearbyListings: async (
+      id: string,
+      coords: { lat: number; lng: number; radiusKm?: number },
+    ): Promise<NearbyListing[]> => {
+      const d = await apiFetch<Parameters<typeof toNearbyListings>[0]>(
+        ENDPOINTS.cards.nearbyListings(id, coords),
+      );
+      return toNearbyListings(d);
+    },
+    /** Per-game canonical attributes (Pokédex / MTG oracle / YGO stats). */
+    attributes: async (id: string): Promise<CardAttributes | null> => {
+      const d = await apiFetch<Parameters<typeof toCardAttributes>[0]>(
+        ENDPOINTS.cards.canonical(id),
+        { skipAuth: true },
+      );
+      return toCardAttributes(d);
     },
     /** Live lowest price per marketplace + buy/search links. */
     marketplacePrices: async (id: string): Promise<MarketplaceQuote[]> => {
@@ -293,6 +360,102 @@ export const api = {
       return d.card_id ?? null;
     },
   },
+  sets: {
+    /** Public catalog list of sets for a game (logos, counts, release dates). */
+    list: async (tcg?: string): Promise<CardSet[]> => {
+      const d = await apiFetch<{ results?: Parameters<typeof toCardSet>[0][] }>(
+        ENDPOINTS.sets.list(tcg),
+        { skipAuth: true },
+      );
+      return (d.results ?? []).map(toCardSet);
+    },
+    /** Per-set completion progress for the signed-in user. */
+    progress: async (): Promise<SetProgressRow[]> => {
+      const d = await apiFetch<Parameters<typeof toSetProgress>[0]>(
+        ENDPOINTS.sets.progress,
+      );
+      return toSetProgress(d);
+    },
+  },
+  /** Public sealed-product catalog (booster boxes, ETBs, tins, …). */
+  sealed: {
+    search: async (params: SealedSearchParams = {}): Promise<SealedProduct[]> => {
+      const d = await apiFetch<Parameters<typeof toSealedProduct>[0][]>(
+        ENDPOINTS.sealed.search({
+          q: params.q,
+          tcg: params.tcg,
+          product_type: params.productType,
+          limit: params.limit,
+          cursor: params.cursor,
+        }),
+        { skipAuth: true },
+      );
+      return (d ?? []).map(toSealedProduct);
+    },
+    get: async (id: string): Promise<SealedProduct> => {
+      const d = await apiFetch<Parameters<typeof toSealedProduct>[0]>(
+        ENDPOINTS.sealed.item(id),
+        { skipAuth: true },
+      );
+      return toSealedProduct(d);
+    },
+  },
+  /** The signed-in user's owned sealed product (vault). */
+  sealedHoldings: {
+    list: async (params: SealedHoldingsParams = {}): Promise<SealedHolding[]> => {
+      const d = await apiFetch<Parameters<typeof toSealedHolding>[0][]>(
+        ENDPOINTS.sealedHoldings.list({
+          include_opened: params.includeOpened,
+          sort: params.sort,
+          limit: params.limit,
+          cursor: params.cursor,
+        }),
+      );
+      return (d ?? []).map(toSealedHolding);
+    },
+    create: async (input: SealedHoldingCreateInput): Promise<SealedHolding> => {
+      const d = await apiFetch<Parameters<typeof toSealedHolding>[0]>(
+        ENDPOINTS.sealedHoldings.create,
+        {
+          method: "POST",
+          json: {
+            product_id: input.productId,
+            quantity: input.quantity ?? 1,
+            purchase_price_usd: input.purchasePriceUsd ?? undefined,
+            purchase_date: input.purchaseDate ?? undefined,
+            estimated_value_usd: input.estimatedValueUsd ?? undefined,
+            notes: input.notes ?? undefined,
+          },
+        },
+      );
+      return toSealedHolding(d);
+    },
+    update: async (
+      id: string,
+      input: SealedHoldingUpdateInput,
+    ): Promise<SealedHolding> => {
+      const d = await apiFetch<Parameters<typeof toSealedHolding>[0]>(
+        ENDPOINTS.sealedHoldings.item(id),
+        {
+          method: "PATCH",
+          json: {
+            quantity: input.quantity,
+            purchase_price_usd: input.purchasePriceUsd,
+            purchase_date: input.purchaseDate,
+            estimated_value_usd: input.estimatedValueUsd,
+            notes: input.notes,
+            opened_at: input.openedAt,
+          },
+        },
+      );
+      return toSealedHolding(d);
+    },
+    remove: async (id: string): Promise<void> => {
+      await apiFetch<null>(ENDPOINTS.sealedHoldings.item(id), {
+        method: "DELETE",
+      });
+    },
+  },
   auth: {
     /** Email + password sign-in → TokenPair. */
     login: (body: SignInRequest) =>
@@ -315,6 +478,23 @@ export const api = {
         json: body,
         skipAuth: true,
       }),
+    /** Google sign-in — exchanges a Google ID token for a Loupe TokenPair. */
+    google: (body: GoogleSignInRequest) =>
+      apiFetch<TokenPair>(ENDPOINTS.auth.google, {
+        method: "POST",
+        json: body,
+        skipAuth: true,
+      }),
+    /** Apple sign-in — exchanges an Apple identity token for a Loupe TokenPair. */
+    apple: (body: AppleSignInRequest) =>
+      apiFetch<TokenPair>(ENDPOINTS.auth.apple, {
+        method: "POST",
+        json: body,
+        skipAuth: true,
+      }),
+    /** Clear the server-set HttpOnly auth cookie (web sign-out). */
+    logout: () =>
+      apiFetch<null>(ENDPOINTS.auth.logout, { method: "POST" }),
   },
   me: {
     /** Current authenticated user. */

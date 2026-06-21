@@ -1,7 +1,7 @@
 import { Outlet } from "react-router-dom";
-import { Sidebar } from "./Sidebar";
-import { BottomTabBar } from "./BottomTabBar";
-import { TopBar } from "./TopBar";
+import { Sidebar } from "../Sidebar/Sidebar";
+import { BottomTabBar } from "../BottomTabBar/BottomTabBar";
+import { TopBar } from "../TopBar/TopBar";
 import { ScrollToTop } from "@/components";
 import { useUiStore } from "@/stores/uiStore";
 import { cx } from "@/lib/cx";

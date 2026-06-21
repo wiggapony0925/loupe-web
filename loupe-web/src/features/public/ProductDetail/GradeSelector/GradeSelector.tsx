@@ -1,6 +1,6 @@
 import { cx } from "@/lib/cx";
 import { formatCompactMoney } from "@/lib/format";
-import { estimateTierPrice } from "./gradePricing";
+import { estimateTierPrice } from "../gradePricing";
 import styles from "./GradeSelector.module.scss";
 
 /** A price tier to chart: raw, or a graded company + grade. */

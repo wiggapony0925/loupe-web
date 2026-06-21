@@ -101,6 +101,12 @@ export function PublicLayout() {
             {c.label}
           </Link>
         ))}
+        <Link to="/sets" className={styles["public__nav-item"]}>
+          Sets
+        </Link>
+        <Link to="/sealed" className={styles["public__nav-item"]}>
+          Sealed
+        </Link>
         <Link to="/scanner" className={styles["public__nav-item"]}>
           Scanner
         </Link>

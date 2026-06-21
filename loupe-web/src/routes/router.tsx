@@ -1,8 +1,9 @@
-import { createBrowserRouter, Navigate } from "react-router-dom";
+import { createBrowserRouter, Navigate, Outlet } from "react-router-dom";
 import { lazy, Suspense, type ComponentType, type ReactElement } from "react";
 import { RequireAuth } from "@/auth/RequireAuth";
 import { FeatureGate } from "@/components";
 import { NotFound } from "@/features/misc/NotFound/NotFound";
+import { RouteError } from "@/routes/RouteError";
 
 /**
  * Routes are code-split: each page (and the admin/site/blog bundles) loads on
@@ -38,8 +39,10 @@ const M = {
   signup: () => import("@/features/auth/Signup/Signup"),
   publicLayout: () => import("@/features/public/PublicLayout/PublicLayout"),
   browse: () => import("@/features/public/Browse/Browse"),
+  sealed: () => import("@/features/public/Sealed/Sealed"),
+  setsExplorer: () => import("@/features/public/Sets/Sets"),
   product: () => import("@/features/public/ProductDetail/ProductDetail"),
-  appShell: () => import("@/layout/AppShell"),
+  appShell: () => import("@/layout/AppShell/AppShell"),
   commandCenter: () =>
     import("@/features/commandCenter/CommandCenter/CommandCenter"),
   vault: () => import("@/features/vault/Vault/Vault"),
@@ -53,6 +56,13 @@ const M = {
 } as const;
 
 export const router = createBrowserRouter([
+  {
+    // Pathless root: a render/load error in ANY route bubbles here and shows the
+    // branded recovery screen (keeps the URL, offers reload / go-home) instead
+    // of React Router's default unstyled error page.
+    element: <Outlet />,
+    errorElement: <RouteError />,
+    children: [
   { path: "/", element: el(M.landing, "MarketingLanding") },
   { path: "/login", element: el(M.login, "Login") },
   { path: "/signup", element: el(M.signup, "Signup") },
@@ -61,6 +71,8 @@ export const router = createBrowserRouter([
     children: [
       { path: "cards", element: el(M.browse, "Browse") },
       { path: "cards/:id", element: el(M.product, "ProductDetail") },
+      { path: "sealed", element: el(M.sealed, "Sealed") },
+      { path: "sets", element: el(M.setsExplorer, "Sets") },
       { path: "scanner", element: el(M.scanner, "Scanner") },
       { path: "about", element: el(M.site, "About") },
       { path: "careers", element: el(M.site, "Careers") },
@@ -126,4 +138,6 @@ export const router = createBrowserRouter([
     ],
   },
   { path: "*", element: <NotFound /> },
+    ],
+  },
 ]);

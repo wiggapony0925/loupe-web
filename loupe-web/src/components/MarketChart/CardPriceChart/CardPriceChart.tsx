@@ -8,7 +8,8 @@ import {
   type PriceSeries,
 } from "@loupe/core";
 import { formatMoney } from "@/lib/format";
-import { MarketChart, type ChartSeries, type RangeKey } from "./MarketChart";
+import { MarketChart, type ChartSeries, type RangeKey } from "../MarketChart";
+import { RangePills } from "../RangePills/RangePills";
 import styles from "./CardPriceChart.module.scss";
 
 const DAY = 86_400_000;
@@ -150,19 +151,11 @@ function RangeOnly({
       <div className={styles.empty} style={{ height }}>
         {loading ? "Loading price history…" : "No history for this range."}
       </div>
-      <div className={styles.ranges} role="tablist" aria-label="Time range">
-        {CARD_CHART_RANGES.map((r) => (
-          <button
-            key={r}
-            role="tab"
-            aria-selected={r === range}
-            className={r === range ? styles.rangeActive : styles.range}
-            onClick={() => onRangeChange(r)}
-          >
-            {r}
-          </button>
-        ))}
-      </div>
+      <RangePills
+        ranges={CARD_CHART_RANGES}
+        active={range}
+        onChange={onRangeChange}
+      />
     </div>
   );
 }

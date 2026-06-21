@@ -12,6 +12,12 @@ export interface ApiConfig {
   getToken?: () => string | null | undefined;
   /** Called when an authenticated request returns 401 (e.g. to sign out). */
   onUnauthorized?: () => void;
+  /**
+   * Send cookies with requests (`credentials: "include"`). The web sets this so
+   * the HttpOnly auth cookie rides along (same-origin /v1). Mobile leaves it off
+   * — it authenticates with a bearer token, not cookies.
+   */
+  withCredentials?: boolean;
 }
 
 let config: ApiConfig = { baseUrl: "" };

@@ -57,21 +57,12 @@
     />
     <!--
       No-flash theme bootstrap (CXO-style): resolve the persisted/system theme and
-      stamp `data-theme` on <html> BEFORE first paint so there is no light/dark flash.
+      stamp `data-theme` on <html> BEFORE first paint so there is no light/dark
+      flash. Externalized (not inline) so the CSP can use a strict
+      `script-src 'self'` with no inline allowance. Blocking + same-origin, so it
+      still runs before body paint. See public/theme-init.js + nginx.conf.
     -->
-    <script>
-      (function () {
-        try {
-          var stored = localStorage.getItem("loupe.theme");
-          var mode = stored || "system";
-          var systemDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-          var resolved = mode === "system" ? (systemDark ? "dark" : "light") : mode;
-          document.documentElement.setAttribute("data-theme", resolved);
-        } catch (e) {
-          document.documentElement.setAttribute("data-theme", "dark");
-        }
-      })();
-    </script>
+    <script src="/theme-init.js"></script>
   </head>
   <body>
     <div id="root"></div>

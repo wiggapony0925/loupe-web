@@ -1,9 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { LayoutGrid, List } from "lucide-react";
 import {
   usePublicBrowse,
   usePublicSearch,
+  usePublicSparklines,
   type BrowseSort,
   type SortKey,
 } from "@loupe/core";
@@ -11,6 +12,7 @@ import {
   FilterPill,
   Pagination,
   ProductCard,
+  SparkRow,
   Skeleton,
   NoteCard,
   Button,
@@ -68,6 +70,8 @@ export function Browse() {
   const query = params.get("q") ?? "";
   const gameParam = params.get("game");
   const game = gameParam ?? "pokemon"; // browse landing default
+  // Set drilldown (from the Sets explorer): scope the browse to one set.
+  const setId = params.get("set");
   // Search defaults to ALL games unless the user picked one in the selector.
   const searchTcg = gameParam && SEARCH_TCGS.has(gameParam) ? gameParam : "all";
   const navigate = useNavigate();
@@ -80,14 +84,14 @@ export function Browse() {
   const [setName, setSetName] = useState<string | null>(null);
   const [page, setPage] = useState(1);
 
-  // A new query or game resets filters + paging.
+  // A new query, game, or set drilldown resets filters + paging.
   useEffect(() => {
     setPage(1);
     setRarity(null);
     setSetName(null);
     setSort("best");
     setBrowseSort("name");
-  }, [query, game, searchTcg]);
+  }, [query, game, searchTcg, setId]);
 
   const search = usePublicSearch(
     {
@@ -102,7 +106,7 @@ export function Browse() {
     isSearch,
   );
   const browse = usePublicBrowse(
-    { game, page, pageSize: PAGE_SIZE, sort: browseSort },
+    { game, set: setId ?? undefined, page, pageSize: PAGE_SIZE, sort: browseSort },
     !isSearch,
   );
   const active = isSearch ? search : browse;
@@ -110,6 +114,21 @@ export function Browse() {
 
   const results = data?.results ?? [];
   const total = data?.total ?? 0;
+
+  // List view shows Robinhood-style sparkline rows. One *batched* request fetches
+  // every visible card's series at once (not one fetch per row) — keeps the list
+  // fast. Only fires in list view.
+  const sparkIds = useMemo(
+    () => (view === "list" ? results.map((c) => c.id) : []),
+    [view, results],
+  );
+  const { data: sparks } = usePublicSparklines(sparkIds, sparkIds.length > 0);
+  const sparkMap = useMemo(() => {
+    const m = new Map<string, { points: number[]; changePct: number }>();
+    for (const s of sparks ?? [])
+      m.set(s.cardId, { points: s.points, changePct: s.changePct ?? 0 });
+    return m;
+  }, [sparks]);
   const pageCount = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const rarityOpts: FilterOption[] = (data?.facets.rarities ?? []).map((r) => ({
     label: r,
@@ -122,7 +141,9 @@ export function Browse() {
   const activeFilters = [rarity, setName].filter(Boolean).length;
   const heading = isSearch
     ? `Results for “${query}”`
-    : `Browse ${GAME_LABELS[game] ?? "cards"}`;
+    : setId
+      ? (results[0]?.setName ?? "Set")
+      : `Browse ${GAME_LABELS[game] ?? "cards"}`;
 
   const clearFilters = () => {
     setRarity(null);
@@ -132,8 +153,9 @@ export function Browse() {
 
   return (
     <div className={styles.browse}>
-      {/* Full-width discovery rails — browse landing only (hidden while searching). */}
-      {!isSearch && (
+      {/* Full-width discovery rails — browse landing only (hidden while searching
+          or when drilling into a single set). */}
+      {!isSearch && !setId && (
         <section className={styles.browse__discover}>
           <GameRails
             onCard={(id) => navigate(`/cards/${encodeURIComponent(id)}`)}
@@ -284,14 +306,29 @@ export function Browse() {
               transition: "opacity .15s",
             }}
           >
-            {results.map((c) => (
-              <ProductCard
-                key={c.id}
-                card={c}
-                variant={view}
-                onClick={() => navigate(`/cards/${encodeURIComponent(c.id)}`)}
-              />
-            ))}
+            {results.map((c) =>
+              view === "list" ? (
+                <SparkRow
+                  key={c.id}
+                  imageUrl={c.imageUrl}
+                  title={c.name}
+                  subtitle={[c.setName, c.number ? `#${c.number}` : null]
+                    .filter(Boolean)
+                    .join(" · ")}
+                  sparkline={sparkMap.get(c.id)?.points ?? []}
+                  changePct={sparkMap.get(c.id)?.changePct ?? 0}
+                  price={c.price}
+                  onClick={() => navigate(`/cards/${encodeURIComponent(c.id)}`)}
+                />
+              ) : (
+                <ProductCard
+                  key={c.id}
+                  card={c}
+                  variant={view}
+                  onClick={() => navigate(`/cards/${encodeURIComponent(c.id)}`)}
+                />
+              ),
+            )}
           </div>
           <div className={styles.browse__pager}>
             <Pagination page={page} pageCount={pageCount} onChange={setPage} />

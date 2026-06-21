@@ -1,0 +1,102 @@
+.graded {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+.graded__title {
+  font-size: var(--text-xl);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+.graded__empty {
+  padding: var(--space-lg) 0;
+  text-align: center;
+  font-size: var(--text-sm);
+  color: var(--ink-muted);
+}
+
+/* House filter tabs — underline style. */
+.graded__tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-lg);
+  border-bottom: 1px solid var(--line);
+}
+.tab {
+  position: relative;
+  padding: 0 0 10px;
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: var(--ink-dim);
+  transition: color var(--dur-fast) var(--ease-out);
+  @include focus-ring;
+
+  &:hover {
+    color: var(--ink);
+  }
+
+  &--active {
+    color: var(--house, var(--accent-mint));
+
+    &::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: -1px;
+      height: 2px;
+      border-radius: 2px;
+      background: var(--house, var(--accent-mint));
+    }
+  }
+}
+
+/* Flat rows — hairline separators only. */
+.graded__rows {
+  display: flex;
+  flex-direction: column;
+}
+.row {
+  display: grid;
+  grid-template-columns: 1fr auto auto auto;
+  align-items: center;
+  gap: var(--space-md);
+  padding: 12px 0;
+
+  & + & {
+    border-top: 1px solid var(--line);
+  }
+}
+.row__house {
+  font-size: var(--text-md);
+  font-weight: 700;
+  color: var(--ink);
+
+  // A small leading dot in the house colour.
+  &::before {
+    content: "";
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    margin-right: 8px;
+    border-radius: 50%;
+    background: var(--house, var(--ink-muted));
+    vertical-align: middle;
+  }
+}
+.row__pop {
+  font-size: var(--text-sm);
+  color: var(--ink-dim);
+  @include tabular;
+}
+.row__price {
+  font-size: var(--text-md);
+  font-weight: 800;
+  color: var(--ink);
+  @include tabular;
+}
+.row__delta {
+  min-width: 64px;
+  text-align: right;
+}

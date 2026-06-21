@@ -191,15 +191,27 @@ export function MarketingLanding() {
       )}
 
       <section id="features" className={styles.features}>
-        {FEATURES.map((f) => (
-          <div key={f.title} className={styles.feature}>
-            <span className={styles.featureIcon}>
-              <f.Icon />
-            </span>
-            <h3>{f.title}</h3>
-            <p>{f.body}</p>
-          </div>
-        ))}
+        {FEATURES.map((f) => {
+          const inner = (
+            <>
+              <span className={styles.featureIcon}>
+                <f.Icon />
+              </span>
+              <h3>{f.title}</h3>
+              <p>{f.body}</p>
+            </>
+          );
+          // A feature with an `href` is a live surface → make the card a link.
+          return "href" in f && f.href ? (
+            <Link key={f.title} to={f.href} className={styles.feature}>
+              {inner}
+            </Link>
+          ) : (
+            <div key={f.title} className={styles.feature}>
+              {inner}
+            </div>
+          );
+        })}
       </section>
 
       <DeviceReveal />
@@ -307,6 +319,7 @@ const FEATURES = [
     Icon: Package,
     title: "Sealed & packs",
     body: "Track sealed boxes and packs alongside singles, with the same live pricing.",
+    href: "/sealed",
   },
 ];
 
@@ -320,6 +333,8 @@ function MarketingNav() {
       </Link>
       <div className={styles.navLinks}>
         <Link to="/cards">Markets</Link>
+        <Link to="/sets">Sets</Link>
+        <Link to="/sealed">Sealed</Link>
         <Link to={user ? "/app/vault" : "/login"}>Vault</Link>
         <Link to="/scanner">Scanner</Link>
       </div>
@@ -354,6 +369,12 @@ function MarketingNav() {
             <nav className={styles.drawer}>
               <Link to="/cards" className={styles.drawer__link} onClick={close}>
                 Markets
+              </Link>
+              <Link to="/sets" className={styles.drawer__link} onClick={close}>
+                Sets
+              </Link>
+              <Link to="/sealed" className={styles.drawer__link} onClick={close}>
+                Sealed
               </Link>
               <Link
                 to={user ? "/app/vault" : "/login"}

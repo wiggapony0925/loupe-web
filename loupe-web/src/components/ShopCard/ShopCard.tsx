@@ -34,12 +34,15 @@ export function ShopCard({ imageUrl, title, subtitle, price, changePct, tag, ran
         <span className={styles.subtitle}>{subtitle}</span>
         <div className={styles.priceLine}>
           <span className={styles.price}>{price ? formatMoney(price) : "—"}</span>
-          {changePct !== undefined ? (
+          {changePct !== undefined && (
             <Delta percent={changePct} variant="arrow" />
-          ) : (
-            tag && <span className={styles.tag}>{tag}</span>
           )}
         </div>
+        {/* Rarity caption sits on its own line — a long tag like "RARE RAINBOW"
+            won't fit beside a 4-figure price in a narrow tile. */}
+        {changePct === undefined && tag && (
+          <span className={styles.tag}>{tag}</span>
+        )}
       </div>
     </button>
   );

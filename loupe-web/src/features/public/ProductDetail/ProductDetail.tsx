@@ -7,6 +7,7 @@ import {
   useMarketplacePrices,
   usePriceHistory,
   useValuation,
+  useCardSnapshot,
   CARD_CHART_RANGE_TO_BACKEND,
   type GradePrice,
   type Money,
@@ -23,9 +24,16 @@ import {
   Delta,
 } from "@/components";
 import { ScanButton } from "@/features/scan";
-import { GradeSelector, tierLabel, type PriceTier } from "./GradeSelector";
-import { Card3DModal } from "./Card3DModal";
-import { CompareBar } from "./CompareBar";
+import { GradeSelector, tierLabel, type PriceTier } from "./GradeSelector/GradeSelector";
+import { Card3DModal } from "./Card3DModal/Card3DModal";
+import { CompareBar } from "./CompareBar/CompareBar";
+import { RelatedPrints } from "./RelatedPrints/RelatedPrints";
+import { MarketSignals, QuickStats, CostBasisStrip } from "./CardInsights/CardInsights";
+import { GradedPrices } from "./GradedPrices/GradedPrices";
+import { RecentSold } from "./RecentSold/RecentSold";
+import { ActiveAlerts, SetProgressForCard } from "./CardContext/CardContext";
+import { AttributesPanel } from "./AttributesPanel/AttributesPanel";
+import { NearbyListings } from "./NearbyListings/NearbyListings";
 import { COMPARE_PRESETS } from "./compareTiers";
 import { WatchlistButton } from "../WatchlistButton/WatchlistButton";
 import { PriceAlertButton } from "../PriceAlertButton/PriceAlertButton";
@@ -98,6 +106,7 @@ export function ProductDetail() {
   );
   const { data: quotes } = useMarketplacePrices(id);
   const { data: valuation } = useValuation(id);
+  const { data: snapshot } = useCardSnapshot(id);
   const [tier, setTier] = useState<PriceTier>({ house: "raw" });
   const [compareKeys, setCompareKeys] = useState<string[]>([]);
   const [viewer, setViewer] = useState(false);
@@ -376,6 +385,23 @@ export function ProductDetail() {
         </div>
       </section>
 
+      {/* Live market signals + quick stats + owned-card P/L + active alerts.
+          Gated on the snapshot so an empty cluster never leaves a double gap. */}
+      {snapshot && (
+        <div className={styles.product__insights}>
+          <MarketSignals snapshot={snapshot} cardId={card.id} />
+          <QuickStats snapshot={snapshot} cardId={card.id} />
+          <CostBasisStrip cardId={card.id} marketAmount={price} />
+          <ActiveAlerts cardId={card.id} cardName={card.name} />
+        </div>
+      )}
+
+      {/* Verified per-house × grade prices (population + Δ). */}
+      <GradedPrices snapshot={snapshot} />
+
+      {/* Actual recent sold comps. */}
+      <RecentSold cardId={card.id} />
+
       <section>
         <div className={styles["product__markets-head"]}>
           <h2 className={styles.product__h2}>Marketplaces</h2>
@@ -417,6 +443,18 @@ export function ProductDetail() {
           ))}
         </div>
       </section>
+
+      {/* Facebook Marketplace listings near the visitor (opt-in, geo-gated). */}
+      <NearbyListings cardId={card.id} />
+
+      {/* Per-game attributes (Pokédex / MTG oracle / YGO stats). */}
+      <AttributesPanel cardId={card.id} />
+
+      {/* Set-completion progress for this card's set (signed-in users). */}
+      <SetProgressForCard setName={card.setName} />
+
+      {/* Other prints of this card across sets/years (same name root). */}
+      <RelatedPrints cardId={card.id} cardName={card.name} />
 
       {/* Loupe Grade — grading happens on-device via the app + Scanner. */}
       <section className={styles.gradeCta}>

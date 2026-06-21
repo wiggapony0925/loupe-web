@@ -1,0 +1,128 @@
+// Card-detail insight strips: market-signal chips, quick-stat tiles, P/L strip.
+
+/* ── Quick-stat tiles ── */
+.tiles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+}
+.tile {
+  flex: 1 1 84px;
+  min-width: 84px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--line);
+  background: var(--bg-elevated);
+}
+.tile__label {
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+.tile__value {
+  font-size: var(--text-md);
+  font-weight: 800;
+  color: var(--ink);
+  @include tabular;
+}
+.tile__sub {
+  font-size: 10px;
+  color: var(--ink-muted);
+}
+
+/* ── Signal chips ── */
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 10px;
+  border-radius: var(--radius-pill);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  white-space: nowrap;
+  color: var(--ink-muted); // base; tone classes override
+  border: 1px solid color-mix(in srgb, currentColor 32%, transparent);
+  background: color-mix(in srgb, currentColor 10%, transparent);
+
+  svg {
+    width: 12px;
+    height: 12px;
+  }
+}
+
+/* ── Cost-basis (P/L) strip ── */
+.pnl {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: 12px 14px;
+  border-radius: var(--radius-lg);
+  color: var(--ink); // base; tone classes override → children inherit
+  border: 1px solid color-mix(in srgb, currentColor 35%, transparent);
+  background: color-mix(in srgb, currentColor 8%, transparent);
+}
+.pnl__icon {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, currentColor 20%, transparent);
+}
+.pnl__body {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+.pnl__label {
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+.pnl__row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+.pnl__value {
+  font-size: var(--text-xl);
+  font-weight: 800;
+  @include tabular;
+}
+.pnl__pct {
+  font-size: var(--text-sm);
+  font-weight: 700;
+}
+.pnl__sub {
+  font-size: var(--text-xs);
+  color: var(--ink-muted);
+  margin-top: 2px;
+}
+
+/* ── Tone classes (defined last so they win the colour cascade) ── */
+.tone-neutral {
+  color: var(--ink-muted);
+}
+.tone-mint {
+  color: var(--accent-mint);
+}
+.tone-rose {
+  color: var(--accent-rose);
+}
+.tone-amber {
+  color: var(--accent-amber);
+}

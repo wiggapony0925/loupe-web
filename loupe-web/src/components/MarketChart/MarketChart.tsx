@@ -9,6 +9,7 @@ import {
   type PointerEvent as ReactPointerEvent,
 } from "react";
 import { cx } from "@/lib/cx";
+import { RangePills } from "./RangePills/RangePills";
 import styles from "./MarketChart.module.scss";
 
 export interface ChartPoint {
@@ -77,7 +78,10 @@ const PALETTE = [
   "var(--accent-amber, #f59e0b)",
   "var(--accent-mint)",
 ];
-const PAD = { top: 12, right: 46, bottom: 22 };
+// `right` reserves a gutter for the right-aligned value-axis labels so a full
+// currency label (e.g. "$2,645.39") never clips the plot edge — see the
+// `text-anchor: end` labels below.
+const PAD = { top: 12, right: 58, bottom: 22 };
 
 /** Width of an element, measured on mount and tracked live via ResizeObserver. */
 function useElementWidth(ref: React.RefObject<HTMLElement | null>) {
@@ -452,8 +456,9 @@ export function MarketChart({
                   className={styles.chart__grid}
                 />
                 <text
-                  x={width - PAD.right + 6}
+                  x={width - 6}
                   y={y + 3}
+                  textAnchor="end"
                   className={styles.chart__axis}
                 >
                   {format(v)}
@@ -462,17 +467,20 @@ export function MarketChart({
             );
           })}
 
-          {/* time axis ticks */}
+          {/* time axis ticks — anchor the first/last to the plot edges so they
+              never hang off the left/right (middle ticks stay centered). */}
           {Array.from({ length: 4 }).map((_, i) => {
             const f = i / 3;
-            const x = geo.innerW * f;
             const t = geo.tMin + (geo.tHi - geo.tMin) * f;
+            const anchor = i === 0 ? "start" : i === 3 ? "end" : "middle";
+            const x = i === 0 ? 0 : i === 3 ? geo.innerW : geo.innerW * f;
             return (
               <text
                 key={`t-${i}`}
-                x={Math.min(Math.max(x, 16), geo.innerW - 16)}
+                x={x}
                 y={height - 6}
-                className={cx(styles.chart__axis, styles["chart__axis--time"])}
+                textAnchor={anchor}
+                className={styles.chart__axis}
               >
                 {fmtTime(t)}
               </text>
@@ -582,29 +590,14 @@ export function MarketChart({
           ))}
       </div>
 
-      <div
-        className={styles.chart__ranges}
-        role="tablist"
-        aria-label="Time range"
-      >
-        {availableRanges.map((r) => (
-          <button
-            key={r}
-            role="tab"
-            aria-selected={r === effectiveRange}
-            className={cx(
-              styles.chart__range,
-              r === effectiveRange && styles["chart__range--active"],
-            )}
-            onClick={() => {
-              if (!controlled) setRange(r);
-              change?.(r);
-            }}
-          >
-            {r}
-          </button>
-        ))}
-      </div>
+      <RangePills
+        ranges={availableRanges}
+        active={effectiveRange}
+        onChange={(r) => {
+          if (!controlled) setRange(r);
+          change?.(r);
+        }}
+      />
 
       {norm.length > 1 && (
         <div className={styles.chart__legend}>

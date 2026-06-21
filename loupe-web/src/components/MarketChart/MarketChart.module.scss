@@ -20,7 +20,9 @@
   }
 
   &__value {
-    font-size: var(--text-3xl);
+    // Scales down on narrow screens so a long price (e.g. "$2,206.06") never
+    // crowds the delta column off the card on mobile.
+    font-size: clamp(var(--text-2xl), 7vw, var(--text-3xl));
     font-weight: 800;
     letter-spacing: -0.02em;
     color: var(--ink);
@@ -32,6 +34,7 @@
     display: flex;
     flex-direction: column;
     gap: 2px;
+    flex-shrink: 0; // keep the delta/period readout from being clipped
   }
 
   &__delta {
@@ -72,10 +75,9 @@
     fill: var(--ink-dim);
     font-size: 10px;
     font-variant-numeric: tabular-nums;
-
-    &--time {
-      text-anchor: middle;
-    }
+    // text-anchor is set inline per-label (value labels end-align; time labels
+    // start/middle/end by position) — a CSS rule here would override the
+    // attribute, so anchoring deliberately lives in the JSX.
   }
 
   &__area {
@@ -185,36 +187,7 @@
     white-space: nowrap;
   }
 
-  &__ranges {
-    display: flex;
-    justify-content: center;
-    gap: var(--space-xs);
-    margin-top: var(--space-md);
-  }
-
-  &__range {
-    min-width: 46px;
-    height: 32px;
-    padding: 0 var(--space-sm);
-    border-radius: var(--radius-md);
-    font-size: var(--text-sm);
-    font-weight: 700;
-    color: var(--ink-muted);
-    transition:
-      background-color var(--dur-fast) var(--ease-out),
-      color var(--dur-fast) var(--ease-out);
-    @include focus-ring;
-
-    &:hover {
-      color: var(--ink);
-      background: var(--bg-sunken);
-    }
-
-    &--active {
-      color: var(--chart-accent);
-      background: color-mix(in srgb, var(--chart-accent) 12%, transparent);
-    }
-  }
+  // Timeframe pills now live in the shared <RangePills> (RangePills.module.scss).
 
   &__legend {
     display: flex;

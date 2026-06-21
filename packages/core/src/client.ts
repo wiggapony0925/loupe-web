@@ -93,7 +93,13 @@ export async function apiFetchEnvelope<T = unknown>(
 
   let res: Response;
   try {
-    res = await fetch(url(path) + buildQuery(query), { ...rest, headers: finalHeaders, body });
+    res = await fetch(url(path) + buildQuery(query), {
+      ...rest,
+      headers: finalHeaders,
+      body,
+      // Web opts in so the HttpOnly auth cookie is sent (same-origin /v1).
+      ...(cfg.withCredentials ? { credentials: "include" as const } : {}),
+    });
   } catch (e) {
     throw new ApiError(path, { code: "network.unreachable", message: String(e), status: 0 });
   }

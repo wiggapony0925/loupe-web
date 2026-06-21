@@ -1,0 +1,37 @@
+// Timeframe selector pills, shared by MarketChart + CardPriceChart's fallback.
+.pills {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-xs);
+  margin-top: var(--space-md);
+}
+
+.pill {
+  min-width: 46px;
+  height: 32px;
+  padding: 0 var(--space-sm);
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: var(--ink-muted);
+  transition:
+    background-color var(--dur-fast) var(--ease-out),
+    color var(--dur-fast) var(--ease-out);
+  @include focus-ring;
+
+  &:hover {
+    color: var(--ink);
+    background: var(--bg-sunken);
+  }
+
+  // Inside a chart, --chart-accent shifts green/red by period change; used
+  // standalone (no chart wrapper) it falls back to mint.
+  &--active {
+    color: var(--chart-accent, var(--accent-mint));
+    background: color-mix(
+      in srgb,
+      var(--chart-accent, var(--accent-mint)) 12%,
+      transparent
+    );
+  }
+}

@@ -13,8 +13,10 @@
     grid-auto-columns: 1fr;
     align-items: stretch;
     background: color-mix(in srgb, var(--bg-base) 88%, transparent);
-    -webkit-backdrop-filter: saturate(180%) blur(20px);
-    backdrop-filter: saturate(180%) blur(20px);
+    // Lighter blur than the original 20px — the fixed bar composites over
+    // scrolling content every frame; a smaller radius keeps scroll smooth.
+    -webkit-backdrop-filter: saturate(180%) blur(14px);
+    backdrop-filter: saturate(180%) blur(14px);
     border-top: 1px solid var(--line);
     // Lift above the iOS home indicator.
     padding-bottom: env(safe-area-inset-bottom, 0px);

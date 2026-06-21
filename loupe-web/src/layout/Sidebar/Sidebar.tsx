@@ -14,7 +14,7 @@ import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { useAuth } from "@/auth/AuthProvider";
 import { Logo } from "@/assets";
 import { Tooltip } from "@/components/Tooltip/Tooltip";
-import { FOOTER_NAV, PRIMARY_NAV, type NavItem } from "./nav";
+import { FOOTER_NAV, PRIMARY_NAV, type NavItem } from "../nav";
 import styles from "./Sidebar.module.scss";
 
 /** Developer-portal entry — only rendered for admin users. */

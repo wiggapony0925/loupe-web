@@ -73,6 +73,11 @@
   --accent-rose: #ff453a;
   --accent-purple: #9d6bff;
 
+  // Ink that sits on a bright accent fill (text on a mint button, etc.) — a
+  // near-black with a faint green cast. Theme-invariant: the accent fills stay
+  // bright enough in both themes for dark ink to clear contrast.
+  --on-accent: #06140d;
+
   // Semantic deltas (gains/losses) lean on mint/rose like Robinhood.
   --up: var(--accent-mint);
   --down: var(--accent-rose);
@@ -100,6 +105,8 @@
   --accent-amber: #b8860b;
   --accent-rose: #d63b30;
   --accent-purple: #7a4fe8;
+
+  --on-accent: #06140d;
 
   --up: var(--accent-mint);
   --down: var(--accent-rose);

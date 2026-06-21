@@ -25,10 +25,23 @@ import type {
   ApplyInput,
   BlogPost,
   BlogPostInput,
+  CardAttributes,
+  CardListing,
   CardMarket,
+  CardSet,
   CardSparkline,
   CardSummary,
   CardValuation,
+  MarketSnapshot,
+  NearbyListing,
+  SealedHolding,
+  SealedHoldingCreateInput,
+  SealedHoldingsParams,
+  SealedHoldingUpdateInput,
+  SealedProduct,
+  SealedSearchParams,
+  SetProgressRow,
+  SoldComp,
   PortfolioHistory,
   ScanResult,
   CreateGradeInput,
@@ -184,6 +197,162 @@ export const useValuation = (id: string) =>
     enabled: Boolean(id),
     staleTime: 120_000,
   });
+
+/** Full market snapshot — houses × grades, history buckets, summary. */
+export const useCardSnapshot = (id: string) =>
+  useApiQuery<MarketSnapshot | null>(
+    ["card-snapshot", id],
+    () => api.cards.snapshot(id),
+    { enabled: Boolean(id), staleTime: 300_000 },
+  );
+
+/** Recent sold comps for a card. */
+export const useCardComps = (
+  id: string,
+  opts?: { days?: number; grade?: string; house?: string },
+) =>
+  useApiQuery<SoldComp[]>(
+    ["card-comps", id, opts],
+    () => api.cards.comps(id, opts),
+    { enabled: Boolean(id), staleTime: 120_000 },
+  );
+
+/** Live for-sale listings for a card. */
+export const useCardListings = (id: string) =>
+  useApiQuery<CardListing[]>(
+    ["card-listings", id],
+    () => api.cards.listings(id),
+    { enabled: Boolean(id), staleTime: 120_000 },
+  );
+
+/** Nearby Facebook Marketplace listings (only fires once coords are known). */
+export const useNearbyListings = (
+  id: string,
+  coords: { lat: number; lng: number; radiusKm?: number } | null,
+) =>
+  useApiQuery<NearbyListing[]>(
+    ["card-nearby", id, coords],
+    () => api.cards.nearbyListings(id, coords as { lat: number; lng: number }),
+    { enabled: Boolean(id) && coords !== null, staleTime: 120_000 },
+  );
+
+/** Per-game canonical attributes (Pokédex / MTG oracle / YGO stats). */
+export const useCardAttributes = (id: string) =>
+  useApiQuery<CardAttributes | null>(
+    ["card-attributes", id],
+    () => api.cards.attributes(id),
+    { enabled: Boolean(id), staleTime: 300_000 },
+  );
+
+/** Per-set completion progress for the signed-in user. */
+export const useSetProgress = (enabled = true) =>
+  useApiQuery<SetProgressRow[]>(["set-progress"], api.sets.progress, {
+    enabled,
+    staleTime: 300_000,
+  });
+
+/** Public catalog list of sets for a game. */
+export const usePublicSets = (tcg: string, enabled = true) =>
+  useApiQuery<CardSet[]>(["sets-list", tcg], () => api.sets.list(tcg), {
+    enabled,
+    staleTime: 600_000,
+  });
+
+/* ── Sealed products + holdings ──────────────────────────────────────── */
+
+/** Public sealed-product catalog search (booster boxes, ETBs, tins, …). */
+export const usePublicSealedSearch = (
+  params: SealedSearchParams = {},
+  enabled = true,
+) =>
+  useApiQuery<SealedProduct[]>(
+    ["sealed-search", params],
+    () => api.sealed.search(params),
+    { enabled, staleTime: 60_000, placeholderData: (prev) => prev },
+  );
+
+/** A single sealed-product catalog entry. */
+export const useSealedProduct = (id: string) =>
+  useApiQuery<SealedProduct>(["sealed-product", id], () => api.sealed.get(id), {
+    enabled: Boolean(id),
+    staleTime: 300_000,
+  });
+
+/** The signed-in user's sealed holdings (joined to catalog metadata). */
+export const useSealedHoldings = (
+  params: SealedHoldingsParams = {},
+  enabled = true,
+) =>
+  useApiQuery<SealedHolding[]>(
+    ["sealed-holdings", params],
+    () => api.sealedHoldings.list(params),
+    { enabled, staleTime: 30_000 },
+  );
+
+/** Invalidate everything a sealed-holding change should refresh. */
+function invalidateSealedCaches(qc: ReturnType<typeof useQueryClient>) {
+  void qc.invalidateQueries({ queryKey: ["sealed-holdings"] });
+  void qc.invalidateQueries({ queryKey: ["analytics-overview"] });
+  void qc.invalidateQueries({ queryKey: ["home-feed"] });
+}
+
+/** Add a sealed product to the user's vault. */
+export const useAddSealedHolding = (
+  options?: Omit<
+    UseMutationOptions<SealedHolding, ApiError, SealedHoldingCreateInput>,
+    "mutationFn"
+  >,
+) => {
+  const qc = useQueryClient();
+  return useApiMutation<SealedHolding, SealedHoldingCreateInput>(
+    (input) => api.sealedHoldings.create(input),
+    {
+      ...options,
+      onSuccess: (...args) => {
+        invalidateSealedCaches(qc);
+        options?.onSuccess?.(...args);
+      },
+    },
+  );
+};
+
+/** Edit a sealed holding (quantity, cost basis, opened toggle, notes). */
+export const useUpdateSealedHolding = (
+  options?: Omit<
+    UseMutationOptions<
+      SealedHolding,
+      ApiError,
+      { id: string; input: SealedHoldingUpdateInput }
+    >,
+    "mutationFn"
+  >,
+) => {
+  const qc = useQueryClient();
+  return useApiMutation<
+    SealedHolding,
+    { id: string; input: SealedHoldingUpdateInput }
+  >(({ id, input }) => api.sealedHoldings.update(id, input), {
+    ...options,
+    onSuccess: (...args) => {
+      invalidateSealedCaches(qc);
+      options?.onSuccess?.(...args);
+    },
+  });
+};
+
+/** Remove a sealed holding from the vault (soft-delete). */
+export const useDeleteSealedHolding = (
+  options?: Omit<UseMutationOptions<void, ApiError, string>, "mutationFn">,
+) => {
+  const qc = useQueryClient();
+  return useApiMutation<void, string>((id) => api.sealedHoldings.remove(id), {
+    ...options,
+    onSuccess: (...args) => {
+      invalidateSealedCaches(qc);
+      options?.onSuccess?.(...args);
+    },
+  });
+};
 
 /** Identify a card from a photo (the web scan flow). */
 export const useIdentifyCard = (
