@@ -1,0 +1,101 @@
+.card {
+  --tone: var(--ink-dim);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  min-width: 0;
+  overflow: hidden;
+  padding: var(--space-lg) var(--space-xl);
+  text-align: left;
+  background: var(--bg-elevated);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-xl);
+  transition:
+    border-color var(--dur-fast) var(--ease-out),
+    transform var(--dur-fast) var(--ease-out),
+    box-shadow var(--dur-fast) var(--ease-out);
+}
+
+.clickable {
+  cursor: pointer;
+
+  &:hover {
+    border-color: var(--line-strong);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-card);
+  }
+}
+
+/* Highlighted hero metric — a faint wash of the tone, like the reference's
+   first overview card. */
+.accent {
+  background: color-mix(in srgb, var(--tone) 8%, var(--bg-elevated));
+  border-color: color-mix(in srgb, var(--tone) 28%, var(--line));
+}
+
+.mint {
+  --tone: var(--accent-mint);
+}
+.blue {
+  --tone: var(--accent-blue);
+}
+.amber {
+  --tone: var(--accent-amber);
+}
+.rose {
+  --tone: var(--accent-rose);
+}
+.purple {
+  --tone: var(--accent-purple);
+}
+.neutral {
+  --tone: var(--ink-dim);
+}
+
+.top {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.icon {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: var(--radius-md);
+  color: var(--tone);
+  background: color-mix(in srgb, var(--tone) 14%, transparent);
+}
+
+.label {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--ink-dim);
+}
+
+.valueRow {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  min-width: 0;
+  gap: var(--space-sm) var(--space-md);
+}
+
+.value {
+  min-width: 0;
+  max-width: 100%;
+  font-size: clamp(26px, 2.6vw, 34px);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.caption {
+  font-size: var(--text-xs);
+  color: var(--ink-muted);
+}

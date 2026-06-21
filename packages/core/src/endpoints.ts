@@ -15,6 +15,15 @@ export const ENDPOINTS = {
   me: { root: `${V1}/me`, settings: `${V1}/me/settings` },
   home: { feed: `${V1}/home/feed` },
   analytics: { overview: `${V1}/analytics/overview` },
+  /** Auto-generated monthly/yearly PDF portfolio statements. */
+  reports: {
+    list: `${V1}/reports`,
+    upcoming: `${V1}/reports/upcoming`,
+    create: `${V1}/reports`,
+    item: (id: string) => `${V1}/reports/${id}`,
+    download: (id: string) => `${V1}/reports/${id}/download`,
+    file: (id: string) => `${V1}/reports/${id}/file`,
+  },
   cards: {
     search: `${V1}/cards/search`,
     trending: `${V1}/cards/trending`,

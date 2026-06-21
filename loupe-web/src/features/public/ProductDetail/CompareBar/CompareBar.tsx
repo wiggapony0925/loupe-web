@@ -1,24 +1,28 @@
 import { cx } from "@/lib/cx";
-import { COMPARE_PRESETS } from "../compareTiers";
+import type { ComparePreset } from "../compareTiers";
 import styles from "./CompareBar.module.scss";
 
 /**
- * Toggleable preset chips that overlay extra grade tiers on the price chart
- * (e.g. compare a PSA 10 against a TAG 10). Each chip carries its line colour
- * as a swatch so the legend reads at a glance.
+ * Toggleable chips that overlay extra grade tiers on the price chart. The
+ * presets are grade-aware: when the primary grade is PSA 7 the chips are
+ * BGS 7 / CGC 7 / TAG 7 / Raw; switch to PSA 8 and they re-grade to 8. Each
+ * chip carries its line colour as a swatch so the legend reads at a glance.
  */
 export function CompareBar({
+  presets,
   selected,
   onToggle,
 }: {
+  presets: ComparePreset[];
   selected: string[];
   onToggle: (key: string) => void;
 }) {
+  if (presets.length === 0) return null;
   return (
     <div className={styles.compare}>
       <span className={styles.compare__label}>Compare</span>
       <div className={styles.compare__chips}>
-        {COMPARE_PRESETS.map((p) => {
+        {presets.map((p) => {
           const on = selected.includes(p.key);
           return (
             <button

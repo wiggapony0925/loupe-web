@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { Expand, ExternalLink, ScanLine, ShieldCheck } from "lucide-react";
 import {
@@ -34,7 +34,7 @@ import { RecentSold } from "./RecentSold/RecentSold";
 import { ActiveAlerts, SetProgressForCard } from "./CardContext/CardContext";
 import { AttributesPanel } from "./AttributesPanel/AttributesPanel";
 import { NearbyListings } from "./NearbyListings/NearbyListings";
-import { COMPARE_PRESETS } from "./compareTiers";
+import { buildComparePresets } from "./compareTiers";
 import { WatchlistButton } from "../WatchlistButton/WatchlistButton";
 import { PriceAlertButton } from "../PriceAlertButton/PriceAlertButton";
 import { AddToCollectionButton } from "@/features/collection";
@@ -133,14 +133,15 @@ export function ProductDetail() {
     setCompareKeys((keys) =>
       keys.includes(key) ? keys.filter((k) => k !== key) : [...keys, key],
     );
-  // Selected overlays, minus any that duplicate the primary tier.
-  const compareTiers = COMPARE_PRESETS.filter(
-    (p) =>
-      compareKeys.includes(p.key) &&
-      !(
-        p.house === tier.house &&
-        (p.grade ?? undefined) === (tier.grade ?? undefined)
-      ),
+  // Grade-aware compare options derived from the current tier: pick PSA 7 and
+  // the chips are BGS 7 / CGC 7 / TAG 7 / Raw; switch to PSA 8 and they all
+  // re-grade to 8 (keys are per-house so a toggled chip stays on).
+  const comparePresets = useMemo(
+    () => buildComparePresets(tier),
+    [tier.house, tier.grade],
+  );
+  const compareTiers = comparePresets.filter((p) =>
+    compareKeys.includes(p.key),
   );
 
   const details: Array<[string, string]> = [
@@ -329,7 +330,11 @@ export function ProductDetail() {
             />
           </div>
           <Panel padding="lg">
-            <CompareBar selected={compareKeys} onToggle={toggleCompare} />
+            <CompareBar
+              presets={comparePresets}
+              selected={compareKeys}
+              onToggle={toggleCompare}
+            />
             <CardPriceChart
               cardId={card.id}
               cardName={tierLabel(tier)}

@@ -7,7 +7,7 @@ import {
 } from "@loupe/core";
 import { Panel, CardThumb, Sparkline, Delta } from "@/components";
 import { cx } from "@/lib/cx";
-import { formatMoney } from "@/lib/format";
+import { formatMoney, formatSignedMoney } from "@/lib/format";
 import styles from "./TopMovers.module.scss";
 
 /**
@@ -136,7 +136,10 @@ function MoverColumn({
                   <span className={styles.value}>
                     {formatMoney({ amount: m.valueUsd, currency: "USD" })}
                   </span>
-                  <Delta percent={pct} money={abs} variant="arrow" />
+                  <Delta percent={pct} variant="arrow" />
+                  {abs !== undefined && (
+                    <span className={styles.abs}>{formatSignedMoney(abs)}</span>
+                  )}
                 </span>
               </button>
             </li>

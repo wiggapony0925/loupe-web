@@ -48,6 +48,7 @@ const M = {
   vault: () => import("@/features/vault/Vault/Vault"),
   markets: () => import("@/features/markets/Markets/Markets"),
   analytics: () => import("@/features/analytics/Analytics/Analytics"),
+  statements: () => import("@/features/statements/Statements/Statements"),
   watchlist: () => import("@/features/watchlist/Watchlist/Watchlist"),
   settings: () => import("@/features/settings/Settings/Settings"),
   site: () => import("@/features/site"),
@@ -117,6 +118,7 @@ export const router = createBrowserRouter([
           </FeatureGate>
         ),
       },
+      { path: "statements", element: el(M.statements, "Statements") },
       { path: "settings", element: el(M.settings, "Settings") },
     ],
   },

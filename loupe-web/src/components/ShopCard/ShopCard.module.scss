@@ -54,9 +54,13 @@
   justify-content: space-between;
   gap: var(--space-sm);
   margin-top: var(--space-sm);
+  // A 4-figure price beside a big % can exceed a narrow tile — let the change
+  // drop to the next line instead of spilling past the card edge.
+  flex-wrap: wrap;
 }
 
 .price {
+  min-width: 0;
   font-size: var(--text-lg);
   font-weight: 700;
   color: var(--ink);

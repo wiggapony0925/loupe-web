@@ -67,6 +67,10 @@ import type {
   MarketSnapshot,
   NearbyListing,
   PortfolioHistory,
+  GenerateReportInput,
+  ReportDownload,
+  UpcomingReport,
+  UserReport,
   CardValuation,
   SetProgressRow,
   SoldComp,
@@ -126,6 +130,52 @@ interface RawIdentifyCandidate {
 interface RawIdentify {
   candidates?: RawIdentifyCandidate[];
   accuracy_score?: number;
+}
+
+/** Wire shapes for the reports API (snake_case from the backend). */
+interface ReportWire {
+  id: string;
+  period: UserReport["period"];
+  period_start: string;
+  period_end: string;
+  status: UserReport["status"];
+  title: string;
+  file_size_bytes: number | null;
+  error_message: string | null;
+  generated_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+interface UpcomingWire {
+  period: UpcomingReport["period"];
+  period_start: string;
+  period_end: string;
+  closes_at: string;
+  label: string;
+}
+function toUserReport(w: ReportWire): UserReport {
+  return {
+    id: w.id,
+    period: w.period,
+    periodStart: w.period_start,
+    periodEnd: w.period_end,
+    status: w.status,
+    title: w.title,
+    fileSizeBytes: w.file_size_bytes,
+    errorMessage: w.error_message,
+    generatedAt: w.generated_at,
+    createdAt: w.created_at,
+    updatedAt: w.updated_at,
+  };
+}
+function toUpcoming(w: UpcomingWire): UpcomingReport {
+  return {
+    period: w.period,
+    periodStart: w.period_start,
+    periodEnd: w.period_end,
+    closesAt: w.closes_at,
+    label: w.label,
+  };
 }
 
 export const api = {
@@ -513,6 +563,36 @@ export const api = {
           recentScans: params?.recentScans,
         },
       }),
+  },
+
+  /** Monthly/yearly PDF portfolio statements (Amex-style auto-archive). */
+  reports: {
+    list: async (): Promise<UserReport[]> => {
+      const d = await apiFetch<ReportWire[]>(ENDPOINTS.reports.list);
+      return d.map(toUserReport);
+    },
+    upcoming: async (): Promise<UpcomingReport[]> => {
+      const d = await apiFetch<UpcomingWire[]>(ENDPOINTS.reports.upcoming);
+      return d.map(toUpcoming);
+    },
+    create: async (input: GenerateReportInput): Promise<UserReport> => {
+      const d = await apiFetch<ReportWire>(ENDPOINTS.reports.create, {
+        method: "POST",
+        json: input,
+      });
+      return toUserReport(d);
+    },
+    /** Presigned download URL (or null → stream from the file endpoint). */
+    downloadUrl: async (id: string): Promise<ReportDownload> => {
+      const d = await apiFetch<{
+        download_url: string | null;
+        expires_in_seconds: number;
+      }>(ENDPOINTS.reports.download(id));
+      return {
+        downloadUrl: d.download_url,
+        expiresInSeconds: d.expires_in_seconds,
+      };
+    },
   },
   watchlist: {
     /** The signed-in user's pinned cards. */

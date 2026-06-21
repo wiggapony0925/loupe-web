@@ -30,7 +30,7 @@ export function PortfolioChart() {
     return (
       <Panel padding="lg" raised className={styles.portfolio}>
         <MarketChart
-          title="Collection value"
+          title="Performance"
           series={[
             {
               id: "portfolio",

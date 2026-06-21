@@ -55,6 +55,9 @@ import type {
   GradedCard,
   GradesParams,
   HomeFeed,
+  UserReport,
+  UpcomingReport,
+  GenerateReportInput,
   JobApplication,
   JobApplicationDetail,
   JobPosting,
@@ -402,6 +405,40 @@ export const useHomeFeed = (
     enabled,
     staleTime: 60_000,
   });
+
+/** The user's archive of generated PDF statements. */
+export const useReports = (enabled = true) =>
+  useApiQuery<UserReport[]>(["reports"], api.reports.list, {
+    enabled,
+    staleTime: 60_000,
+  });
+
+/** When the next monthly + yearly statements will auto-close. */
+export const useUpcomingReports = (enabled = true) =>
+  useApiQuery<UpcomingReport[]>(["reports", "upcoming"], api.reports.upcoming, {
+    enabled,
+    staleTime: 5 * 60_000,
+  });
+
+/** Generate (or reuse) a statement for a given period. */
+export const useGenerateReport = (
+  options?: Omit<
+    UseMutationOptions<UserReport, ApiError, GenerateReportInput>,
+    "mutationFn"
+  >,
+) => {
+  const qc = useQueryClient();
+  return useApiMutation<UserReport, GenerateReportInput>(
+    (input) => api.reports.create(input),
+    {
+      ...options,
+      onSuccess: (...args) => {
+        qc.invalidateQueries({ queryKey: ["reports"] });
+        options?.onSuccess?.(...args);
+      },
+    },
+  );
+};
 
 /** The signed-in user's watchlist. */
 export const useWatchlist = (enabled = true) =>

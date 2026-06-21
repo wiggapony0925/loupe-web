@@ -3,6 +3,10 @@
   align-items: center;
   gap: 5px;
   font-weight: 600;
+  // Stay one line as a unit — parents (ShopCard price line, MetricCard value
+  // row) wrap the whole Delta to the next line rather than splitting it, so a
+  // wide change never clips inside a narrow column.
+  white-space: nowrap;
   @include tabular;
 }
 

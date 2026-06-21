@@ -1,14 +1,28 @@
 import type { ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
+import { Award, Layers, Sparkles, Wallet } from "lucide-react";
 import {
   useAnalyticsOverview,
-  type AnalyticsGradeBucket,
+  usePortfolioHistory,
+  type AnalyticsConcentration,
   type AnalyticsMoverRow,
   type AnalyticsSetIndex,
-  type AnalyticsYearBucket,
 } from "@loupe/core";
-import { Panel, Stat, Delta, CardThumb, NoteCard, Skeleton, Button } from "@/components";
-import { formatMoney } from "@/lib/format";
+import {
+  Panel,
+  Stat,
+  Delta,
+  CardThumb,
+  NoteCard,
+  Skeleton,
+  Button,
+  MetricCard,
+  BarChart,
+  DonutChart,
+  type BarDatum,
+  type DonutDatum,
+} from "@/components";
+import { formatCompactMoney, formatMoney } from "@/lib/format";
 import styles from "./Analytics.module.scss";
 
 const usd = (n: number) => formatMoney({ amount: n, currency: "USD" });
@@ -16,16 +30,14 @@ const usd = (n: number) => formatMoney({ amount: n, currency: "USD" });
 /** Performance analytics for the user's collection — one /v1/analytics/overview round-trip. */
 export function Analytics() {
   const { data, isLoading, isError, refetch } = useAnalyticsOverview();
+  const history = usePortfolioHistory("1Y");
   const navigate = useNavigate();
+  const open = (id: string) => navigate(`/cards/${encodeURIComponent(id)}`);
 
-  return (
-    <div className={styles.page}>
-      <header className={styles.head}>
-        <p className={styles.eyebrow}>Performance</p>
-        <h1 className={styles.title}>Analytics</h1>
-      </header>
-
-      {isError ? (
+  if (isError) {
+    return (
+      <div className={styles.page}>
+        <Header />
         <NoteCard
           variant="warning"
           title="Couldn't load analytics"
@@ -36,126 +48,216 @@ export function Analytics() {
             </Button>
           }
         />
-      ) : isLoading || !data ? (
-        <div className={styles.section}>
-          <Skeleton height={120} radius={14} />
-          <Skeleton height={220} radius={14} />
-          <Skeleton height={180} radius={14} />
+      </div>
+    );
+  }
+
+  if (isLoading || !data) {
+    return (
+      <div className={styles.page}>
+        <Header />
+        <div className={styles.hero}>
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Skeleton key={i} height={116} radius={20} />
+          ))}
         </div>
-      ) : (
-        <>
-          {/* Portfolio headline */}
-          <Panel padding="lg" raised className={styles.value}>
-            <span className={styles.valueLabel}>Collection value</span>
-            <span className={styles.valueAmount}>{usd(data.stats.totalValueUsd)}</span>
-            <span className={styles.valueMeta}>
-              {data.stats.holdings.toLocaleString()} cards · {data.stats.uniqueSets.toLocaleString()} sets
-            </span>
-            {data.stats.holdings === 0 && (
-              <p className={styles.onboard}>
-                Your portfolio is empty. Scan or add cards in the mobile app to see live performance here.
-              </p>
-            )}
-          </Panel>
+        <Skeleton height={260} radius={20} />
+        <Skeleton height={220} radius={20} />
+      </div>
+    );
+  }
 
-          {/* Book stats */}
-          <Section eyebrow="Snapshot" title="Book stats">
-            <div className={styles.stats}>
-              <Stat label="Holdings" value={data.stats.holdings.toLocaleString()} />
-              <Stat label="Unique sets" value={data.stats.uniqueSets.toLocaleString()} />
-              <Stat label="Avg grade" value={data.stats.avgGrade ? data.stats.avgGrade.toFixed(1) : "—"} />
-              <Stat label="Gem rate" value={`${data.stats.gemRatePct.toFixed(0)}%`} />
-              <Stat label="Avg value" value={usd(data.stats.avgValueUsd)} />
-              <Stat label="Oldest" value={data.stats.oldestYear ? String(data.stats.oldestYear) : "—"} />
-            </div>
-          </Section>
+  const { stats, kpis, gradeDistribution, yearDistribution, setIndexes, movers, concentration } = data;
+  const empty = stats.holdings === 0;
+  const yearDelta = history.data?.deltaPct;
 
-          {/* Grade distribution */}
-          <Section eyebrow="Quality" title="Grade distribution">
-            <Panel padding="lg">
-              <GradeBars buckets={data.gradeDistribution} />
-            </Panel>
-          </Section>
+  const gradeBars: BarDatum[] = gradeDistribution.map((b) => ({ label: b.bucket, value: b.count }));
+  const gradeTotal = gradeDistribution.reduce((s, b) => s + b.count, 0);
+  const decadeBars: BarDatum[] = yearDistribution.map((b) => ({ label: `${b.decade}s`, value: b.valueUsd }));
+  const decadeTotal = yearDistribution.reduce((s, b) => s + b.valueUsd, 0);
+  const allocation: DonutDatum[] = setIndexes
+    .filter((s) => s.totalValueUsd > 0)
+    .map((s) => ({ label: s.setName, value: s.totalValueUsd }));
 
-          {/* Set indexes */}
-          <Section eyebrow="Markets" title="Set indexes">
-            {data.setIndexes.length === 0 ? (
-              <EmptyHint text="No sets yet — add cards to see how each set is weighted." />
-            ) : (
-              <Panel padding="none" className={styles.list}>
-                {data.setIndexes.map((s) => (
-                  <SetIndexRow key={s.setName} row={s} />
-                ))}
-              </Panel>
-            )}
-          </Section>
+  return (
+    <div className={styles.page}>
+      <Header />
 
-          {/* Gainers / losers */}
-          <div className={styles.cols}>
-            <Section eyebrow="Movers" title="Top gainers">
-              <MoverList rows={data.movers.gainers} emptyHint="No gainers yet." onOpen={(id) => navigate(`/cards/${encodeURIComponent(id)}`)} />
-            </Section>
-            <Section eyebrow="Movers" title="Top losers">
-              <MoverList rows={data.movers.losers} emptyHint="No losers yet." onOpen={(id) => navigate(`/cards/${encodeURIComponent(id)}`)} />
-            </Section>
-          </div>
-
-          {/* Concentration */}
-          <Section eyebrow="Risk" title="Concentration">
-            {!data.concentration ? (
-              <EmptyHint text="Concentration appears once you hold a few cards." />
-            ) : (
-              <Panel padding="lg" className={styles.conc}>
-                <div className={styles.concStats}>
-                  <Stat label="Top 1" value={`${data.concentration.top1Pct.toFixed(0)}%`} />
-                  <Stat label="Top 3" value={`${data.concentration.top3Pct.toFixed(0)}%`} />
-                  <Stat label="Top 5" value={`${data.concentration.top5Pct.toFixed(0)}%`} />
-                </div>
-                {data.concentration.top1.cardName && (
-                  <p className={styles.concNote}>
-                    Largest holding: <strong>{data.concentration.top1.cardName}</strong> ·{" "}
-                    {usd(data.concentration.top1.valueUsd)}
-                  </p>
-                )}
-              </Panel>
-            )}
-          </Section>
-
-          {/* By decade */}
-          <Section eyebrow="Vintage" title="By decade">
-            {data.yearDistribution.length === 0 ? (
-              <EmptyHint text="Add dated cards to see your collection by decade." />
-            ) : (
-              <Panel padding="lg">
-                <DecadeBars buckets={data.yearDistribution} />
-              </Panel>
-            )}
-          </Section>
-
-          {/* Scan KPIs */}
-          <Section eyebrow="Activity" title="Scanning">
-            <div className={styles.stats}>
-              <Stat label="Total scans" value={data.kpis.totalScans.toLocaleString()} />
-              <Stat label="Avg grade" value={data.kpis.avgGrade ? data.kpis.avgGrade.toFixed(1) : "—"} />
-              <Stat label="Gem rate" value={`${data.kpis.gemRatePct.toFixed(0)}%`} />
-              <Stat
-                label="Graders"
-                value={`PSA ${data.kpis.graderSplit.psa} · BGS ${data.kpis.graderSplit.bgs} · CGC ${data.kpis.graderSplit.cgc}`}
-              />
-            </div>
-          </Section>
-        </>
+      {empty && (
+        <NoteCard
+          title="Your portfolio is empty"
+          message="Scan or add cards in the app to unlock live performance, grade quality, vintage, and concentration analytics here."
+          action={
+            <Button variant="secondary" size="sm" onClick={() => navigate("/cards")}>
+              Browse cards
+            </Button>
+          }
+        />
       )}
+
+      {/* Hero metrics */}
+      <div className={styles.hero}>
+        <MetricCard
+          accent
+          tone="mint"
+          icon={<Wallet size={16} />}
+          label="Collection value"
+          value={usd(stats.totalValueUsd)}
+          changePct={yearDelta}
+          caption={yearDelta != null ? "vs last year" : `${stats.holdings.toLocaleString()} cards`}
+        />
+        <MetricCard
+          tone="blue"
+          icon={<Layers size={16} />}
+          label="Holdings"
+          value={stats.holdings.toLocaleString()}
+          caption={`across ${stats.uniqueSets.toLocaleString()} ${
+            stats.uniqueSets === 1 ? "set" : "sets"
+          } · avg ${usd(stats.avgValueUsd)}`}
+        />
+        <MetricCard
+          tone="purple"
+          icon={<Award size={16} />}
+          label="Avg grade"
+          value={stats.avgGrade ? stats.avgGrade.toFixed(1) : "—"}
+          caption={`${stats.gemRatePct.toFixed(0)}% gem rate`}
+        />
+        <MetricCard
+          tone="amber"
+          icon={<Sparkles size={16} />}
+          label="Oldest card"
+          value={stats.oldestYear ? String(stats.oldestYear) : "—"}
+          caption={stats.oldestYear ? "vintage anchor" : "no dated cards yet"}
+        />
+      </div>
+
+      {/* Distributions */}
+      <div className={styles.cols}>
+        <Section eyebrow="Quality" title="Grade distribution">
+          {gradeBars.length === 0 ? (
+            <EmptyHint text="Grade your cards to see the quality spread." />
+          ) : (
+            <Panel padding="lg" raised className={styles.chartPanel}>
+              <BarChart
+                data={gradeBars}
+                height={200}
+                backdrop={gradeTotal.toLocaleString()}
+                format={(n) => n.toLocaleString()}
+                ariaLabel="Grade distribution"
+              />
+            </Panel>
+          )}
+        </Section>
+        <Section eyebrow="Vintage" title="Value by decade">
+          {decadeBars.length === 0 ? (
+            <EmptyHint text="Add dated cards to see value by decade." />
+          ) : (
+            <Panel padding="lg" raised className={styles.chartPanel}>
+              <BarChart
+                data={decadeBars}
+                height={200}
+                backdrop={formatCompactMoney(decadeTotal)}
+                format={(n) => formatCompactMoney(n)}
+                ariaLabel="Value by decade"
+              />
+            </Panel>
+          )}
+        </Section>
+      </div>
+
+      {/* Set indexes */}
+      <Section eyebrow="Markets" title="Set indexes" subtitle="How your value is weighted across sets.">
+        {setIndexes.length === 0 ? (
+          <EmptyHint text="No sets yet — add cards to see how each set is weighted." />
+        ) : (
+          <Panel padding="none" raised className={styles.list}>
+            {setIndexes.map((s) => (
+              <SetIndexRow key={s.setName} row={s} />
+            ))}
+          </Panel>
+        )}
+      </Section>
+
+      {/* Allocation (donut) + concentration */}
+      <div className={styles.cols}>
+        <Section eyebrow="Allocation" title="Value by set">
+          {allocation.length === 0 ? (
+            <EmptyHint text="Add cards to see how your value is allocated." />
+          ) : (
+            <Panel padding="lg" raised className={styles.chartPanel}>
+              <DonutChart
+                data={allocation}
+                centerValue={formatCompactMoney(stats.totalValueUsd)}
+                centerLabel="total"
+                format={(n) => formatCompactMoney(n)}
+                ariaLabel="Value allocation by set"
+              />
+            </Panel>
+          )}
+        </Section>
+        <Section eyebrow="Risk" title="Concentration">
+          {!concentration ? (
+            <EmptyHint text="Concentration appears once you hold a few cards." />
+          ) : (
+            <Panel padding="lg" raised className={styles.chartPanel}>
+              <Concentration conc={concentration} />
+            </Panel>
+          )}
+        </Section>
+      </div>
+
+      {/* Movers */}
+      <div className={styles.cols}>
+        <Section eyebrow="Movers" title="Top gainers">
+          <MoverList rows={movers.gainers} emptyHint="No gainers yet." onOpen={open} />
+        </Section>
+        <Section eyebrow="Movers" title="Top losers">
+          <MoverList rows={movers.losers} emptyHint="No losers yet." onOpen={open} />
+        </Section>
+      </div>
+
+      {/* Scanning */}
+      <Section eyebrow="Activity" title="Scanning">
+        <div className={styles.stats}>
+          <Stat label="Total scans" value={kpis.totalScans.toLocaleString()} />
+          <Stat label="Scan avg grade" value={kpis.avgGrade ? kpis.avgGrade.toFixed(1) : "—"} />
+          <Stat label="Scan gem rate" value={`${kpis.gemRatePct.toFixed(0)}%`} />
+          <Stat
+            label="Graders"
+            value={`PSA ${kpis.graderSplit.psa} · BGS ${kpis.graderSplit.bgs} · CGC ${kpis.graderSplit.cgc}`}
+          />
+        </div>
+      </Section>
     </div>
   );
 }
 
-function Section({ eyebrow, title, children }: { eyebrow: string; title: string; children: ReactNode }) {
+function Header() {
+  return (
+    <header className={styles.head}>
+      <p className={styles.eyebrow}>Performance</p>
+      <h1 className={styles.title}>Analytics</h1>
+    </header>
+  );
+}
+
+function Section({
+  eyebrow,
+  title,
+  subtitle,
+  children,
+}: {
+  eyebrow: string;
+  title: string;
+  subtitle?: string;
+  children: ReactNode;
+}) {
   return (
     <section className={styles.section}>
       <div className={styles.sectionHead}>
         <span className={styles.sectionEyebrow}>{eyebrow}</span>
         <h2 className={styles.sectionTitle}>{title}</h2>
+        {subtitle && <span className={styles.sectionSub}>{subtitle}</span>}
       </div>
       {children}
     </section>
@@ -166,36 +268,31 @@ function EmptyHint({ text }: { text: string }) {
   return <p className={styles.empty}>{text}</p>;
 }
 
-function GradeBars({ buckets }: { buckets: AnalyticsGradeBucket[] }) {
-  const max = Math.max(1, ...buckets.map((b) => b.count));
+function Concentration({ conc }: { conc: AnalyticsConcentration }) {
+  const top1 = Math.max(0, Math.min(100, conc.top1Pct));
+  const top3 = Math.max(top1, Math.min(100, conc.top3Pct));
+  const top5 = Math.max(top3, Math.min(100, conc.top5Pct));
+  const segs = [
+    { w: top1, cls: styles.seg1 },
+    { w: top3 - top1, cls: styles.seg2 },
+    { w: top5 - top3, cls: styles.seg3 },
+    { w: 100 - top5, cls: styles.segRest },
+  ];
   return (
-    <div className={styles.bars}>
-      {buckets.map((b) => (
-        <div key={b.bucket} className={styles.bar}>
-          <span className={styles.barLabel}>{b.bucket}</span>
-          <span className={styles.barTrack}>
-            <span className={styles.barFill} style={{ width: `${(b.count / max) * 100}%` }} />
-          </span>
-          <span className={styles.barValue}>{b.count}</span>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function DecadeBars({ buckets }: { buckets: AnalyticsYearBucket[] }) {
-  const max = Math.max(1, ...buckets.map((b) => b.valueUsd));
-  return (
-    <div className={styles.bars}>
-      {buckets.map((b) => (
-        <div key={b.decade} className={styles.bar}>
-          <span className={styles.barLabel}>{b.decade}s</span>
-          <span className={styles.barTrack}>
-            <span className={styles.barFill} style={{ width: `${(b.valueUsd / max) * 100}%` }} />
-          </span>
-          <span className={styles.barValue}>{usd(b.valueUsd)}</span>
-        </div>
-      ))}
+    <div className={styles.conc}>
+      <div className={styles.alloc} aria-hidden>
+        {segs.map((s, i) => s.w > 0 && <span key={i} className={s.cls} style={{ width: `${s.w}%` }} />)}
+      </div>
+      <div className={styles.concStats}>
+        <Stat label="Top 1" value={`${Math.round(top1)}%`} />
+        <Stat label="Top 3" value={`${Math.round(top3)}%`} />
+        <Stat label="Top 5" value={`${Math.round(top5)}%`} />
+      </div>
+      {conc.top1.cardName && (
+        <p className={styles.concNote}>
+          Largest holding <strong>{conc.top1.cardName}</strong> · {usd(conc.top1.valueUsd)}
+        </p>
+      )}
     </div>
   );
 }
@@ -231,7 +328,7 @@ function MoverList({
 }) {
   if (rows.length === 0) return <EmptyHint text={emptyHint} />;
   return (
-    <Panel padding="none" className={styles.list}>
+    <Panel padding="none" raised className={styles.list}>
       {rows.map((m) => (
         <button
           key={m.gradeId}
@@ -248,7 +345,7 @@ function MoverList({
           </span>
           <span className={styles.moverRight}>
             <span className={styles.moverValue}>{usd(m.valueUsd)}</span>
-            <Delta percent={m.changePct1y} />
+            <Delta percent={m.changePct1y} variant="arrow" />
           </span>
         </button>
       ))}
