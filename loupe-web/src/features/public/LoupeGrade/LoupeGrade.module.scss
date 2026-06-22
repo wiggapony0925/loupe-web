@@ -1,65 +1,132 @@
-.page {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-xl);
+/* Full-screen inspection workspace — Figma-canvas style. */
+.workspace {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  background: var(--bg-base);
+  overflow: hidden;
 }
 
-.head {
+/* Top toolbar */
+.topbar {
   display: flex;
-  flex-direction: column;
-  gap: var(--space-sm);
-  max-width: 720px;
+  align-items: center;
+  gap: var(--space-md);
+  height: 56px;
+  padding: 0 var(--space-lg);
+  border-bottom: 1px solid var(--line);
+  background: var(--bg-elevated);
 }
-.eyebrow {
+.brand {
+  display: inline-flex;
+  align-items: center;
+}
+.title {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: var(--text-xs);
   font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--accent-mint);
-}
-.title {
-  font-family: var(--font-serif);
-  font-weight: 600;
-  font-size: clamp(28px, 3.6vw, 42px);
-  letter-spacing: -0.02em;
-  line-height: 1.05;
+  font-size: var(--text-sm);
   color: var(--ink);
 }
-.sub {
-  font-size: var(--text-md);
+.titleSub {
+  font-size: var(--text-xs);
   color: var(--ink-dim);
-  line-height: 1.5;
+
+  @include bp-down("sm") {
+    display: none;
+  }
+}
+.flex {
+  flex: 1;
+}
+.close {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius-md);
+  color: var(--ink-dim);
+  border: 1px solid var(--line);
+  background: var(--bg-base);
+
+  &:hover {
+    color: var(--ink);
+    border-color: var(--line-strong);
+  }
+}
+.fileInput {
+  display: none;
 }
 
-/* Upload dropzone */
+/* Body: canvas + docked inspector rail */
+.body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 380px;
+  min-height: 0;
+
+  @include bp-down("md") {
+    grid-template-columns: 1fr;
+    grid-template-rows: minmax(0, 1fr) auto;
+    overflow-y: auto;
+  }
+}
+
+.canvasZone {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+  padding: var(--space-xl);
+  background:
+    radial-gradient(
+      120% 120% at 50% 0%,
+      color-mix(in srgb, var(--accent-mint) 5%, transparent),
+      transparent 60%
+    ),
+    var(--bg-sunken);
+  overflow: hidden;
+
+  @include bp-down("md") {
+    min-height: 60vh;
+  }
+}
+
+/* Dropzone (empty state) */
 .drop {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: var(--space-sm);
-  min-height: 320px;
-  padding: var(--space-2xl);
+  width: min(560px, 100%);
+  height: min(70%, 460px);
   border-radius: var(--radius-xl);
   border: 2px dashed var(--line-strong);
-  background: var(--bg-elevated);
+  background: color-mix(in srgb, var(--bg-elevated) 70%, transparent);
   color: var(--ink-dim);
-  cursor: pointer;
   text-align: center;
+  cursor: pointer;
   transition:
     border-color var(--dur-fast) var(--ease-out),
     background-color var(--dur-fast) var(--ease-out);
 
   &:hover {
     border-color: var(--accent-mint);
-    background: color-mix(in srgb, var(--accent-mint) 6%, var(--bg-elevated));
+    background: color-mix(in srgb, var(--accent-mint) 8%, var(--bg-elevated));
   }
 }
-.fileInput {
-  display: none;
+.dropIcon {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  margin-bottom: var(--space-sm);
+  border-radius: var(--radius-lg);
+  color: var(--accent-mint);
+  background: color-mix(in srgb, var(--accent-mint) 12%, transparent);
 }
 .dropTitle {
   font-size: var(--text-lg);
@@ -70,49 +137,104 @@
   font-size: var(--text-sm);
 }
 
-/* Two-column working layout */
-.grid {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 380px);
-  gap: var(--space-xl);
-  align-items: start;
+/* Inspector rail */
+.rail {
+  border-left: 1px solid var(--line);
+  background: var(--bg-elevated);
+  overflow-y: auto;
 
-  @include bp-down("lg") {
-    grid-template-columns: 1fr;
+  @include bp-down("md") {
+    border-left: none;
+    border-top: 1px solid var(--line);
   }
 }
-.canvasPanel {
-  border-radius: var(--radius-xl);
-}
-.canvasActions {
-  margin-top: var(--space-md);
-}
 
-.side {
+/* Empty-state intro inside the rail */
+.intro {
   display: flex;
   flex-direction: column;
   gap: var(--space-lg);
+  padding: var(--space-xl);
+}
+.introTitle {
+  font-family: var(--font-serif);
+  font-weight: 600;
+  font-size: clamp(24px, 2.4vw, 30px);
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  color: var(--ink);
+}
+.introSub {
+  font-size: var(--text-sm);
+  color: var(--ink-dim);
+  line-height: 1.55;
+}
+.steps {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  list-style: none;
+
+  li {
+    display: flex;
+    gap: var(--space-sm);
+    font-size: var(--text-sm);
+    color: var(--ink);
+    line-height: 1.45;
+
+    span {
+      flex-shrink: 0;
+      display: grid;
+      place-items: center;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      font-size: var(--text-xs);
+      font-weight: 700;
+      color: var(--accent-mint);
+      background: color-mix(in srgb, var(--accent-mint) 14%, transparent);
+    }
+  }
 }
 
-/* Score panel */
-.scorePanel {
-  border-radius: var(--radius-xl);
+/* Populated rail panels */
+.panels {
+  display: flex;
+  flex-direction: column;
 }
-.scoreLabel {
+.score,
+.block {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  padding: var(--space-xl);
+  border-bottom: 1px solid var(--line);
+}
+.cardLabel,
+.blockTitle {
   font-size: var(--text-xs);
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--ink-dim);
 }
+.blockTitle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: var(--text-sm);
+  color: var(--ink);
+}
+
 .scoreRow {
   display: flex;
   align-items: center;
   gap: var(--space-md);
-  margin-top: var(--space-xs);
 }
 .scoreNum {
-  font-size: 52px;
+  font-size: 50px;
   font-weight: 800;
   letter-spacing: -0.03em;
   line-height: 1;
@@ -120,7 +242,6 @@
   @include tabular;
 }
 .verdict {
-  margin-top: var(--space-sm);
   font-size: var(--text-sm);
   color: var(--ink-dim);
 }
@@ -128,33 +249,15 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: var(--space-md);
-  margin-top: var(--space-lg);
-  padding-top: var(--space-lg);
+  padding-top: var(--space-md);
   border-top: 1px solid var(--line);
 }
 .centeringNote {
-  margin-top: var(--space-md);
   font-size: var(--text-xs);
   color: var(--ink-dim);
   line-height: 1.5;
 }
 
-/* Controls */
-.controls,
-.value {
-  border-radius: var(--radius-xl);
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-md);
-}
-.controlsTitle {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: var(--text-sm);
-  font-weight: 700;
-  color: var(--ink);
-}
 .slider {
   display: flex;
   flex-direction: column;
@@ -176,14 +279,12 @@
   color: var(--ink);
   @include tabular;
 }
-.controlsHint,
-.valueHint {
+.blockHint {
   font-size: var(--text-xs);
   color: var(--ink-dim);
   line-height: 1.5;
 }
 
-/* Value / upside */
 .valueCard {
   display: flex;
   align-items: center;
@@ -220,4 +321,9 @@
   font-size: var(--text-sm);
   font-weight: 600;
   color: var(--ink);
+}
+
+/* NoteCard disclaimer sits in its own padded cell */
+.panels > :last-child {
+  margin: var(--space-xl);
 }

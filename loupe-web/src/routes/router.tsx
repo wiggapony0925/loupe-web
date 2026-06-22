@@ -119,6 +119,9 @@ export const router = createBrowserRouter([
   { path: "/", element: el(M.landing, "MarketingLanding") },
   { path: "/login", element: el(M.login, "Login") },
   { path: "/signup", element: el(M.signup, "Signup") },
+  // Full-screen workspace — deliberately outside PublicLayout (no nav/footer
+  // chrome), edge-to-edge like a Figma canvas.
+  { path: "/grade", element: el(M.loupeGrade, "LoupeGrade") },
   {
     element: el(M.publicLayout, "PublicLayout"),
     children: [
@@ -126,7 +129,6 @@ export const router = createBrowserRouter([
       { path: "cards/:id", element: el(M.product, "ProductDetail") },
       { path: "sealed", element: el(M.sealed, "Sealed") },
       { path: "sealed/:id", element: el(M.sealedDetail, "SealedDetail") },
-      { path: "grade", element: el(M.loupeGrade, "LoupeGrade") },
       { path: "sets", element: el(M.setsExplorer, "Sets") },
       { path: "scanner", element: el(M.scanner, "Scanner") },
       { path: "about", element: el(M.site, "About") },

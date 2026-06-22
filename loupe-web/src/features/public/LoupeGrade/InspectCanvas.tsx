@@ -29,12 +29,30 @@ export function InspectCanvas({ src, outer, inner, onChange }: Props) {
   const frames = useRef({ outer, inner });
   frames.current = { outer, inner };
 
+  const zoneRef = useRef<HTMLDivElement>(null);
   const [zoom, setZoom] = useState<(typeof ZOOMS)[number]>(5);
   const [lens, setLens] = useState<{ x: number; y: number } | null>(null);
   // Match the stage to the photo's real aspect ratio so the % frames map to
   // the actual image edges (no letterboxing) — essential for centering math.
   const [ratio, setRatio] = useState(5 / 7);
-  const MAX_H = 620;
+  const [box, setBox] = useState({ w: 0, h: 0 });
+
+  // Fit the stage to the largest size that fits the zone while keeping ratio.
+  useEffect(() => {
+    const zone = zoneRef.current;
+    if (!zone) return;
+    const fit = () => {
+      const zw = zone.clientWidth;
+      const zh = zone.clientHeight;
+      if (!zw || !zh) return;
+      const w = Math.min(zw, zh * ratio);
+      setBox({ w, h: w / ratio });
+    };
+    fit();
+    const ro = new ResizeObserver(fit);
+    ro.observe(zone);
+    return () => ro.disconnect();
+  }, [ratio]);
 
   useEffect(() => {
     function move(e: globalThis.PointerEvent) {
@@ -127,10 +145,11 @@ export function InspectCanvas({ src, outer, inner, onChange }: Props) {
         ))}
       </div>
 
+      <div ref={zoneRef} className={styles.stageBox}>
       <div
         ref={boxRef}
         className={styles.stage}
-        style={{ aspectRatio: String(ratio), maxWidth: `calc(${MAX_H}px * ${ratio})` }}
+        style={{ width: box.w || undefined, height: box.h || undefined }}
         onPointerMove={onHover}
         onPointerLeave={() => setLens(null)}
       >
@@ -161,6 +180,7 @@ export function InspectCanvas({ src, outer, inner, onChange }: Props) {
             aria-hidden
           />
         )}
+      </div>
       </div>
       <p className={styles.hint}>
         Drag the <strong>green</strong> frame to the card edges and the{" "}
