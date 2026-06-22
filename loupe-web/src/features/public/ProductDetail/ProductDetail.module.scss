@@ -240,17 +240,58 @@
     }
   }
 
+  // The cheapest live price gets a faint mint wash + accent strip.
+  &__market-row--lowest {
+    background: color-mix(in srgb, var(--accent-mint) 7%, transparent);
+    box-shadow: inset 3px 0 0 var(--accent-mint);
+
+    &:hover {
+      background: color-mix(in srgb, var(--accent-mint) 11%, transparent);
+    }
+  }
+
+  // Per-marketplace brand glyph — first initial on a stable hued chip.
+  &__market-glyph {
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+    width: 38px;
+    height: 38px;
+    border-radius: var(--radius-md);
+    font-size: var(--text-md);
+    font-weight: 800;
+    // Self-contained avatar chip (mid-tone hue + white text) — reads in both
+    // light and dark themes without depending on the surface behind it.
+    color: #fff;
+    background: hsl(var(--g) 52% 48%);
+  }
+
   &__market-id {
     display: flex;
     flex-direction: column;
     gap: 2px;
     min-width: 0;
+    margin-right: auto;
   }
 
   &__market-name {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-sm);
     font-size: var(--text-md);
     font-weight: 700;
     color: var(--ink);
+  }
+
+  &__market-low {
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--accent-mint);
+    background: color-mix(in srgb, var(--accent-mint) 14%, transparent);
+    border-radius: var(--radius-pill);
+    padding: 2px 8px;
   }
 
   &__market-sub {

@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Check, Package, Plus } from "lucide-react";
+import { Check, Plus } from "lucide-react";
 import { useAddSealedHolding, type SealedProduct } from "@loupe/core";
 import { CardThumb } from "@/components";
 import { useAuth } from "@/auth/AuthProvider";
 import { cx } from "@/lib/cx";
 import { formatMoney } from "@/lib/format";
+import { SealedArt } from "../SealedArt/SealedArt";
 import styles from "./SealedCard.module.scss";
 
 /** Human-readable product-type labels (mirrors SealedProductTypeEnum). */
@@ -58,13 +59,17 @@ export function SealedCard({
     <div className={styles.card}>
       <div className={styles.art}>
         {product.imageUrl ? (
-          <CardThumb src={product.imageUrl} alt={product.name} size="lg" />
+          <>
+            <CardThumb src={product.imageUrl} alt={product.name} size="lg" />
+            <span className={styles.type}>{typeLabel}</span>
+          </>
         ) : (
-          <div className={styles.placeholder} aria-hidden>
-            <Package size={40} />
-          </div>
+          <SealedArt
+            setName={product.setName}
+            productType={product.productType}
+            typeLabel={typeLabel}
+          />
         )}
-        <span className={styles.type}>{typeLabel}</span>
       </div>
 
       <div className={styles.body}>

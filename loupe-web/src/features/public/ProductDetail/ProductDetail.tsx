@@ -1,4 +1,5 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, type CSSProperties } from "react";
+import { cx } from "@/lib/cx";
 import { Link, useParams } from "react-router-dom";
 import { Expand, ExternalLink, ScanLine, ShieldCheck } from "lucide-react";
 import {
@@ -154,7 +155,7 @@ export function ProductDetail() {
   ];
 
   // Real per-marketplace quotes when available; otherwise honest search exits.
-  const marketRows =
+  const marketRowsRaw =
     quotes && quotes.length > 0
       ? quotes.map((q) => ({
           label: q.label,
@@ -166,10 +167,21 @@ export function ProductDetail() {
       : marketplaces(card.name).map((m) => ({
           label: m.source,
           subtitle: "Search active listings",
-          price: undefined,
+          price: undefined as Money | undefined,
           href: m.href,
           kind: "market_price" as const,
         }));
+  // Cheapest priced row first (then the rest), so the lowest live price leads
+  // and feeds the buy box.
+  const marketRows = [...marketRowsRaw].sort((a, b) => {
+    const pa = a.price?.amount;
+    const pb = b.price?.amount;
+    if (pa != null && pb != null) return pa - pb;
+    if (pa != null) return -1;
+    if (pb != null) return 1;
+    return 0;
+  });
+  const lowestLabel = marketRows.find((m) => m.price != null)?.label ?? null;
   const buyHref = marketRows[0]?.href ?? "#";
 
   return (
@@ -415,37 +427,59 @@ export function ProductDetail() {
           </span>
         </div>
         <div className={styles.product__markets}>
-          {marketRows.map((m) => (
-            <a
-              key={m.label}
-              href={m.href}
-              target="_blank"
-              rel="noreferrer"
-              className={styles["product__market-row"]}
-            >
-              <div className={styles["product__market-id"]}>
-                <span className={styles["product__market-name"]}>
-                  {m.label}
-                </span>
-                {m.subtitle && (
-                  <span className={styles["product__market-sub"]}>
-                    {m.subtitle}
-                  </span>
+          {marketRows.map((m) => {
+            const isLowest = m.label === lowestLabel;
+            const hue = [...m.label].reduce(
+              (h, c) => (h * 31 + c.charCodeAt(0)) % 360,
+              0,
+            );
+            return (
+              <a
+                key={m.label}
+                href={m.href}
+                target="_blank"
+                rel="noreferrer"
+                className={cx(
+                  styles["product__market-row"],
+                  isLowest && styles["product__market-row--lowest"],
                 )}
-              </div>
-              <div className={styles["product__market-right"]}>
-                {m.price && (
-                  <span className={styles["product__market-price"]}>
-                    {formatMoney(m.price)}
-                  </span>
-                )}
-                <span className={styles["product__market-cta"]}>
-                  {m.kind === "listing" ? "Buy" : "View"}{" "}
-                  <ExternalLink size={13} />
+              >
+                <span
+                  className={styles["product__market-glyph"]}
+                  style={{ "--g": hue } as CSSProperties}
+                  aria-hidden
+                >
+                  {m.label.charAt(0).toUpperCase()}
                 </span>
-              </div>
-            </a>
-          ))}
+                <div className={styles["product__market-id"]}>
+                  <span className={styles["product__market-name"]}>
+                    {m.label}
+                    {isLowest && (
+                      <span className={styles["product__market-low"]}>
+                        Lowest
+                      </span>
+                    )}
+                  </span>
+                  {m.subtitle && (
+                    <span className={styles["product__market-sub"]}>
+                      {m.subtitle}
+                    </span>
+                  )}
+                </div>
+                <div className={styles["product__market-right"]}>
+                  {m.price && (
+                    <span className={styles["product__market-price"]}>
+                      {formatMoney(m.price)}
+                    </span>
+                  )}
+                  <span className={styles["product__market-cta"]}>
+                    {m.kind === "listing" ? "Buy" : "View"}{" "}
+                    <ExternalLink size={13} />
+                  </span>
+                </div>
+              </a>
+            );
+          })}
         </div>
       </section>
 
