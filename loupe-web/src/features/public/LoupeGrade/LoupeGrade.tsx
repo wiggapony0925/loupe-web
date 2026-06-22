@@ -11,6 +11,7 @@ import {
   Loader2,
   Check,
   ArchiveRestore,
+  ArrowRight,
 } from "lucide-react";
 import {
   useValuation,
@@ -24,7 +25,6 @@ import {
 import {
   Button,
   Badge,
-  Stat,
   Delta,
   NoteCard,
   SearchCombobox,
@@ -83,7 +83,12 @@ export function LoupeGrade() {
   const [corners, setCorners] = useState(9);
   const [edges, setEdges] = useState(9);
   const [surface, setSurface] = useState(9);
-  const [card, setCard] = useState<Pick<CardSummary, "id" | "name"> | null>(null);
+  const [card, setCard] = useState<{
+    id: string;
+    name: string;
+    imageUrl?: string | null;
+    setName?: string | null;
+  } | null>(null);
   const [identified, setIdentified] = useState<ScanCandidate | null>(null);
   const [saved, setSaved] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -94,7 +99,12 @@ export function LoupeGrade() {
       const top = r.candidates?.[0];
       if (top && top.confidence >= 0.35) {
         setIdentified(top);
-        setCard({ id: top.id, name: top.name });
+        setCard({
+          id: top.id,
+          name: top.name,
+          imageUrl: top.imageUrl,
+          setName: top.setName,
+        });
       }
     },
   });
@@ -165,7 +175,12 @@ export function LoupeGrade() {
       setIdentified(null);
       setSaved(false);
       identify.reset();
-      setCard({ id: c.id, name: c.name });
+      setCard({
+        id: c.id,
+        name: c.name,
+        imageUrl: c.imageUrl,
+        setName: c.setName,
+      });
     },
     [autoDetect, identify],
   );
@@ -401,28 +416,56 @@ export function LoupeGrade() {
                   <span className={styles.scoreNum}>
                     {result.estimate.toFixed(1)}
                   </span>
-                  <Badge tone="mint">{result.band}</Badge>
+                  <div className={styles.scoreSide}>
+                    <Badge tone="mint">{result.band}</Badge>
+                    <p className={styles.verdict}>{result.verdict}</p>
+                  </div>
                 </div>
-                <p className={styles.verdict}>{result.verdict}</p>
-                <div className={styles.subs}>
-                  <Stat
-                    label="Centering"
-                    value={
-                      centering
-                        ? `${subs.centering.toFixed(0)} · ${centering.hLabel}`
-                        : "Align frames"
-                    }
-                  />
-                  <Stat label="Corners" value={String(corners)} />
-                  <Stat label="Edges" value={String(edges)} />
-                  <Stat label="Surface" value={String(surface)} />
+
+                {/* Grade scale — where the estimate lands, 1 → 10 */}
+                <div className={styles.scale}>
+                  <div className={styles.scaleTrack}>
+                    <span
+                      className={styles.scaleMarker}
+                      style={{ left: `${(result.estimate / 10) * 100}%` }}
+                    />
+                  </div>
+                  <div className={styles.scaleTicks}>
+                    <span>PSA 1</span>
+                    <span>5</span>
+                    <span>Gem 10</span>
+                  </div>
                 </div>
-                {centering && (
-                  <p className={styles.centeringNote}>
-                    Horizontal {centering.hLabel} · Vertical {centering.vLabel} —
-                    the worse axis sets the centering sub-grade.
-                  </p>
-                )}
+
+                {/* Sub-grade summary */}
+                <div className={styles.grades}>
+                  {(
+                    [
+                      [
+                        "Centering",
+                        subs.centering,
+                        centering ? centering.hLabel : "align",
+                      ],
+                      ["Corners", corners, null],
+                      ["Edges", edges, null],
+                      ["Surface", surface, null],
+                    ] as const
+                  ).map(([label, val, sub]) => (
+                    <div key={label} className={styles.gradeRow}>
+                      <span className={styles.gradeLabel}>{label}</span>
+                      <span className={styles.gradeTrack}>
+                        <span
+                          className={styles.gradeFill}
+                          style={{ width: `${val * 10}%` }}
+                        />
+                      </span>
+                      <span className={styles.gradeVal}>
+                        {val}
+                        {sub && <em className={styles.gradeSub}> · {sub}</em>}
+                      </span>
+                    </div>
+                  ))}
+                </div>
               </section>
 
               {/* Condition self-rating */}
@@ -472,28 +515,57 @@ export function LoupeGrade() {
                           `/cards${q ? `?q=${encodeURIComponent(q)}` : ""}`,
                         )
                       }
-                      onSelectCard={(c) => setCard({ id: c.id, name: c.name })}
+                      onSelectCard={(c) =>
+                        setCard({
+                          id: c.id,
+                          name: c.name,
+                          imageUrl: c.imageUrl,
+                          setName: c.setName,
+                        })
+                      }
                     />
                   </>
                 ) : (
                   <>
-                    <div className={styles.valueCard}>
-                      <span className={styles.valueName}>{card.name}</span>
-                      <button
-                        type="button"
-                        className={styles.valueChange}
-                        onClick={() => setCard(null)}
-                      >
-                        Change
-                      </button>
+                    <div className={styles.cardRow}>
+                      <span className={styles.cardArt}>
+                        <CardThumb
+                          src={card.imageUrl ?? ""}
+                          alt={card.name}
+                          size="md"
+                        />
+                      </span>
+                      <div className={styles.cardInfo}>
+                        <span className={styles.cardName}>{card.name}</span>
+                        {card.setName && (
+                          <span className={styles.cardSet}>{card.setName}</span>
+                        )}
+                        <button
+                          type="button"
+                          className={styles.valueChange}
+                          onClick={() => setCard(null)}
+                        >
+                          Change card
+                        </button>
+                      </div>
                     </div>
-                    <div className={styles.valueRow}>
-                      <Stat label="Raw market" value={money(raw)} />
-                      <Stat
-                        label={`If it grades ~${tierLabel}`}
-                        value={money(graded)}
-                      />
+
+                    <div className={styles.compare}>
+                      <div className={styles.compareCol}>
+                        <span className={styles.compareLabel}>Raw</span>
+                        <span className={styles.compareVal}>{money(raw)}</span>
+                      </div>
+                      <ArrowRight size={16} className={styles.compareArrow} />
+                      <div className={styles.compareCol}>
+                        <span className={styles.compareLabel}>~{tierLabel}</span>
+                        <span
+                          className={`${styles.compareVal} ${styles.compareValHi}`}
+                        >
+                          {money(graded)}
+                        </span>
+                      </div>
                     </div>
+
                     {upsidePct !== undefined ? (
                       <div className={styles.upside}>
                         <TrendingUp size={16} />

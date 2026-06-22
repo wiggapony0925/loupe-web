@@ -368,38 +368,139 @@
   gap: var(--space-md);
 }
 .scoreNum {
-  font-size: 50px;
+  font-size: 56px;
   font-weight: 800;
   letter-spacing: -0.03em;
-  line-height: 1;
+  line-height: 0.95;
   color: var(--ink);
   @include tabular;
+}
+.scoreSide {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: flex-start;
 }
 .verdict {
   font-size: var(--text-sm);
   color: var(--ink-dim);
+  line-height: 1.4;
 }
-.subs {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--space-md);
+
+/* Grade scale — neutral → mint, with a marker at the estimate */
+.scale {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.scaleTrack {
+  position: relative;
+  height: 8px;
+  border-radius: 999px;
+  background: linear-gradient(
+    90deg,
+    var(--bg-sunken),
+    color-mix(in srgb, var(--accent-mint) 35%, var(--bg-sunken)) 55%,
+    var(--accent-mint)
+  );
+}
+.scaleMarker {
+  position: absolute;
+  top: 50%;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--bg-base);
+  border: 3px solid var(--ink);
+  box-shadow: var(--shadow-card);
+  transform: translate(-50%, -50%);
+}
+.scaleTicks {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+
+/* Sub-grade summary bars */
+.grades {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
   padding-top: var(--space-md);
   border-top: 1px solid var(--line);
 }
-.centeringNote {
+.gradeRow {
+  display: grid;
+  grid-template-columns: 70px 1fr auto;
+  align-items: center;
+  gap: var(--space-sm);
+}
+.gradeLabel {
   font-size: var(--text-xs);
+  font-weight: 600;
   color: var(--ink-dim);
-  line-height: 1.5;
+}
+.gradeTrack {
+  height: 6px;
+  border-radius: 999px;
+  background: var(--bg-sunken);
+  overflow: hidden;
+}
+.gradeFill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--accent-mint);
+  transition: width var(--dur-fast) var(--ease-out);
+}
+.gradeVal {
+  font-size: var(--text-xs);
+  font-weight: 700;
+  color: var(--ink);
+  @include tabular;
+}
+.gradeSub {
+  font-style: normal;
+  font-weight: 600;
+  color: var(--ink-dim);
 }
 
 .slider {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
 
   input[type="range"] {
     width: 100%;
-    accent-color: var(--accent-mint);
+    height: 6px;
+    margin: 4px 0;
+    -webkit-appearance: none;
+    appearance: none;
+    border-radius: 999px;
+    background: var(--bg-sunken);
+    cursor: pointer;
+
+    &::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--accent-mint);
+      border: 3px solid var(--bg-elevated);
+      box-shadow: var(--shadow-card);
+    }
+    &::-moz-range-thumb {
+      width: 18px;
+      height: 18px;
+      border: 3px solid var(--bg-elevated);
+      border-radius: 50%;
+      background: var(--accent-mint);
+      box-shadow: var(--shadow-card);
+    }
   }
 }
 .sliderHead {
@@ -419,18 +520,38 @@
   line-height: 1.5;
 }
 
-.valueCard {
+/* Attached card — image + identity */
+.cardRow {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
   gap: var(--space-md);
+  align-items: flex-start;
 }
-.valueName {
+.cardArt {
+  flex-shrink: 0;
+  width: 60px;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  box-shadow: var(--shadow-card);
+}
+.cardInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.cardName {
   font-size: var(--text-sm);
   font-weight: 700;
   color: var(--ink);
+  line-height: 1.3;
+}
+.cardSet {
+  font-size: var(--text-xs);
+  color: var(--ink-dim);
 }
 .valueChange {
+  margin-top: 4px;
+  align-self: flex-start;
   font-size: var(--text-xs);
   font-weight: 600;
   color: var(--accent-mint);
@@ -439,10 +560,41 @@
     text-decoration: underline;
   }
 }
-.valueRow {
+
+/* Raw → graded comparison */
+.compare {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--space-md);
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-md);
+  border-radius: var(--radius-md);
+  background: var(--bg-sunken);
+  border: 1px solid var(--line);
+}
+.compareCol {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.compareLabel {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+.compareVal {
+  font-size: var(--text-md);
+  font-weight: 800;
+  color: var(--ink);
+  @include tabular;
+}
+.compareValHi {
+  color: var(--accent-mint);
+}
+.compareArrow {
+  color: var(--ink-dim);
 }
 .upside {
   display: flex;
