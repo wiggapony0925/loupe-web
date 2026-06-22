@@ -176,7 +176,10 @@
 /* Adjustable measurement frames. */
 .frame {
   position: absolute;
-  pointer-events: none; // only the edges are interactive
+  pointer-events: auto; // body is grabbable (drag to move) — Figma-style
+  cursor: move;
+  touch-action: none;
+  transition: box-shadow var(--dur-fast) var(--ease-out);
 
   &--outer {
     border: 1.5px solid var(--accent-mint);
@@ -184,8 +187,20 @@
   }
   &--inner {
     border: 1.5px dashed #f3b03e;
+
+    .edgeBar,
+    .handle {
+      border-color: #f3b03e;
+    }
+    .handle:hover {
+      background: #f3b03e;
+    }
+  }
+  &:hover {
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent-mint) 55%, transparent);
   }
 }
+/* Edge hit-strips (resize one side) — larger than the visible bar for easy grab */
 .edge {
   position: absolute;
   pointer-events: auto;
@@ -195,27 +210,98 @@
   &--bottom {
     left: 0;
     right: 0;
-    height: 16px;
+    height: 18px;
     cursor: ns-resize;
   }
   &--top {
-    top: -8px;
+    top: -9px;
   }
   &--bottom {
-    bottom: -8px;
+    bottom: -9px;
   }
   &--left,
   &--right {
     top: 0;
     bottom: 0;
-    width: 16px;
+    width: 18px;
     cursor: ew-resize;
   }
   &--left {
-    left: -8px;
+    left: -9px;
   }
   &--right {
+    right: -9px;
+  }
+}
+/* Visible edge bar at each side's midpoint (the Figma resize cue) */
+.edgeBar {
+  position: absolute;
+  pointer-events: none;
+  background: var(--bg-base);
+  border: 1.5px solid var(--accent-mint);
+  border-radius: 3px;
+
+  &--top,
+  &--bottom {
+    left: 50%;
+    width: 22px;
+    height: 6px;
+    transform: translateX(-50%);
+  }
+  &--top {
+    top: -3px;
+  }
+  &--bottom {
+    bottom: -3px;
+  }
+  &--left,
+  &--right {
+    top: 50%;
+    width: 6px;
+    height: 22px;
+    transform: translateY(-50%);
+  }
+  &--left {
+    left: -3px;
+  }
+  &--right {
+    right: -3px;
+  }
+}
+/* Corner handles — white squares with a mint ring, like a Figma selection box */
+.handle {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  background: var(--bg-base);
+  border: 2px solid var(--accent-mint);
+  box-shadow: var(--shadow-card);
+  pointer-events: auto;
+  touch-action: none;
+
+  &--tl {
+    top: -8px;
+    left: -8px;
+    cursor: nwse-resize;
+  }
+  &--tr {
+    top: -8px;
     right: -8px;
+    cursor: nesw-resize;
+  }
+  &--bl {
+    bottom: -8px;
+    left: -8px;
+    cursor: nesw-resize;
+  }
+  &--br {
+    bottom: -8px;
+    right: -8px;
+    cursor: nwse-resize;
+  }
+  &:hover {
+    background: var(--accent-mint);
   }
 }
 

@@ -16,6 +16,7 @@ import {
   useValuation,
   useIdentifyCard,
   useAddGrade,
+  useTrending,
   type CardSummary,
   type ScanCandidate,
   type Money,
@@ -145,6 +146,28 @@ export function LoupeGrade() {
       autoIdentify(file);
     },
     [autoDetect, autoIdentify],
+  );
+
+  // Trending cards power the empty state — pick one to inspect a real card's
+  // catalog photo (no upload needed). Card identity is already known, so the
+  // value upside + save-to-vault work immediately.
+  const { data: trending } = useTrending();
+  const pickCard = useCallback(
+    (c: CardSummary) => {
+      if (!c.imageUrl) return;
+      setSrc((prev) => {
+        if (prev?.startsWith("blob:")) URL.revokeObjectURL(prev);
+        return c.imageUrl!;
+      });
+      setOuter(DEFAULT_OUTER);
+      setInner(DEFAULT_INNER);
+      autoDetect(c.imageUrl);
+      setIdentified(null);
+      setSaved(false);
+      identify.reset();
+      setCard({ id: c.id, name: c.name });
+    },
+    [autoDetect, identify],
   );
 
   useEffect(
@@ -286,28 +309,55 @@ export function LoupeGrade() {
               onAutoFit={() => autoDetect(src)}
             />
           ) : (
-            <label
-              className={styles.drop}
-              onDragOver={(e) => e.preventDefault()}
-              onDrop={(e) => {
-                e.preventDefault();
-                loadFile(e.dataTransfer.files?.[0]);
-              }}
-            >
-              <input
-                type="file"
-                accept="image/*"
-                className={styles.fileInput}
-                onChange={(e) => loadFile(e.target.files?.[0])}
-              />
-              <span className={styles.dropIcon}>
-                <ImagePlus size={34} />
-              </span>
-              <span className={styles.dropTitle}>Drop a card photo here</span>
-              <span className={styles.dropHint}>
-                or click to browse · JPG / PNG · front of the card works best
-              </span>
-            </label>
+            <div className={styles.emptyWrap}>
+              <label
+                className={styles.drop}
+                onDragOver={(e) => e.preventDefault()}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  loadFile(e.dataTransfer.files?.[0]);
+                }}
+              >
+                <input
+                  type="file"
+                  accept="image/*"
+                  className={styles.fileInput}
+                  onChange={(e) => loadFile(e.target.files?.[0])}
+                />
+                <span className={styles.dropIcon}>
+                  <ImagePlus size={34} />
+                </span>
+                <span className={styles.dropTitle}>Drop a card photo here</span>
+                <span className={styles.dropHint}>
+                  or click to browse · JPG / PNG · front of the card works best
+                </span>
+              </label>
+
+              {(trending ?? []).length > 0 && (
+                <div className={styles.trending}>
+                  <span className={styles.trendingLabel}>
+                    Or inspect a trending card — live from the market
+                  </span>
+                  <div className={styles.trendingRow}>
+                    {(trending ?? [])
+                      .filter((c) => c.imageUrl)
+                      .slice(0, 12)
+                      .map((c) => (
+                        <button
+                          key={c.id}
+                          type="button"
+                          className={styles.trendCard}
+                          onClick={() => pickCard(c)}
+                          title={`Inspect ${c.name}`}
+                        >
+                          <CardThumb src={c.imageUrl} alt={c.name} size="md" />
+                          <span className={styles.trendName}>{c.name}</span>
+                        </button>
+                      ))}
+                  </div>
+                </div>
+              )}
+            </div>
           )}
         </main>
 

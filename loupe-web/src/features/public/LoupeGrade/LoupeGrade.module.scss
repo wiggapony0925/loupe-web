@@ -94,20 +94,22 @@
   }
 }
 
-/* Identify banner — floats over the canvas top (scanner-style result). */
+/* Identify banner — floats at the bottom-left, clear of the card + the
+   bottom-center control dock (scanner-style result). */
 .idBanner {
   position: absolute;
-  top: 14px;
-  left: 50%;
-  transform: translateX(-50%);
+  bottom: 18px;
+  left: 16px;
   z-index: 9;
   display: flex;
   align-items: center;
-  gap: var(--space-md);
-  max-width: calc(100% - 28px);
+  gap: var(--space-sm);
+  max-width: min(330px, calc(100% - 32px));
   padding: 8px 12px 8px 8px;
   border-radius: 14px;
-  background: var(--bg-elevated);
+  background: color-mix(in srgb, var(--bg-elevated) 92%, transparent);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
   border: 1px solid var(--line);
   box-shadow: var(--shadow-pop);
 }
@@ -170,15 +172,71 @@
   }
 }
 
+/* Empty state — dropzone + trending rail */
+.emptyWrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-xl);
+  width: 100%;
+  max-width: 820px;
+  max-height: 100%;
+  overflow-y: auto;
+  padding: var(--space-sm);
+}
+.trending {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+.trendingLabel {
+  font-size: var(--text-xs);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+.trendingRow {
+  display: flex;
+  gap: var(--space-md);
+  overflow-x: auto;
+  padding-bottom: var(--space-sm);
+  scrollbar-width: thin;
+}
+.trendCard {
+  flex: 0 0 auto;
+  width: 96px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  text-align: left;
+  border-radius: var(--radius-md);
+  transition: transform var(--dur-fast) var(--ease-out);
+
+  &:hover {
+    transform: translateY(-3px);
+  }
+}
+.trendName {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--ink-dim);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 /* Dropzone (empty state) */
 .drop {
+  flex: 0 0 auto;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: var(--space-sm);
   width: min(560px, 100%);
-  height: min(70%, 460px);
+  height: min(46vh, 380px);
   border-radius: var(--radius-xl);
   border: 2px dashed var(--line-strong);
   background: color-mix(in srgb, var(--bg-elevated) 70%, transparent);

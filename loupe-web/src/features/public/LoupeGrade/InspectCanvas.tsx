@@ -6,7 +6,13 @@ import styles from "./InspectCanvas.module.scss";
 
 type Which = "outer" | "inner";
 type Side = "top" | "right" | "bottom" | "left";
+type Corner = "tl" | "tr" | "bl" | "br";
+type Handle = Side | Corner | "move";
 type View = "card" | "corners";
+
+const SIDES: Side[] = ["top", "right", "bottom", "left"];
+const CORNERS: Corner[] = ["tl", "tr", "bl", "br"];
+const MIN = 0.04; // smallest frame size (normalized)
 
 interface Props {
   src: string;
@@ -37,7 +43,13 @@ const clamp = (n: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, n
  */
 export function InspectCanvas({ src, outer, inner, onChange, onAutoFit }: Props) {
   const boxRef = useRef<HTMLDivElement>(null);
-  const drag = useRef<{ which: Which; side: Side } | null>(null);
+  const drag = useRef<{
+    which: Which;
+    handle: Handle;
+    startX: number;
+    startY: number;
+    startFrame: Frame;
+  } | null>(null);
   // Keep latest frames in refs so the global drag listener never goes stale.
   const frames = useRef({ outer, inner });
   frames.current = { outer, inner };
@@ -76,12 +88,27 @@ export function InspectCanvas({ src, outer, inner, onChange, onAutoFit }: Props)
       const r = box.getBoundingClientRect();
       const x = clamp((e.clientX - r.left) / r.width, 0, 1);
       const y = clamp((e.clientY - r.top) / r.height, 0, 1);
-      const { which, side } = drag.current;
+      const { which, handle, startX, startY, startFrame } = drag.current;
       const f = { ...frames.current[which] };
-      if (side === "left") f.left = Math.min(x, f.right - 0.02);
-      else if (side === "right") f.right = Math.max(x, f.left + 0.02);
-      else if (side === "top") f.top = Math.min(y, f.bottom - 0.02);
-      else f.bottom = Math.max(y, f.top + 0.02);
+      const left = () => (f.left = Math.min(x, f.right - MIN));
+      const right = () => (f.right = Math.max(x, f.left + MIN));
+      const top = () => (f.top = Math.min(y, f.bottom - MIN));
+      const bottom = () => (f.bottom = Math.max(y, f.top + MIN));
+
+      if (handle === "move") {
+        // Translate the whole box, clamped so it stays in the image.
+        const dx = clamp(x - startX, -startFrame.left, 1 - startFrame.right);
+        const dy = clamp(y - startY, -startFrame.top, 1 - startFrame.bottom);
+        f.left = startFrame.left + dx;
+        f.right = startFrame.right + dx;
+        f.top = startFrame.top + dy;
+        f.bottom = startFrame.bottom + dy;
+      } else {
+        if (handle === "left" || handle === "tl" || handle === "bl") left();
+        if (handle === "right" || handle === "tr" || handle === "br") right();
+        if (handle === "top" || handle === "tl" || handle === "tr") top();
+        if (handle === "bottom" || handle === "bl" || handle === "br") bottom();
+      }
       onChange(which, f);
     }
     function up() {
@@ -95,11 +122,20 @@ export function InspectCanvas({ src, outer, inner, onChange, onAutoFit }: Props)
     };
   }, [onChange]);
 
-  function startDrag(which: Which, side: Side) {
+  function startDrag(which: Which, handle: Handle) {
     return (e: PointerEvent) => {
       e.preventDefault();
       e.stopPropagation();
-      drag.current = { which, side };
+      const r = boxRef.current?.getBoundingClientRect();
+      const startX = r ? clamp((e.clientX - r.left) / r.width, 0, 1) : 0;
+      const startY = r ? clamp((e.clientY - r.top) / r.height, 0, 1) : 0;
+      drag.current = {
+        which,
+        handle,
+        startX,
+        startY,
+        startFrame: { ...frames.current[which] },
+      };
       setLens(null);
     };
   }
@@ -122,14 +158,34 @@ export function InspectCanvas({ src, outer, inner, onChange, onAutoFit }: Props)
       bottom: `${(1 - f.bottom) * 100}%`,
     };
     return (
-      <div className={cx(styles.frame, styles[`frame--${which}`])} style={style}>
-        {(["top", "right", "bottom", "left"] as Side[]).map((s) => (
+      <div
+        className={cx(styles.frame, styles[`frame--${which}`])}
+        style={style}
+        onPointerDown={startDrag(which, "move")}
+        aria-label={`${which} frame — drag to move`}
+      >
+        {/* Edge handles (resize one side) */}
+        {SIDES.map((s) => (
           <span
             key={s}
             className={cx(styles.edge, styles[`edge--${s}`])}
             onPointerDown={startDrag(which, s)}
             role="slider"
             aria-label={`${which} ${s} edge`}
+            tabIndex={0}
+          />
+        ))}
+        {SIDES.map((s) => (
+          <span key={`b-${s}`} className={cx(styles.edgeBar, styles[`edgeBar--${s}`])} aria-hidden />
+        ))}
+        {/* Corner handles (resize two sides) — the Figma “you can grab this” cue */}
+        {CORNERS.map((c) => (
+          <span
+            key={c}
+            className={cx(styles.handle, styles[`handle--${c}`])}
+            onPointerDown={startDrag(which, c)}
+            role="slider"
+            aria-label={`${which} ${c} corner`}
             tabIndex={0}
           />
         ))}
