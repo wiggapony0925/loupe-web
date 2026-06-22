@@ -18,9 +18,15 @@ interface Card3DModalProps {
   title?: string;
   /** Optional sub-caption (set / number). */
   subtitle?: string;
+  /**
+   * "card" (default) — holographic tilt + foil glare, for flat card scans.
+   * "product" — pan + zoom only, no tilt/glare, for sealed product photos
+   * (which are angled shots that a 3D tilt would distort).
+   */
+  mode?: "card" | "product";
 }
 
-const FLAT = { rx: 0, ry: 0, scale: 1, active: 0 };
+const FLAT = { rx: 0, ry: 0, scale: 1, active: 0, tx: 0, ty: 0 };
 const MIN_SCALE = 1;
 const MAX_SCALE = 2.5;
 const clamp = (v: number, lo: number, hi: number) =>
@@ -41,6 +47,7 @@ export function Card3DModal({
   alt,
   title,
   subtitle,
+  mode = "card",
 }: Card3DModalProps) {
   const [t, setT] = useState(FLAT);
   const dragging = useRef(false);
@@ -55,19 +62,27 @@ export function Card3DModal({
     setT((s) => ({ ...s, active: 1 }));
   }, []);
 
-  const onMove = useCallback((e: React.PointerEvent) => {
-    if (!dragging.current) return;
-    const dx = e.clientX - last.current.x;
-    const dy = e.clientY - last.current.y;
-    if (Math.abs(dx) + Math.abs(dy) > 3) moved.current = true;
-    last.current = { x: e.clientX, y: e.clientY };
-    setT((s) => ({
-      ...s,
-      ry: clamp(s.ry + dx * 0.6, -55, 55),
-      rx: clamp(s.rx - dy * 0.6, -55, 55),
-      active: 1,
-    }));
-  }, []);
+  const onMove = useCallback(
+    (e: React.PointerEvent) => {
+      if (!dragging.current) return;
+      const dx = e.clientX - last.current.x;
+      const dy = e.clientY - last.current.y;
+      if (Math.abs(dx) + Math.abs(dy) > 3) moved.current = true;
+      last.current = { x: e.clientX, y: e.clientY };
+      if (mode === "product") {
+        // Pan the (zoomed) photo — no tilt, which would distort a box shot.
+        setT((s) => ({ ...s, tx: s.tx + dx, ty: s.ty + dy, active: 1 }));
+      } else {
+        setT((s) => ({
+          ...s,
+          ry: clamp(s.ry + dx * 0.6, -55, 55),
+          rx: clamp(s.rx - dy * 0.6, -55, 55),
+          active: 1,
+        }));
+      }
+    },
+    [mode],
+  );
 
   const onUp = useCallback(() => {
     dragging.current = false;
@@ -151,6 +166,8 @@ export function Card3DModal({
                 "--rx": `${t.rx}deg`,
                 "--ry": `${t.ry}deg`,
                 "--scale": t.scale,
+                "--tx": `${t.tx}px`,
+                "--ty": `${t.ty}px`,
                 "--gx": `${50 + t.ry}%`,
                 "--gy": `${50 - t.rx}%`,
                 "--active": t.active,
@@ -164,7 +181,9 @@ export function Card3DModal({
                 className={styles.viewer__img}
                 draggable={false}
               />
-              <span className={styles.viewer__glare} aria-hidden />
+              {mode === "card" && (
+                <span className={styles.viewer__glare} aria-hidden />
+              )}
             </div>
           </div>
 
@@ -174,7 +193,9 @@ export function Card3DModal({
               <span className={styles.viewer__subtitle}>{subtitle}</span>
             )}
             <span className={styles.viewer__hint}>
-              DRAG TO TILT · SCROLL TO ZOOM · TAP TO CLOSE
+              {mode === "product"
+                ? "DRAG TO PAN · SCROLL TO ZOOM · TAP TO CLOSE"
+                : "DRAG TO TILT · SCROLL TO ZOOM · TAP TO CLOSE"}
             </span>
           </div>
         </Dialog.Content>

@@ -79,8 +79,8 @@
   &__card {
     position: relative;
     border-radius: var(--radius-lg);
-    transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg))
-      scale(var(--scale, 1));
+    transform: translate(var(--tx, 0px), var(--ty, 0px))
+      rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) scale(var(--scale, 1));
     transform-style: preserve-3d;
     transition:
       transform 120ms var(--ease-out),

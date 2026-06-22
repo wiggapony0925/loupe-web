@@ -240,6 +240,7 @@ export function SealedDetail() {
         <Card3DModal
           open={viewer}
           onOpenChange={setViewer}
+          mode="product"
           src={product.imageUrl}
           alt={product.name}
           title={product.name}
