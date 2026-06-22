@@ -1,17 +1,30 @@
 import { useEffect, useRef, useState, type PointerEvent } from "react";
+import { Crosshair, Square, Wand2 } from "lucide-react";
 import { cx } from "@/lib/cx";
 import type { Frame } from "./grade";
 import styles from "./InspectCanvas.module.scss";
 
 type Which = "outer" | "inner";
 type Side = "top" | "right" | "bottom" | "left";
+type View = "card" | "corners";
 
 interface Props {
   src: string;
   outer: Frame;
   inner: Frame;
   onChange: (which: Which, frame: Frame) => void;
+  /** Re-run auto-detection of the card edge + print border. */
+  onAutoFit?: () => void;
 }
+
+// The four card corners (from the outer frame), nudged slightly inward so each
+// corner sits with a little context inside its grid cell.
+const CORNER_KEYS = [
+  ["TL", "left", "top"],
+  ["TR", "right", "top"],
+  ["BL", "left", "bottom"],
+  ["BR", "right", "bottom"],
+] as const;
 
 const ZOOMS = [2, 5, 10] as const;
 const clamp = (n: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, n));
@@ -22,7 +35,7 @@ const clamp = (n: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, n
  * plus a corner loupe for reading condition. Pure pointer math — no CV yet, so
  * the read is honest and fully user-controlled.
  */
-export function InspectCanvas({ src, outer, inner, onChange }: Props) {
+export function InspectCanvas({ src, outer, inner, onChange, onAutoFit }: Props) {
   const boxRef = useRef<HTMLDivElement>(null);
   const drag = useRef<{ which: Which; side: Side } | null>(null);
   // Keep latest frames in refs so the global drag listener never goes stale.
@@ -30,6 +43,7 @@ export function InspectCanvas({ src, outer, inner, onChange }: Props) {
   frames.current = { outer, inner };
 
   const zoneRef = useRef<HTMLDivElement>(null);
+  const [view, setView] = useState<View>("card");
   const [zoom, setZoom] = useState<(typeof ZOOMS)[number]>(5);
   const [lens, setLens] = useState<{ x: number; y: number } | null>(null);
   // Match the stage to the photo's real aspect ratio so the % frames map to
@@ -122,16 +136,51 @@ export function InspectCanvas({ src, outer, inner, onChange }: Props) {
     );
   }
 
+  const pad = 0.05;
+  const cornerPos = (xSide: "left" | "right", ySide: "top" | "bottom") => ({
+    x: xSide === "left" ? outer.left + pad : outer.right - pad,
+    y: ySide === "top" ? outer.top + pad : outer.bottom - pad,
+  });
+
   return (
     <div className={styles.wrap}>
       <div className={styles.toolbar}>
-        <span className={styles.legend}>
-          <span className={cx(styles.dot, styles["dot--outer"])} /> Card edge
-        </span>
-        <span className={styles.legend}>
-          <span className={cx(styles.dot, styles["dot--inner"])} /> Print border
-        </span>
+        <div className={styles.seg}>
+          <button
+            type="button"
+            className={cx(styles.segBtn, view === "card" && styles["segBtn--on"])}
+            onClick={() => setView("card")}
+          >
+            <Square size={14} /> Card
+          </button>
+          <button
+            type="button"
+            className={cx(
+              styles.segBtn,
+              view === "corners" && styles["segBtn--on"],
+            )}
+            onClick={() => setView("corners")}
+          >
+            <Crosshair size={14} /> Corners
+          </button>
+        </div>
+        {view === "card" && (
+          <>
+            <span className={styles.legend}>
+              <span className={cx(styles.dot, styles["dot--outer"])} /> Card edge
+            </span>
+            <span className={styles.legend}>
+              <span className={cx(styles.dot, styles["dot--inner"])} /> Print
+              border
+            </span>
+          </>
+        )}
         <span className={styles.spacer} />
+        {onAutoFit && (
+          <button type="button" className={styles.autofit} onClick={onAutoFit}>
+            <Wand2 size={14} /> Auto-fit
+          </button>
+        )}
         <span className={styles.zoomLabel}>Loupe</span>
         {ZOOMS.map((z) => (
           <button
@@ -146,46 +195,78 @@ export function InspectCanvas({ src, outer, inner, onChange }: Props) {
       </div>
 
       <div ref={zoneRef} className={styles.stageBox}>
-      <div
-        ref={boxRef}
-        className={styles.stage}
-        style={{ width: box.w || undefined, height: box.h || undefined }}
-        onPointerMove={onHover}
-        onPointerLeave={() => setLens(null)}
-      >
-        <img
-          className={styles.img}
-          src={src}
-          alt="Card under inspection"
-          draggable={false}
-          onLoad={(e) => {
-            const im = e.currentTarget;
-            if (im.naturalWidth && im.naturalHeight)
-              setRatio(im.naturalWidth / im.naturalHeight);
-          }}
-        />
-        {frameEl("outer", outer)}
-        {frameEl("inner", inner)}
-
-        {lens && (
+        {view === "card" ? (
           <div
-            className={styles.lens}
-            style={{
-              left: `${lens.x * 100}%`,
-              top: `${lens.y * 100}%`,
-              backgroundImage: `url(${src})`,
-              backgroundSize: `${zoom * 100}% ${zoom * 100}%`,
-              backgroundPosition: `${lens.x * 100}% ${lens.y * 100}%`,
-            }}
-            aria-hidden
-          />
+            ref={boxRef}
+            className={styles.stage}
+            style={{ width: box.w || undefined, height: box.h || undefined }}
+            onPointerMove={onHover}
+            onPointerLeave={() => setLens(null)}
+          >
+            <img
+              className={styles.img}
+              src={src}
+              alt="Card under inspection"
+              draggable={false}
+              onLoad={(e) => {
+                const im = e.currentTarget;
+                if (im.naturalWidth && im.naturalHeight)
+                  setRatio(im.naturalWidth / im.naturalHeight);
+              }}
+            />
+            {frameEl("outer", outer)}
+            {frameEl("inner", inner)}
+
+            {lens && (
+              <div
+                className={styles.lens}
+                style={{
+                  left: `${lens.x * 100}%`,
+                  top: `${lens.y * 100}%`,
+                  backgroundImage: `url(${src})`,
+                  backgroundSize: `${zoom * 100}% ${zoom * 100}%`,
+                  backgroundPosition: `${lens.x * 100}% ${lens.y * 100}%`,
+                }}
+                aria-hidden
+              />
+            )}
+          </div>
+        ) : (
+          <div
+            className={styles.corners}
+            style={{ width: box.w || undefined, height: box.h || undefined }}
+          >
+            {CORNER_KEYS.map(([key, xSide, ySide]) => {
+              const p = cornerPos(xSide, ySide);
+              return (
+                <div key={key} className={styles.corner}>
+                  <div
+                    className={styles.cornerImg}
+                    style={{
+                      backgroundImage: `url(${src})`,
+                      backgroundSize: `${zoom * 100}% ${zoom * 100}%`,
+                      backgroundPosition: `${p.x * 100}% ${p.y * 100}%`,
+                    }}
+                  />
+                  <span className={styles.cornerTag}>{key}</span>
+                </div>
+              );
+            })}
+          </div>
         )}
       </div>
-      </div>
       <p className={styles.hint}>
-        Drag the <strong>green</strong> frame to the card edges and the{" "}
-        <strong>amber</strong> frame to the inner print border. Hover anywhere to
-        loupe the corners.
+        {view === "card" ? (
+          <>
+            Frames auto-fit to the card — drag the <strong>green</strong> edge or{" "}
+            <strong>amber</strong> print border to fine-tune. Hover to loupe.
+          </>
+        ) : (
+          <>
+            All four corners at {zoom}× — the read for the corner sub-grade.
+            Switch the loupe zoom above.
+          </>
+        )}
       </p>
     </div>
   );

@@ -18,6 +18,7 @@ import {
   measureCentering,
   loupeGrade,
   nearestPsaLabel,
+  detectCard,
   type Frame,
 } from "./grade";
 import styles from "./LoupeGrade.module.scss";
@@ -48,16 +49,34 @@ export function LoupeGrade() {
     (which === "outer" ? setOuter : setInner)(f);
   }, []);
 
-  const loadFile = useCallback((file: File | undefined | null) => {
-    if (!file || !file.type.startsWith("image/")) return;
-    const url = URL.createObjectURL(file);
-    setSrc((prev) => {
-      if (prev) URL.revokeObjectURL(prev);
-      return url;
-    });
-    setOuter(DEFAULT_OUTER);
-    setInner(DEFAULT_INNER);
+  // Best-effort auto-detect the card edge + print border so the frames place
+  // themselves — the user only adjusts if the read is off.
+  const autoDetect = useCallback((url: string) => {
+    const im = new Image();
+    im.onload = () => {
+      const found = detectCard(im);
+      if (found) {
+        setOuter(found.outer);
+        setInner(found.inner);
+      }
+    };
+    im.src = url;
   }, []);
+
+  const loadFile = useCallback(
+    (file: File | undefined | null) => {
+      if (!file || !file.type.startsWith("image/")) return;
+      const url = URL.createObjectURL(file);
+      setSrc((prev) => {
+        if (prev) URL.revokeObjectURL(prev);
+        return url;
+      });
+      setOuter(DEFAULT_OUTER);
+      setInner(DEFAULT_INNER);
+      autoDetect(url);
+    },
+    [autoDetect],
+  );
 
   useEffect(
     () => () => {
@@ -133,6 +152,7 @@ export function LoupeGrade() {
               outer={outer}
               inner={inner}
               onChange={setFrame}
+              onAutoFit={() => autoDetect(src)}
             />
           ) : (
             <label
