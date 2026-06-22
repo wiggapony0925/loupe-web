@@ -16,6 +16,7 @@ export { DonutChart } from "./DonutChart/DonutChart";
 export type { DonutChartProps, DonutDatum } from "./DonutChart/DonutChart";
 export { Sparkline } from "./Sparkline/Sparkline";
 export { CardThumb } from "./CardThumb/CardThumb";
+export { MediaPlaceholder } from "./MediaPlaceholder/MediaPlaceholder";
 export { Tooltip, TooltipProvider } from "./Tooltip/Tooltip";
 export { ThemeToggle } from "./ThemeToggle/ThemeToggle";
 export { Avatar } from "./Avatar/Avatar";

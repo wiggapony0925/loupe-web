@@ -39,6 +39,7 @@ import type {
   SealedHoldingsParams,
   SealedHoldingUpdateInput,
   SealedProduct,
+  SealedMarket,
   SealedSearchParams,
   SetProgressRow,
   SoldComp,
@@ -280,6 +281,14 @@ export const useSealedProduct = (id: string) =>
     enabled: Boolean(id),
     staleTime: 300_000,
   });
+
+/** Live market snapshot (low/mid/high/market + MSRP) for one sealed product. */
+export const useSealedMarket = (id: string) =>
+  useApiQuery<SealedMarket>(
+    ["sealed-market", id],
+    () => api.sealed.market(id),
+    { enabled: Boolean(id), staleTime: 300_000 },
+  );
 
 /** The signed-in user's sealed holdings (joined to catalog metadata). */
 export const useSealedHoldings = (

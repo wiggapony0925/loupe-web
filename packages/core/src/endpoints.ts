@@ -90,6 +90,7 @@ export const ENDPOINTS = {
       return `${V1}/sealed/search${s ? `?${s}` : ""}`;
     },
     item: (id: string) => `${V1}/sealed/${id}`,
+    market: (id: string) => `${V1}/sealed/${id}/market`,
   },
   sealedHoldings: {
     list: (params?: {

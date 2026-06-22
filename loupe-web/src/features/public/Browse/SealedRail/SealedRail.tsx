@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { usePublicSealedSearch, useSealedHoldings } from "@loupe/core";
-import { Carousel, Skeleton } from "@/components";
+import { Carousel, MediaPlaceholder } from "@/components";
 import { useAuth } from "@/auth/AuthProvider";
 import { SealedCard } from "../../Sealed/SealedCard/SealedCard";
 import styles from "./SealedRail.module.scss";
@@ -33,7 +33,7 @@ export function SealedRail() {
     >
       {isLoading
         ? Array.from({ length: 8 }).map((_, i) => (
-            <Skeleton key={i} height={320} radius={14} />
+            <MediaPlaceholder key={i} kind="sealed" loading />
           ))
         : items.map((p) => (
             <SealedCard key={p.id} product={p} owned={ownedIds.has(p.id)} />

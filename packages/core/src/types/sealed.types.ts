@@ -29,6 +29,19 @@ export interface SealedProduct {
   releaseDate?: string | null;
 }
 
+/** Live market snapshot for a sealed product (no stored history → point-in-time). */
+export interface SealedMarket {
+  productId: string;
+  currency: string;
+  msrp?: Money | null;
+  market?: number | null;
+  low?: number | null;
+  mid?: number | null;
+  high?: number | null;
+  source?: string | null;
+  marketplaceUrl?: string | null;
+}
+
 /** The signed-in user's owned sealed product (joined to catalog metadata). */
 export interface SealedHolding {
   id: string;

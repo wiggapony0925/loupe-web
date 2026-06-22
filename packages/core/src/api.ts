@@ -102,6 +102,7 @@ import type {
   SealedHoldingsParams,
   SealedHoldingUpdateInput,
   SealedProduct,
+  SealedMarket,
   SealedSearchParams,
   SearchPage,
   SignInRequest,
@@ -448,6 +449,33 @@ export const api = {
         { skipAuth: true },
       );
       return toSealedProduct(d);
+    },
+    market: async (id: string): Promise<SealedMarket> => {
+      const d = await apiFetch<{
+        product_id: string;
+        currency: string;
+        msrp_usd: string | number | null;
+        market: number | null;
+        low: number | null;
+        mid: number | null;
+        high: number | null;
+        source: string | null;
+        marketplace_url: string | null;
+      }>(ENDPOINTS.sealed.market(id), { skipAuth: true });
+      const currency = d.currency || "USD";
+      const msrp =
+        d.msrp_usd != null ? { amount: Number(d.msrp_usd), currency } : null;
+      return {
+        productId: d.product_id,
+        currency,
+        msrp,
+        market: d.market,
+        low: d.low,
+        mid: d.mid,
+        high: d.high,
+        source: d.source,
+        marketplaceUrl: d.marketplace_url,
+      };
     },
   },
   /** The signed-in user's owned sealed product (vault). */

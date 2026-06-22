@@ -89,6 +89,8 @@ const M = {
   publicLayout: () => import("@/features/public/PublicLayout/PublicLayout"),
   browse: () => import("@/features/public/Browse/Browse"),
   sealed: () => import("@/features/public/Sealed/Sealed"),
+  sealedDetail: () =>
+    import("@/features/public/SealedDetail/SealedDetail"),
   setsExplorer: () => import("@/features/public/Sets/Sets"),
   product: () => import("@/features/public/ProductDetail/ProductDetail"),
   appShell: () => import("@/layout/AppShell/AppShell"),
@@ -122,6 +124,7 @@ export const router = createBrowserRouter([
       { path: "cards", element: el(M.browse, "Browse") },
       { path: "cards/:id", element: el(M.product, "ProductDetail") },
       { path: "sealed", element: el(M.sealed, "Sealed") },
+      { path: "sealed/:id", element: el(M.sealedDetail, "SealedDetail") },
       { path: "sets", element: el(M.setsExplorer, "Sets") },
       { path: "scanner", element: el(M.scanner, "Scanner") },
       { path: "about", element: el(M.site, "About") },

@@ -38,6 +38,7 @@ export {
   usePublicSets,
   usePublicSealedSearch,
   useSealedProduct,
+  useSealedMarket,
   useSealedHoldings,
   useAddSealedHolding,
   useUpdateSealedHolding,

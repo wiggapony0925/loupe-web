@@ -1,0 +1,81 @@
+.ph {
+  position: relative;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  overflow: hidden;
+  border-radius: var(--radius-md);
+  // Soft, theme-tinted field — a whisper of mint over the sunken surface.
+  background:
+    radial-gradient(
+      120% 90% at 50% 0%,
+      color-mix(in srgb, var(--accent-mint) 10%, transparent),
+      transparent 70%
+    ),
+    var(--bg-sunken);
+  border: 1px solid var(--line);
+  color: var(--ink-dim);
+}
+
+.glyph {
+  width: 42%;
+  max-width: 96px;
+  color: color-mix(in srgb, var(--accent-mint) 38%, var(--ink-dim));
+  opacity: 0.85;
+
+  svg {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+}
+
+.spark {
+  fill: var(--accent-mint);
+  stroke: none;
+}
+
+.label {
+  max-width: 86%;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  text-align: center;
+  color: var(--ink-dim);
+  @include truncate;
+}
+
+/* Loading: dim the glyph and sweep a shimmer across the field. */
+.loading {
+  .glyph {
+    opacity: 0.4;
+  }
+
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      100deg,
+      transparent 20%,
+      color-mix(in srgb, var(--ink) 8%, transparent) 50%,
+      transparent 80%
+    );
+    transform: translateX(-100%);
+    animation: media-shimmer 1.5s var(--ease-out) infinite;
+  }
+}
+
+@keyframes media-shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loading::after {
+    animation: none;
+  }
+}

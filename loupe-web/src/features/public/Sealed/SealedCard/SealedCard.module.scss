@@ -1,6 +1,8 @@
 .card {
   display: flex;
   flex-direction: column;
+  text-decoration: none;
+  color: inherit;
   background: var(--bg-elevated);
   border: 1px solid var(--line);
   border-radius: var(--radius-lg);
@@ -15,6 +17,27 @@
     border-color: var(--line-strong);
     box-shadow: var(--shadow-card);
   }
+}
+
+/* Quiet "owned" marker, top-right of the art. */
+.owned {
+  position: absolute;
+  top: var(--space-md);
+  right: var(--space-md);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 9px;
+  border-radius: var(--radius-pill);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--accent-mint);
+  background: color-mix(in srgb, var(--bg-base) 80%, transparent);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  border: 1px solid color-mix(in srgb, var(--accent-mint) 30%, var(--line));
 }
 
 .art {
@@ -106,33 +129,5 @@
     letter-spacing: 0.08em;
     text-transform: uppercase;
     color: var(--ink-dim);
-  }
-}
-.add {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  flex-shrink: 0;
-  height: 32px;
-  padding: 0 var(--space-md);
-  border-radius: var(--radius-md);
-  font-size: var(--text-sm);
-  font-weight: 700;
-  color: var(--on-accent);
-  background: var(--accent-mint);
-  transition: filter var(--dur-fast) var(--ease-out);
-  @include focus-ring;
-
-  &:hover:not(:disabled) {
-    filter: brightness(1.05);
-  }
-  &:disabled {
-    opacity: 0.7;
-    cursor: default;
-  }
-
-  &--owned {
-    color: var(--accent-mint);
-    background: color-mix(in srgb, var(--accent-mint) 14%, transparent);
   }
 }
