@@ -43,6 +43,8 @@
   // it a row (thumb + sparkline + value) blows the column out and the change%
   // on the right gets clipped.
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  // stretch so both panels grow to the same height regardless of row count
+  align-items: stretch;
   gap: var(--space-lg);
 
   @include bp-down("md") {
@@ -54,8 +56,23 @@
    pill and the hover accent strip all tint from one source. */
 .col {
   min-width: 0;
+  // overflow:hidden clips the hover accent strip at the panel edges cleanly
   overflow: hidden;
-  border-radius: var(--radius-xl);
+  // Match the Panel's own border-radius so it doesn't peek out
+  border-radius: var(--radius-lg);
+  // Ensure Panel fills the full grid cell height
+  display: flex;
+  flex-direction: column;
+  // Make each column a query container so the sparkline hides based on the
+  // column's OWN width (zoom / inspect / tight bento), not the viewport —
+  // guaranteeing the price + % block is never clipped.
+  container-type: inline-size;
+
+  // The <ol> list should grow to fill remaining space so both columns
+  // look the same height even when one has fewer rows.
+  .list {
+    flex: 1;
+  }
 }
 .toneUp {
   --tone: var(--up);
@@ -112,9 +129,15 @@
   gap: var(--space-md);
   width: 100%;
   min-width: 0;
-  padding: var(--space-sm) var(--space-lg);
+  // Slightly more vertical breathing room so rows don't feel cramped
+  padding: 10px var(--space-lg);
   text-align: left;
   border-top: 1px solid var(--line);
+  // Remove default button background/border so it inherits the panel bg
+  background: transparent;
+  border-left: none;
+  border-right: none;
+  border-bottom: none;
   transition: background-color var(--dur-fast) var(--ease-out);
 
   // Robinhood-style accent strip that grows on hover.
@@ -143,8 +166,9 @@
 
 .rank {
   flex-shrink: 0;
-  width: 14px;
-  text-align: center;
+  // wider so double-digit numbers (10+) don't push the thumbnail
+  width: 18px;
+  text-align: right;
   font-size: var(--text-xs);
   font-weight: 700;
   color: var(--ink-dim);
@@ -153,7 +177,7 @@
 
 .thumb {
   flex-shrink: 0;
-  width: 34px;
+  width: 36px;
 }
 
 .meta {
@@ -182,24 +206,34 @@
 }
 
 .sparkWrap {
-  flex-shrink: 0;
+  // Decorative: it yields (shrinks then hides) before the price ever clips.
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
   display: flex;
   align-items: center;
 
-  // The 2-up movers grid leaves each column narrow on tablet, so hide the
-  // sparkline until ≥lg where there's room for art + line + price block.
-  @include bp-down("lg") {
+  // Hide the sparkline whenever the column itself is too narrow to fit art +
+  // line + price (container query → correct under zoom / inspect / tablet,
+  // where a viewport media query would wrongly keep showing it).
+  @container (max-width: 440px) {
     display: none;
   }
 }
 
 .right {
+  // min-width:0 + overflow:hidden prevents the value block from expanding
+  // the row beyond the panel width and getting clipped on narrow columns
   flex-shrink: 0;
+  // Give a minimum guaranteed width so all rows right-align consistently
+  min-width: 80px;
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 1px;
+  gap: 2px;
   white-space: nowrap;
+  // Push right block to the far right even when sparkline is hidden
+  margin-left: auto;
 }
 
 .value {
@@ -208,6 +242,7 @@
   color: var(--ink);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
+  letter-spacing: -0.01em;
 }
 
 /* Absolute $ move, quieter than the % so the row reads "value · %change · $". */
