@@ -2,7 +2,6 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Check, Plus } from "lucide-react";
 import { useAddSealedHolding, type SealedProduct } from "@loupe/core";
-import { CardThumb } from "@/components";
 import { useAuth } from "@/auth/AuthProvider";
 import { cx } from "@/lib/cx";
 import { formatMoney } from "@/lib/format";
@@ -60,7 +59,14 @@ export function SealedCard({
       <div className={styles.art}>
         {product.imageUrl ? (
           <>
-            <CardThumb src={product.imageUrl} alt={product.name} size="lg" />
+            <div className={styles.photo}>
+              <img
+                src={product.imageUrl}
+                alt={product.name}
+                loading="lazy"
+                className={styles.photoImg}
+              />
+            </div>
             <span className={styles.type}>{typeLabel}</span>
           </>
         ) : (
