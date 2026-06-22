@@ -165,6 +165,18 @@
     animation: combo-spin 0.8s linear infinite;
   }
 
+  // Subsection header that separates sealed product from singles.
+  &__section {
+    padding: var(--space-sm) var(--space-md) var(--space-xs);
+    margin-top: var(--space-xs);
+    border-top: 1px solid var(--line);
+    font-size: var(--text-xs);
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+  }
+
   &__row {
     display: flex;
     align-items: center;

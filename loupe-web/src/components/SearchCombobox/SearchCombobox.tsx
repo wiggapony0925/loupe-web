@@ -11,8 +11,10 @@ import { DropdownMenu } from "radix-ui";
 import { Check, ChevronDown, Loader2, Search, X } from "lucide-react";
 import {
   usePublicSearch,
+  usePublicSealedSearch,
   usePublicSparklines,
   type CardSummary,
+  type SealedProduct,
 } from "@loupe/core";
 import { CardThumb } from "@/components/CardThumb/CardThumb";
 import { Sparkline } from "@/components/Sparkline/Sparkline";
@@ -30,10 +32,27 @@ const CATEGORIES = [
   { label: "Digimon", tcg: "digimon" },
 ] as const;
 
+// Sealed product exists only for these games; for the rest we skip the lookup.
+const SEALED_TCGS = new Set(["pokemon", "magic", "yugioh"]);
+const SEALED_LABEL: Record<string, string> = {
+  booster_box: "Booster Box",
+  booster_pack: "Booster Pack",
+  etb: "Elite Trainer Box",
+  collection_box: "Collection Box",
+  premium_collection: "Premium Collection",
+  tin: "Tin",
+  blister: "Blister",
+  bundle: "Bundle",
+  case: "Case",
+  other: "Sealed",
+};
+
 export interface SearchComboboxProps {
   initialQuery?: string;
   onSearch: (query: string, tcg: string) => void;
   onSelectCard: (card: CardSummary) => void;
+  /** Optional — when provided, the typeahead also surfaces sealed products. */
+  onSelectSealed?: (product: SealedProduct) => void;
   size?: "md" | "lg";
   className?: string;
 }
@@ -47,6 +66,7 @@ export function SearchCombobox({
   initialQuery = "",
   onSearch,
   onSelectCard,
+  onSelectSealed,
   size = "md",
   className,
 }: SearchComboboxProps) {
@@ -68,15 +88,35 @@ export function SearchCombobox({
 
   const enabled = open && debounced.length >= 2;
   const { data, isFetching, isError } = usePublicSearch(
-    { q: debounced, tcg: category.tcg, pageSize: 7 },
+    { q: debounced, tcg: category.tcg, pageSize: 6 },
     enabled,
   );
   const suggestions = useMemo(
     () => (enabled ? (data?.results ?? []) : []),
     [enabled, data],
   );
+
+  // Sealed products live in their own catalog; surface them alongside singles
+  // when the host wired a handler and the selected game has sealed product.
+  const sealedTcg = SEALED_TCGS.has(category.tcg) ? category.tcg : undefined;
+  const sealedAllowed =
+    Boolean(onSelectSealed) &&
+    (category.tcg === "all" || sealedTcg !== undefined);
+  const { data: sealedData } = usePublicSealedSearch(
+    { q: debounced, tcg: sealedTcg, limit: 4 },
+    enabled && sealedAllowed,
+  );
+  const sealed = useMemo(
+    () => (enabled && sealedAllowed ? (sealedData ?? []).slice(0, 4) : []),
+    [enabled, sealedAllowed, sealedData],
+  );
+
   const showPanel = open && debounced.length >= 2;
-  const itemCount = suggestions.length + 1; // + the "search all" row
+  const cardCount = suggestions.length;
+  const sealedCount = sealed.length;
+  // Flat, keyboard-navigable order: cards, then sealed, then the "search all" row.
+  const allIndex = cardCount + sealedCount;
+  const itemCount = allIndex + 1;
 
   // One batched request for the visible rows' mini trend lines (StockX-style).
   const sparkIds = useMemo(() => suggestions.map((c) => c.id), [suggestions]);
@@ -89,7 +129,7 @@ export function SearchCombobox({
   }, [sparks]);
 
   // Reset highlight whenever the result set changes.
-  useEffect(() => setActive(-1), [debounced, suggestions.length]);
+  useEffect(() => setActive(-1), [debounced, cardCount, sealedCount]);
 
   // Close when clicking outside.
   useEffect(() => {
@@ -111,6 +151,11 @@ export function SearchCombobox({
     setQuery("");
     onSelectCard(c);
   }
+  function selectSealed(p: SealedProduct) {
+    setOpen(false);
+    setQuery("");
+    onSelectSealed?.(p);
+  }
   function onKeyDown(e: KeyboardEvent) {
     if (e.key === "Escape") {
       setOpen(false);
@@ -124,9 +169,12 @@ export function SearchCombobox({
       e.preventDefault();
       setActive((a) => (a - 1 + itemCount) % itemCount);
     } else if (e.key === "Enter") {
-      if (active >= 0 && active < suggestions.length) {
+      if (active >= 0 && active < cardCount) {
         e.preventDefault();
         selectCard(suggestions[active]!);
+      } else if (active >= cardCount && active < allIndex) {
+        e.preventDefault();
+        selectSealed(sealed[active - cardCount]!);
       } else {
         submit(e);
       }
@@ -214,7 +262,7 @@ export function SearchCombobox({
 
       {showPanel && (
         <div className={styles.combo__panel} id={listId} role="listbox">
-          {isFetching && suggestions.length === 0 ? (
+          {isFetching && cardCount === 0 && sealedCount === 0 ? (
             <div className={styles.combo__status}>
               <Loader2 className={styles.combo__spin} size={16} /> Searching…
             </div>
@@ -222,64 +270,115 @@ export function SearchCombobox({
             <div className={styles.combo__status}>
               Couldn't load suggestions — press Enter to search.
             </div>
-          ) : suggestions.length === 0 ? (
+          ) : cardCount === 0 && sealedCount === 0 ? (
             <div className={styles.combo__status}>
               No quick matches for “{debounced}” — press Enter to search all{" "}
               {category.tcg === "all" ? "cards" : category.label}.
             </div>
           ) : (
-            suggestions.map((c, i) => {
-              const spark = sparkMap.get(c.id);
-              return (
-                <button
-                  key={c.id}
-                  type="button"
-                  role="option"
-                  aria-selected={i === active}
-                  className={cx(
-                    styles.combo__row,
-                    i === active && styles["combo__row--active"],
-                  )}
-                  onMouseEnter={() => setActive(i)}
-                  onClick={() => selectCard(c)}
-                >
-                  <span className={styles.combo__thumb}>
-                    <CardThumb src={c.imageUrl} alt={c.name} size="sm" />
-                  </span>
-                  <span className={styles.combo__rowText}>
-                    <span className={styles.combo__rowName}>{c.name}</span>
-                    <span className={styles.combo__rowMeta}>
-                      {[c.setName, c.rarity].filter(Boolean).join(" · ")}
+            <>
+              {suggestions.map((c, i) => {
+                const spark = sparkMap.get(c.id);
+                return (
+                  <button
+                    key={c.id}
+                    type="button"
+                    role="option"
+                    aria-selected={i === active}
+                    className={cx(
+                      styles.combo__row,
+                      i === active && styles["combo__row--active"],
+                    )}
+                    onMouseEnter={() => setActive(i)}
+                    onClick={() => selectCard(c)}
+                  >
+                    <span className={styles.combo__thumb}>
+                      <CardThumb src={c.imageUrl} alt={c.name} size="sm" />
                     </span>
-                  </span>
-                  <span className={styles.combo__rowRight}>
-                    {spark && (
-                      <Sparkline
-                        data={spark}
-                        width={56}
-                        height={24}
-                        fill={false}
-                        strokeWidth={1.5}
-                      />
-                    )}
-                    {c.price && (
-                      <span className={styles.combo__rowPrice}>
-                        {formatMoney(c.price)}
+                    <span className={styles.combo__rowText}>
+                      <span className={styles.combo__rowName}>{c.name}</span>
+                      <span className={styles.combo__rowMeta}>
+                        {[c.setName, c.rarity].filter(Boolean).join(" · ")}
                       </span>
-                    )}
-                  </span>
-                </button>
-              );
-            })
+                    </span>
+                    <span className={styles.combo__rowRight}>
+                      {spark && (
+                        <Sparkline
+                          data={spark}
+                          width={56}
+                          height={24}
+                          fill={false}
+                          strokeWidth={1.5}
+                        />
+                      )}
+                      {c.price && (
+                        <span className={styles.combo__rowPrice}>
+                          {formatMoney(c.price)}
+                        </span>
+                      )}
+                    </span>
+                  </button>
+                );
+              })}
+
+              {sealedCount > 0 && (
+                <>
+                  <div className={styles.combo__section}>Sealed products</div>
+                  {sealed.map((p, j) => {
+                    const idx = cardCount + j;
+                    return (
+                      <button
+                        key={p.id}
+                        type="button"
+                        role="option"
+                        aria-selected={idx === active}
+                        className={cx(
+                          styles.combo__row,
+                          idx === active && styles["combo__row--active"],
+                        )}
+                        onMouseEnter={() => setActive(idx)}
+                        onClick={() => selectSealed(p)}
+                      >
+                        <span className={styles.combo__thumb}>
+                          <CardThumb
+                            src={p.imageUrl ?? ""}
+                            alt={p.name}
+                            size="sm"
+                          />
+                        </span>
+                        <span className={styles.combo__rowText}>
+                          <span className={styles.combo__rowName}>{p.name}</span>
+                          <span className={styles.combo__rowMeta}>
+                            {[
+                              p.setName,
+                              SEALED_LABEL[p.productType] ?? "Sealed",
+                            ]
+                              .filter(Boolean)
+                              .join(" · ")}
+                          </span>
+                        </span>
+                        <span className={styles.combo__rowRight}>
+                          {p.msrp && (
+                            <span className={styles.combo__rowPrice}>
+                              {formatMoney(p.msrp)}
+                            </span>
+                          )}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </>
+              )}
+            </>
           )}
 
           <button
             type="button"
             className={cx(
               styles.combo__all,
-              active === suggestions.length && styles["combo__row--active"],
+              active === allIndex && styles["combo__row--active"],
             )}
-            onMouseEnter={() => setActive(suggestions.length)}
+            onMouseEnter={() => setActive(allIndex)}
             onClick={() => submit()}
           >
             <Search size={15} /> Search all results for “{debounced}”

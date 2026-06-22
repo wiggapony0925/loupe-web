@@ -43,6 +43,7 @@ export function PublicLayout() {
           className={styles["public__search"]}
           onSearch={onSearch}
           onSelectCard={(c) => navigate(`/cards/${encodeURIComponent(c.id)}`)}
+          onSelectSealed={(p) => navigate(`/sealed/${encodeURIComponent(p.id)}`)}
         />
         <div className={styles["public__actions"]}>
           <ThemeToggle compact />
