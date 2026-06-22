@@ -14,6 +14,7 @@ import {
   ArrowRight,
   Store,
   ExternalLink,
+  ScanSearch,
 } from "lucide-react";
 import {
   useValuation,
@@ -451,6 +452,9 @@ export function LoupeGrade() {
                               title="Inspect this listing photo"
                             >
                               <img src={l.imageUrl!} alt={l.title} />
+                              <span className={styles.fbInspect}>
+                                <ScanSearch size={15} /> Inspect
+                              </span>
                             </button>
                             <span className={styles.fbPrice}>
                               {l.price ? formatMoney(l.price) : "—"}
