@@ -8,10 +8,30 @@ import {
   TrendingUp,
   X,
   ImagePlus,
+  Loader2,
+  Check,
+  ArchiveRestore,
 } from "lucide-react";
-import { useValuation, type CardSummary, type Money } from "@loupe/core";
-import { Button, Badge, Stat, Delta, NoteCard, SearchCombobox, ThemeToggle } from "@/components";
+import {
+  useValuation,
+  useIdentifyCard,
+  useAddGrade,
+  type CardSummary,
+  type ScanCandidate,
+  type Money,
+} from "@loupe/core";
+import {
+  Button,
+  Badge,
+  Stat,
+  Delta,
+  NoteCard,
+  SearchCombobox,
+  ThemeToggle,
+  CardThumb,
+} from "@/components";
 import { Logo } from "@/assets";
+import { useAuth } from "@/auth/AuthProvider";
 import { formatMoney } from "@/lib/format";
 import { InspectCanvas } from "./InspectCanvas";
 import {
@@ -28,6 +48,25 @@ const DEFAULT_INNER: Frame = { top: 0.13, right: 0.87, bottom: 0.87, left: 0.13 
 
 const money = (m?: Money | null) => (m ? formatMoney(m) : "—");
 
+/** Downscale a phone photo before upload — mirrors the scanner so identify
+ *  stays fast and within the backend's upload cap. */
+async function downscale(file: File, maxDim = 1600, quality = 0.82): Promise<Blob> {
+  const bitmap = await createImageBitmap(file).catch(() => null);
+  if (!bitmap) return file;
+  const scale = Math.min(1, maxDim / Math.max(bitmap.width, bitmap.height));
+  const w = Math.round(bitmap.width * scale);
+  const h = Math.round(bitmap.height * scale);
+  const canvas = document.createElement("canvas");
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return file;
+  ctx.drawImage(bitmap, 0, 0, w, h);
+  return new Promise((resolve) =>
+    canvas.toBlob((b) => resolve(b ?? file), "image/jpeg", quality),
+  );
+}
+
 /**
  * Loupe Grade — a full-screen inspection workspace (Figma-canvas style): a
  * large centered canvas with a docked inspector rail. Drop a card photo, align
@@ -36,6 +75,7 @@ const money = (m?: Money | null) => (m ? formatMoney(m) : "—");
  */
 export function LoupeGrade() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [src, setSrc] = useState<string | null>(null);
   const [outer, setOuter] = useState<Frame>(DEFAULT_OUTER);
   const [inner, setInner] = useState<Frame>(DEFAULT_INNER);
@@ -43,7 +83,21 @@ export function LoupeGrade() {
   const [edges, setEdges] = useState(9);
   const [surface, setSurface] = useState(9);
   const [card, setCard] = useState<Pick<CardSummary, "id" | "name"> | null>(null);
+  const [identified, setIdentified] = useState<ScanCandidate | null>(null);
+  const [saved, setSaved] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+
+  // Same identify (scan) API the mobile app + web scanner use.
+  const identify = useIdentifyCard({
+    onSuccess: (r) => {
+      const top = r.candidates?.[0];
+      if (top && top.confidence >= 0.35) {
+        setIdentified(top);
+        setCard({ id: top.id, name: top.name });
+      }
+    },
+  });
+  const addGrade = useAddGrade();
 
   const setFrame = useCallback((which: "outer" | "inner", f: Frame) => {
     (which === "outer" ? setOuter : setInner)(f);
@@ -63,6 +117,20 @@ export function LoupeGrade() {
     im.src = url;
   }, []);
 
+  // Try to identify the card with the scan API, then auto-attach it (powers
+  // the value upside + add-to-collection) and show the banner.
+  const autoIdentify = useCallback(
+    async (file: File) => {
+      setIdentified(null);
+      setCard(null);
+      setSaved(false);
+      identify.reset();
+      const blob = await downscale(file);
+      identify.mutate({ image: blob });
+    },
+    [identify],
+  );
+
   const loadFile = useCallback(
     (file: File | undefined | null) => {
       if (!file || !file.type.startsWith("image/")) return;
@@ -74,8 +142,9 @@ export function LoupeGrade() {
       setOuter(DEFAULT_OUTER);
       setInner(DEFAULT_INNER);
       autoDetect(url);
+      autoIdentify(file);
     },
-    [autoDetect],
+    [autoDetect, autoIdentify],
   );
 
   useEffect(
@@ -104,6 +173,26 @@ export function LoupeGrade() {
     raw?.amount && graded?.amount && raw.amount > 0
       ? ((graded.amount - raw.amount) / raw.amount) * 100
       : undefined;
+
+  // Save the identified card to the vault, graded at the Loupe estimate.
+  const gradeInt = Math.round(result.estimate);
+  function saveGraded() {
+    if (!user) {
+      navigate("/login");
+      return;
+    }
+    if (!card || saved || addGrade.isPending) return;
+    addGrade.mutate(
+      {
+        upstreamId: card.id,
+        house: "psa",
+        grade: gradeInt,
+        estimatedValueUsd: graded?.amount ?? raw?.amount ?? null,
+        notes: `Loupe Grade pre-screen — estimated ${result.band}`,
+      },
+      { onSuccess: () => setSaved(true) },
+    );
+  }
 
   return (
     <div className={styles.workspace}>
@@ -146,6 +235,48 @@ export function LoupeGrade() {
 
       <div className={styles.body}>
         <main className={styles.canvasZone}>
+          {src && (identify.isPending || identified) && (
+            <div className={styles.idBanner}>
+              {identify.isPending ? (
+                <>
+                  <Loader2 className={styles.idSpin} size={18} />
+                  <span className={styles.idText}>Identifying card…</span>
+                </>
+              ) : identified ? (
+                <>
+                  <span className={styles.idThumb}>
+                    <CardThumb
+                      src={identified.imageUrl ?? ""}
+                      alt={identified.name}
+                      size="sm"
+                    />
+                  </span>
+                  <span className={styles.idBody}>
+                    <span className={styles.idEyebrow}>Identified</span>
+                    <span className={styles.idName}>{identified.name}</span>
+                    <span className={styles.idMeta}>
+                      {[identified.setName, identified.number]
+                        .filter(Boolean)
+                        .join(" · ")}
+                      {" · "}
+                      {Math.round(identified.confidence * 100)}% match
+                    </span>
+                  </span>
+                  <button
+                    type="button"
+                    className={styles.idClear}
+                    onClick={() => {
+                      setIdentified(null);
+                      setCard(null);
+                    }}
+                    aria-label="Not this card"
+                  >
+                    <X size={16} />
+                  </button>
+                </>
+              ) : null}
+            </div>
+          )}
           {src ? (
             <InspectCanvas
               src={src}
@@ -329,9 +460,43 @@ export function LoupeGrade() {
                 )}
               </section>
 
+              {/* Save to vault — graded at the Loupe estimate, via the grades API */}
+              {card && (
+                <section className={styles.block}>
+                  <span className={styles.blockTitle}>
+                    <ArchiveRestore size={14} /> Save to vault
+                  </span>
+                  <p className={styles.blockHint}>
+                    Add <strong>{card.name}</strong> to your collection as a
+                    graded card at the estimated <strong>PSA {gradeInt}</strong>.
+                  </p>
+                  <Button
+                    block
+                    leadingIcon={
+                      saved ? <Check size={16} /> : <ArchiveRestore size={16} />
+                    }
+                    disabled={addGrade.isPending || saved}
+                    onClick={saveGraded}
+                  >
+                    {saved
+                      ? "Saved to vault"
+                      : addGrade.isPending
+                        ? "Saving…"
+                        : user
+                          ? `Add as graded · PSA ${gradeInt}`
+                          : "Sign in to save"}
+                  </Button>
+                  {saved && (
+                    <Link to="/app/vault" className={styles.valueChange}>
+                      View in vault →
+                    </Link>
+                  )}
+                </section>
+              )}
+
               <NoteCard
                 title="Estimate only"
-                message="Loupe Grade is a photo-based pre-screen, not an official grade. It isn't affiliated with PSA, BGS, or CGC, and the real grade depends on factors a single photo can't show."
+                message="Loupe Grade is a photo-based pre-screen, not an official grade. It isn't affiliated with PSA, BGS, or CGC, and the real grade depends on factors a single photo can't show — saved grades are your own estimate."
               />
             </div>
           )}

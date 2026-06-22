@@ -1,4 +1,4 @@
-import { Home, Wallet, LineChart, BarChart3, Star, FileText, Settings, type LucideIcon } from "lucide-react";
+import { Home, Wallet, LineChart, BarChart3, Star, FileText, Settings, ScanSearch, type LucideIcon } from "lucide-react";
 
 export interface NavItem {
   to: string;
@@ -18,6 +18,7 @@ export const PRIMARY_NAV: NavItem[] = [
   { to: "/app/markets", label: "Markets", icon: LineChart, flag: "web_markets" },
   { to: "/app/analytics", label: "Analytics", short: "Stats", icon: BarChart3, flag: "web_analytics" },
   { to: "/app/watchlist", label: "Watchlist", short: "Watch", icon: Star, flag: "web_watchlist" },
+  { to: "/grade", label: "Loupe Playground", short: "Play", icon: ScanSearch },
   { to: "/app/statements", label: "Statements", short: "Docs", icon: FileText },
 ];
 
