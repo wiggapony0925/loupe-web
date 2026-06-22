@@ -60,21 +60,48 @@
   }
 }
 
-/* White product field — matches the tile treatment. */
+/* White product field — Amazon / App-Store style: the product floats on a
+   crisp white field with a soft grounding shadow and a gentle hover lift. */
 .photo {
+  position: relative;
   display: grid;
   place-items: center;
   aspect-ratio: 5 / 7;
   padding: var(--space-xl);
   border-radius: var(--radius-md);
-  background: #fff;
+  background: radial-gradient(
+    120% 90% at 50% 8%,
+    #fff 0%,
+    #fff 60%,
+    #f4f5f7 100%
+  );
   border: 1px solid var(--line);
+  overflow: hidden;
+}
+/* Soft floor shadow that grounds the product on the white field. */
+.photo::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 7%;
+  width: 60%;
+  height: 6%;
+  transform: translateX(-50%);
+  background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.18), transparent 72%);
+  filter: blur(4px);
+  z-index: 0;
 }
 .photoImg {
+  position: relative;
+  z-index: 1;
   max-width: 100%;
   max-height: 100%;
   object-fit: contain;
   mix-blend-mode: multiply;
+  transition: transform var(--dur-med, 220ms) var(--ease-out);
+}
+.photo:hover .photoImg {
+  transform: translateY(-6px) scale(1.015);
 }
 
 .info {
@@ -128,6 +155,43 @@
 .priceCaption {
   font-size: var(--text-sm);
   color: var(--ink-dim);
+}
+
+/* Price-guide spread — market's position within the low→high band. */
+.spread {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-width: 360px;
+}
+.spreadTrack {
+  position: relative;
+  height: 6px;
+  border-radius: 999px;
+  background: linear-gradient(
+    90deg,
+    var(--bg-sunken),
+    color-mix(in srgb, var(--accent-mint) 28%, var(--bg-sunken))
+  );
+  border: 1px solid var(--line);
+}
+.spreadMarker {
+  position: absolute;
+  top: 50%;
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+  background: var(--accent-mint);
+  border: 2px solid var(--bg-base);
+  box-shadow: var(--shadow-card);
+  transform: translate(-50%, -50%);
+}
+.spreadLabels {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--text-xs);
+  color: var(--ink-dim);
+  @include tabular;
 }
 
 .buy {

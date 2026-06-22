@@ -28,6 +28,12 @@ import styles from "./SealedDetail.module.scss";
 const usd = (n: number | null | undefined) =>
   n == null ? "—" : formatMoney({ amount: n, currency: "USD" });
 
+/** Where the live quote came from — surfaced as a credibility chip. */
+const SOURCE_LABEL: Record<string, string> = {
+  tcgplayer: "TCGplayer",
+  pricecharting: "PriceCharting",
+};
+
 /**
  * Sealed-product detail — the card-detail page's sibling. Reuses the same
  * primitives (Panel, BarChart, Delta, Badge, Button) to show the financial
@@ -73,6 +79,17 @@ export function SealedDetail() {
       ? ((marketPrice - msrp) / msrp) * 100
       : undefined;
   const headlinePrice = marketPrice ?? msrp;
+  const sourceLabel = market?.source ? (SOURCE_LABEL[market.source] ?? null) : null;
+
+  // Price-guide spread: market's position within the low→high range, so the
+  // single headline number reads in context (App-Store / brokerage style).
+  const low = market?.low ?? null;
+  const high = market?.high ?? null;
+  const hasSpread =
+    low != null && high != null && high > low && marketPrice != null;
+  const spreadPct = hasSpread
+    ? Math.min(100, Math.max(0, ((marketPrice! - low!) / (high! - low!)) * 100))
+    : 0;
 
   // Real value line: MSRP-at-release → current market. Reuses the card price
   // chart (MarketChart); more points fill in as daily snapshots accumulate.
@@ -154,11 +171,25 @@ export function SealedDetail() {
             )}
             <span className={styles.priceCaption}>
               {marketPrice != null ? "live market" : "MSRP"}
-              {marketPrice != null && msrp != null && (
-                <> · MSRP {usd(msrp)}</>
-              )}
+              {sourceLabel && marketPrice != null && <> · {sourceLabel}</>}
+              {marketPrice != null && msrp != null && <> · MSRP {usd(msrp)}</>}
             </span>
           </div>
+
+          {hasSpread && (
+            <div className={styles.spread}>
+              <div className={styles.spreadTrack}>
+                <span
+                  className={styles.spreadMarker}
+                  style={{ left: `${spreadPct}%` }}
+                />
+              </div>
+              <div className={styles.spreadLabels}>
+                <span>Low {usd(low)}</span>
+                <span>High {usd(high)}</span>
+              </div>
+            </div>
+          )}
 
           <div className={styles.buy}>
             <Button
@@ -221,6 +252,14 @@ export function SealedDetail() {
           <Stat label="Low" value={usd(market?.low)} />
           <Stat label="High" value={usd(market?.high)} />
           <Stat label="MSRP" value={usd(msrp)} />
+          <Stat
+            label="vs MSRP"
+            value={
+              premiumPct === undefined
+                ? "—"
+                : `${premiumPct >= 0 ? "+" : ""}${premiumPct.toFixed(1)}%`
+            }
+          />
           <Stat label="Type" value={typeLabel} />
           <Stat
             label="Released"
