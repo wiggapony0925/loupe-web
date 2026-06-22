@@ -461,6 +461,7 @@ export const api = {
         high: number | null;
         source: string | null;
         marketplace_url: string | null;
+        points?: Array<{ ts: string; price: number }>;
       }>(ENDPOINTS.sealed.market(id), { skipAuth: true });
       const currency = d.currency || "USD";
       const msrp =
@@ -475,6 +476,7 @@ export const api = {
         high: d.high,
         source: d.source,
         marketplaceUrl: d.marketplace_url,
+        points: d.points ?? [],
       };
     },
   },

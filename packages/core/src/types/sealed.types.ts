@@ -29,7 +29,13 @@ export interface SealedProduct {
   releaseDate?: string | null;
 }
 
-/** Live market snapshot for a sealed product (no stored history → point-in-time). */
+/** One point on a sealed product's value line (ISO date → price). */
+export interface SealedPricePoint {
+  ts: string;
+  price: number;
+}
+
+/** Live market snapshot + value line for a sealed product. */
 export interface SealedMarket {
   productId: string;
   currency: string;
@@ -40,6 +46,8 @@ export interface SealedMarket {
   high?: number | null;
   source?: string | null;
   marketplaceUrl?: string | null;
+  /** Real value line: MSRP-at-release → current market. */
+  points: SealedPricePoint[];
 }
 
 /** The signed-in user's owned sealed product (joined to catalog metadata). */

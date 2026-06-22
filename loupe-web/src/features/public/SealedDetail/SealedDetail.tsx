@@ -13,11 +13,10 @@ import {
   Badge,
   Stat,
   Delta,
-  BarChart,
+  MarketChart,
   MediaPlaceholder,
   NoteCard,
   Skeleton,
-  type BarDatum,
 } from "@/components";
 import { useAuth } from "@/auth/AuthProvider";
 import { formatMoney } from "@/lib/format";
@@ -71,15 +70,12 @@ export function SealedDetail() {
       : undefined;
   const headlinePrice = marketPrice ?? msrp;
 
-  // Price-tier spread (drops the High outlier — sellers park junk listings up
-  // there — so MSRP / Low / Mid / Market read on a comparable scale).
-  const bars: BarDatum[] = [
-    { label: "MSRP", value: msrp },
-    { label: "Low", value: market?.low ?? null },
-    { label: "Mid", value: market?.mid ?? null },
-    { label: "Market", value: marketPrice },
-  ].filter((b): b is BarDatum => b.value != null && b.value > 0);
-  const marketIdx = bars.findIndex((b) => b.label === "Market");
+  // Real value line: MSRP-at-release → current market. Reuses the card price
+  // chart (MarketChart); more points fill in as daily snapshots accumulate.
+  const series = (market?.points ?? []).map((p) => ({
+    t: new Date(p.ts).getTime(),
+    v: p.price,
+  }));
 
   function handleAdd() {
     if (!user) {
@@ -165,28 +161,26 @@ export function SealedDetail() {
         </div>
       </div>
 
-      {/* Price tiers — reuses the card chart primitive (spread, not history). */}
+      {/* Value over time — reuses the card price line chart (MarketChart). */}
       <section className={styles.section}>
         <div className={styles.sectionHead}>
-          <span className={styles.sectionEyebrow}>Market</span>
-          <h2 className={styles.sectionTitle}>Price tiers</h2>
+          <span className={styles.sectionEyebrow}>Performance</span>
+          <h2 className={styles.sectionTitle}>Value since release</h2>
         </div>
-        {bars.length === 0 ? (
+        {series.length > 1 ? (
+          <Panel padding="lg" raised className={styles.chartPanel}>
+            <MarketChart
+              title="Market value"
+              series={[{ id: "sealed", label: product.name, points: series }]}
+              height={260}
+              format={(v) => usd(v)}
+            />
+          </Panel>
+        ) : (
           <NoteCard
             title="No live market yet"
             message="We couldn't fetch a live quote for this product right now. MSRP is shown above."
           />
-        ) : (
-          <Panel padding="lg" raised className={styles.chartPanel}>
-            <BarChart
-              data={bars}
-              height={200}
-              highlightIndex={marketIdx >= 0 ? marketIdx : undefined}
-              backdrop={market?.source === "tcgplayer" ? "TCGplayer" : undefined}
-              format={(n) => usd(n)}
-              ariaLabel="Sealed product price tiers"
-            />
-          </Panel>
         )}
       </section>
 
