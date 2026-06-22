@@ -22,6 +22,7 @@ import {
 } from "@/components";
 import { EmptyResultsArt } from "@/assets";
 import { cx } from "@/lib/cx";
+import { SealedRail } from "./SealedRail/SealedRail";
 import styles from "./Browse.module.scss";
 
 const PAGE_SIZE = 24;
@@ -76,6 +77,12 @@ export function Browse() {
   const searchTcg = gameParam && SEARCH_TCGS.has(gameParam) ? gameParam : "all";
   const navigate = useNavigate();
   const isSearch = query.trim().length > 0;
+  // Landing = /cards with no explicit game/set/query. We show curated discovery
+  // (per-game rails + a sealed rail) instead of defaulting to a full Pokémon
+  // catalog (which was both inconsistent with the rails and prone to upstream
+  // load failures). Picking a game in the nav (?game=…) still browses the
+  // full catalog.
+  const isLanding = !isSearch && !gameParam && !setId;
 
   const [view, setView] = useState<"grid" | "list">("grid");
   const [sort, setSort] = useState<SortKey>("best");
@@ -107,7 +114,7 @@ export function Browse() {
   );
   const browse = usePublicBrowse(
     { game, set: setId ?? undefined, page, pageSize: PAGE_SIZE, sort: browseSort },
-    !isSearch,
+    !isSearch && !isLanding,
   );
   const active = isSearch ? search : browse;
   const data = active.data;
@@ -163,6 +170,10 @@ export function Browse() {
         </section>
       )}
 
+      {isLanding ? (
+        <SealedRail />
+      ) : (
+        <>
       <div className={styles.browse__catalogHead}>
         <h1 className={styles.browse__heading}>{heading}</h1>
         {!isSearch && SUPPORTED.has(game) && (
@@ -333,6 +344,8 @@ export function Browse() {
           <div className={styles.browse__pager}>
             <Pagination page={page} pageCount={pageCount} onChange={setPage} />
           </div>
+        </>
+      )}
         </>
       )}
     </div>

@@ -1,0 +1,9 @@
+.seeall {
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: var(--accent-mint);
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
