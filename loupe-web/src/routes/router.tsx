@@ -17,13 +17,62 @@ function RouteFallback() {
   );
 }
 
-/** Lazy-load a named export from a module behind a Suspense boundary. */
+/** sessionStorage flag so a stale-chunk reload happens at most once per tab. */
+const RELOAD_KEY = "loupe.chunk-reload";
+
+/**
+ * Lazy-load a named export, resilient to chunk-load failures.
+ *
+ * A dynamic `import()` rejects (not throws-on-render) only when the chunk
+ * itself fails to fetch — almost always a **stale chunk after a deploy** (the
+ * cached `index.html` references hashes that now 404), or a transient network
+ * blip. Instead of bubbling to the "something happened" error page, we retry
+ * once, then reload ONE time to pull the fresh `index.html` + chunk map. Real
+ * render errors don't reach here (they throw during render → error boundary).
+ */
 function el(loader: () => Promise<unknown>, name: string): ReactElement {
-  const C = lazy(() =>
-    loader().then((m) => ({
-      default: (m as Record<string, ComponentType>)[name] as ComponentType,
-    })),
-  );
+  const load = async () => {
+    const m = (await loader()) as Record<string, ComponentType>;
+    return { default: m[name] as ComponentType };
+  };
+  const C = lazy(async () => {
+    try {
+      const mod = await load();
+      try {
+        sessionStorage.removeItem(RELOAD_KEY);
+      } catch {
+        /* private mode — ignore */
+      }
+      return mod;
+    } catch {
+      // One quick in-place retry for a transient fetch hiccup.
+      await new Promise((r) => setTimeout(r, 350));
+      try {
+        const mod = await load();
+        try {
+          sessionStorage.removeItem(RELOAD_KEY);
+        } catch {
+          /* ignore */
+        }
+        return mod;
+      } catch (err) {
+        let reloaded = false;
+        try {
+          reloaded = Boolean(sessionStorage.getItem(RELOAD_KEY));
+          if (!reloaded) sessionStorage.setItem(RELOAD_KEY, "1");
+        } catch {
+          /* ignore storage failures */
+        }
+        if (!reloaded && typeof window !== "undefined") {
+          window.location.reload();
+          // Hang until the reload swaps the document so the error page never
+          // flashes.
+          return new Promise<never>(() => {});
+        }
+        throw err; // already reloaded once → surface the genuine failure
+      }
+    }
+  });
   return (
     <Suspense fallback={<RouteFallback />}>
       <C />
