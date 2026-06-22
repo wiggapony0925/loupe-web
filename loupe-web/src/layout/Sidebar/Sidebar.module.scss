@@ -146,12 +146,12 @@
 
   .nav {
     align-items: center;
-    gap: 6px;
-    margin-top: var(--space-xs);
+    gap: var(--space-md); // Spaced-out vertical gap for a cleaner, modern look
+    margin-top: var(--space-md); // Breathing room below the brand logo
   }
 
   .footer {
-    gap: 6px;
+    gap: var(--space-md); // Match the nav gap
     align-items: center;
     padding-top: var(--space-lg);
   }
@@ -209,6 +209,8 @@
     justify-content: center;
     padding: 0;
     margin-bottom: var(--space-md);
+    // Shift the logo slightly to the right to visually center the lens (the SVG is asymmetrical due to the handle)
+    transform: translateX(1.5px);
   }
 }
 

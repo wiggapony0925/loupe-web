@@ -1,6 +1,6 @@
 import { RouterProvider } from "react-router-dom";
 import { AppProviders } from "@/providers/AppProviders";
-import { Banner, ErrorBoundary, InspectOverlay } from "@/components";
+import { AnnouncementHost, Banner, ErrorBoundary, InspectOverlay } from "@/components";
 import { router } from "@/routes/router";
 
 /** App root — provider stack wrapping the router, with the global notice banner
@@ -12,6 +12,7 @@ export default function App() {
     <ErrorBoundary>
       <AppProviders>
         <Banner />
+        <AnnouncementHost />
         <RouterProvider router={router} />
         <InspectOverlay />
       </AppProviders>

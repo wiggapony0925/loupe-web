@@ -1,0 +1,34 @@
+.body {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-md);
+}
+
+.icon {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-md);
+
+  .body[data-tone="danger"] & {
+    color: var(--accent-rose);
+    background: color-mix(in srgb, var(--accent-rose) 14%, transparent);
+  }
+  .body[data-tone="mint"] & {
+    color: var(--accent-mint);
+    background: color-mix(in srgb, var(--accent-mint) 14%, transparent);
+  }
+}
+
+.message {
+  font-size: var(--text-md);
+  line-height: 1.5;
+  color: var(--ink-muted);
+
+  strong {
+    color: var(--ink);
+    font-weight: 600;
+  }
+}

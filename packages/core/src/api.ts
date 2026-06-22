@@ -54,13 +54,18 @@ import type {
   ApplicationSubmitted,
   ApplicationTrack,
   ApplyInput,
+  Announcement,
+  AnnouncementUpdate,
   AppleSignInRequest,
   BillingConfig,
   BlogPost,
   BlogPostInput,
+  PlanConfigUpdate,
+  SiteConfig,
   CheckoutResult,
   Entitlements,
   PortalSession,
+  SubscribeResult,
   GoogleSignInRequest,
   CardAttributes,
   CardListing,
@@ -587,9 +592,16 @@ export const api = {
     entitlements: () => apiFetch<Entitlements>(ENDPOINTS.me.entitlements),
     /** Pricing + whether real Stripe checkout is live yet. */
     billingConfig: () => apiFetch<BillingConfig>(ENDPOINTS.me.billingConfig),
-    /** Begin a Pro checkout for the chosen interval. */
+    /** Begin a hosted Pro checkout (redirect) for the chosen interval. */
     startCheckout: (interval: "monthly" | "yearly") =>
       apiFetch<CheckoutResult>(ENDPOINTS.me.billingCheckout, {
+        method: "POST",
+        json: { interval },
+      }),
+    /** Create a subscription for the in-app Payment Element (returns a
+     *  client secret to confirm). */
+    subscribe: (interval: "monthly" | "yearly") =>
+      apiFetch<SubscribeResult>(ENDPOINTS.me.billingSubscribe, {
         method: "POST",
         json: { interval },
       }),
@@ -842,11 +854,28 @@ export const api = {
   /** Public feature-flag map — `{key: enabled}`. No auth (web + mobile gate on it). */
   flags: async (): Promise<FlagMap> =>
     (await apiFetch<FlagMap>(ENDPOINTS.flags, { skipAuth: true })) ?? {},
+  /** Public global announcement banner (no auth). */
+  announcement: (): Promise<Announcement> =>
+    apiFetch<Announcement>(ENDPOINTS.announcement, { skipAuth: true }),
   /** Admin developer-portal surface (requires an admin user). */
   admin: {
     /** At-a-glance portal metrics. */
     metrics: async (): Promise<AdminMetrics> =>
       toAdminMetrics(await apiFetch(ENDPOINTS.admin.metrics)),
+    /** Live site config — the Pro plan shape + announcement banner. */
+    config: {
+      get: (): Promise<SiteConfig> => apiFetch<SiteConfig>(ENDPOINTS.admin.config),
+      updatePlan: (input: PlanConfigUpdate): Promise<SiteConfig> =>
+        apiFetch<SiteConfig>(ENDPOINTS.admin.configPlan, {
+          method: "PATCH",
+          json: input,
+        }),
+      updateAnnouncement: (input: AnnouncementUpdate): Promise<SiteConfig> =>
+        apiFetch<SiteConfig>(ENDPOINTS.admin.configAnnouncement, {
+          method: "PATCH",
+          json: input,
+        }),
+    },
     users: {
       list: async (params?: AdminUsersParams): Promise<AdminUserPage> =>
         toAdminUserPage(

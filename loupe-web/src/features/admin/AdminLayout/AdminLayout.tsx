@@ -1,5 +1,5 @@
 import { NavLink, Outlet, Link } from "react-router-dom";
-import { Briefcase, FileText, Inbox, LayoutDashboard, Users, ToggleRight, Smartphone, ScanLine, ArrowLeft } from "lucide-react";
+import { Briefcase, FileText, Inbox, LayoutDashboard, Users, ToggleRight, Smartphone, ScanLine, ArrowLeft, Sparkles } from "lucide-react";
 import { Logo } from "@/assets";
 import { ThemeToggle, ScrollToTop } from "@/components";
 import { NotFound } from "@/features/misc/NotFound/NotFound";
@@ -10,6 +10,7 @@ import styles from "./AdminLayout.module.scss";
 const TABS = [
   { to: "/admin/overview", label: "Overview", icon: LayoutDashboard },
   { to: "/admin/users", label: "Users", icon: Users },
+  { to: "/admin/pro", label: "Pro", icon: Sparkles },
   { to: "/admin/flags", label: "Flags", icon: ToggleRight },
   { to: "/admin/simulator", label: "Simulator", icon: Smartphone },
   { to: "/admin/jobs", label: "Jobs", icon: Briefcase },

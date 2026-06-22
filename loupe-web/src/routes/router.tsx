@@ -187,6 +187,7 @@ export const router = createBrowserRouter([
       { index: true, element: <Navigate to="/admin/overview" replace /> },
       { path: "overview", element: el(M.admin, "AdminOverview") },
       { path: "users", element: el(M.admin, "AdminUsers") },
+      { path: "pro", element: el(M.admin, "AdminPro") },
       { path: "flags", element: el(M.admin, "AdminFlags") },
       { path: "simulator", element: el(M.admin, "AdminSimulator") },
       { path: "jobs", element: el(M.admin, "AdminJobs") },

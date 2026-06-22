@@ -5,7 +5,7 @@ import { useState, type ReactNode } from "react";
 import { ThemeProvider } from "@/theme";
 import { AuthProvider } from "@/auth/AuthProvider";
 import { ProProvider } from "@/pro";
-import { TooltipProvider } from "@/components";
+import { ConfirmProvider, TooltipProvider } from "@/components";
 
 const DAY_MS = 1000 * 60 * 60 * 24;
 
@@ -64,7 +64,9 @@ export function AppProviders({ children }: { children: ReactNode }) {
       <ThemeProvider>
         <AuthProvider>
           <ProProvider>
-            <TooltipProvider delayDuration={250}>{children}</TooltipProvider>
+            <ConfirmProvider>
+              <TooltipProvider delayDuration={250}>{children}</TooltipProvider>
+            </ConfirmProvider>
           </ProProvider>
         </AuthProvider>
       </ThemeProvider>

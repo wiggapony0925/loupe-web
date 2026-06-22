@@ -1,0 +1,274 @@
+.section {
+  position: relative;
+  overflow: hidden;
+  padding: var(--space-3xl) var(--space-xl);
+  // A distinct "color band" — sunken base with a mint wash, fenced by hairlines
+  // so it reads as its own section between the carousels and the closing CTA.
+  background: var(--bg-sunken);
+  border-block: 1px solid var(--line);
+}
+
+// Soft mint aurora behind the Pro card (right-of-center on desktop).
+.aurora {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(60% 70% at 72% 30%, color-mix(in srgb, var(--accent-mint) 16%, transparent), transparent 70%),
+    radial-gradient(50% 60% at 20% 80%, color-mix(in srgb, var(--accent-blue) 9%, transparent), transparent 70%);
+}
+
+.head {
+  position: relative;
+  max-width: 760px;
+  margin: 0 auto var(--space-2xl);
+  text-align: center;
+}
+
+.eyebrow {
+  margin: 0 0 var(--space-sm);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent-mint);
+}
+
+.title {
+  margin: 0 0 var(--space-md);
+  font-size: var(--text-3xl);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+
+.sub {
+  margin: 0 auto;
+  max-width: 56ch;
+  font-size: var(--text-lg);
+  line-height: 1.5;
+  color: var(--ink-muted);
+}
+
+.toggle {
+  display: flex;
+  justify-content: center;
+  margin-top: var(--space-xl);
+}
+
+// ── Plan grid ──
+.grid {
+  position: relative;
+  display: grid;
+  gap: var(--space-lg);
+  max-width: 920px;
+  margin: 0 auto;
+  grid-template-columns: 1fr;
+  align-items: stretch;
+
+  @include bp-up("md") {
+    grid-template-columns: 1fr 1.08fr;
+    gap: var(--space-xl);
+    align-items: center;
+  }
+}
+
+.card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-xl);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--line);
+  background: var(--bg-elevated);
+
+  // Reveal-on-scroll: start lowered + faded, settle when the section is in view.
+  opacity: 0;
+  transform: translateY(22px);
+  transition:
+    opacity 0.6s var(--ease-out),
+    transform 0.6s var(--ease-out),
+    border-color var(--dur-med) var(--ease-out),
+    box-shadow var(--dur-med) var(--ease-out);
+
+  &:hover {
+    transform: translateY(-4px);
+  }
+
+  &[data-plan="pro"] {
+    border: 1.5px solid color-mix(in srgb, var(--accent-mint) 55%, transparent);
+    background:
+      linear-gradient(180deg, color-mix(in srgb, var(--accent-mint) 7%, transparent), transparent 40%),
+      var(--bg-elevated);
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent-mint) 18%, transparent),
+      0 20px 60px color-mix(in srgb, var(--accent-mint) 12%, transparent);
+
+    &:hover {
+      box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent-mint) 30%, transparent),
+        0 28px 80px color-mix(in srgb, var(--accent-mint) 20%, transparent);
+    }
+  }
+}
+
+// When a card enters view, settle it (the Pro card a touch later for a stagger).
+.card[data-in] {
+  opacity: 1;
+  transform: none;
+
+  &[data-plan="pro"] {
+    transition-delay: 0.08s;
+  }
+
+  &:hover {
+    transform: translateY(-4px);
+  }
+}
+
+.ribbon {
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 12px;
+  border-radius: var(--radius-pill);
+  font-size: var(--text-xs);
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+  color: var(--on-accent);
+  background: var(--accent-mint);
+  box-shadow: 0 6px 18px color-mix(in srgb, var(--accent-mint) 35%, transparent);
+}
+
+.cardHead {
+  margin-bottom: var(--space-lg);
+}
+
+.plan {
+  font-size: var(--text-lg);
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.proWord {
+  color: var(--accent-mint);
+}
+
+.price {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin: var(--space-sm) 0 6px;
+}
+
+.amount {
+  font-size: var(--text-4xl);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--ink);
+  // Animate when the toggle swaps it (key change re-mounts the node).
+  animation: price-pop 0.32s var(--ease-out);
+}
+
+@keyframes price-pop {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.per {
+  font-size: var(--text-md);
+  color: var(--ink-dim);
+}
+
+.tagline {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--ink-muted);
+}
+
+// ── Perks ──
+.perks {
+  list-style: none;
+  margin: 0 0 var(--space-xl);
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  flex: 1 1 auto;
+}
+
+.perk {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  font-size: var(--text-md);
+  color: var(--ink);
+
+  &[data-rich] {
+    align-items: flex-start;
+  }
+}
+
+.check {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: var(--radius-pill);
+  color: var(--accent-mint);
+  background: color-mix(in srgb, var(--accent-mint) 14%, transparent);
+}
+
+.perkIcon {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-md);
+  color: var(--accent-mint);
+  background: color-mix(in srgb, var(--accent-mint) 12%, transparent);
+}
+
+.perkText {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+
+  strong {
+    font-size: var(--text-md);
+    font-weight: 600;
+    color: var(--ink);
+  }
+  span {
+    font-size: var(--text-sm);
+    color: var(--ink-muted);
+  }
+}
+
+.fine {
+  margin: var(--space-sm) 0 0;
+  text-align: center;
+  font-size: var(--text-xs);
+  color: var(--ink-dim);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card,
+  .amount {
+    transition: none;
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+}

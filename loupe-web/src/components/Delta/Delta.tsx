@@ -20,7 +20,7 @@ export function Delta({ percent = 0, money, variant = "text", size = "sm" }: Del
   const Arrow = dir === "down" ? ArrowDownRight : ArrowUpRight;
   return (
     <span className={cx(styles.delta, styles[dir], styles[variant], styles[size])}>
-      {variant === "arrow" && dir !== "flat" && <Arrow className={styles.arrow} />}
+      {variant === "arrow" && dir !== "flat" && <Arrow className={styles.deltaIcon} />}
       {money !== undefined && <span className={styles.money}>{formatSignedMoney(money)}</span>}
       <span className={styles.pct}>{formatPercent(percent)}</span>
     </span>

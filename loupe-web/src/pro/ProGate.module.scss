@@ -1,0 +1,16 @@
+.blurWrap {
+  position: relative;
+  // Clip the blurred preview so it never bleeds past the gate.
+  overflow: hidden;
+  border-radius: var(--radius-lg);
+}
+
+.preview {
+  filter: blur(5px) saturate(0.85);
+  opacity: 0.55;
+  pointer-events: none;
+  user-select: none;
+  // Cap the preview height so a long gated list doesn't create dead space.
+  max-height: 420px;
+  overflow: hidden;
+}

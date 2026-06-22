@@ -12,12 +12,15 @@ import {
   Check,
   ArchiveRestore,
   ArrowRight,
+  Store,
+  ExternalLink,
 } from "lucide-react";
 import {
   useValuation,
   useIdentifyCard,
   useAddGrade,
   useTrending,
+  useNearbyListings,
   type CardSummary,
   type ScanCandidate,
   type Money,
@@ -183,6 +186,45 @@ export function LoupeGrade() {
       });
     },
     [autoDetect, identify],
+  );
+
+  // Live Facebook Marketplace listings (opt-in — the scrape is slow). We search
+  // FB for the featured trending card; clicking a listing loads its photo into
+  // the inspector. (FB returns results near its own proxy, not the user.)
+  const featured = useMemo(
+    () => (trending ?? []).find((c) => c.imageUrl) ?? null,
+    [trending],
+  );
+  const [fbCoords, setFbCoords] = useState<{
+    lat: number;
+    lng: number;
+    radiusKm?: number;
+  } | null>(null);
+  const { data: fbListings, isFetching: fbLoading } = useNearbyListings(
+    featured?.id ?? "",
+    fbCoords,
+  );
+  const loadListing = useCallback(
+    (imageUrl: string) => {
+      setSrc((prev) => {
+        if (prev?.startsWith("blob:")) URL.revokeObjectURL(prev);
+        return imageUrl;
+      });
+      setOuter(DEFAULT_OUTER);
+      setInner(DEFAULT_INNER);
+      autoDetect(imageUrl);
+      setIdentified(null);
+      setSaved(false);
+      identify.reset();
+      if (featured)
+        setCard({
+          id: featured.id,
+          name: featured.name,
+          imageUrl: featured.imageUrl,
+          setName: featured.setName,
+        });
+    },
+    [autoDetect, identify, featured],
   );
 
   useEffect(
@@ -370,6 +412,76 @@ export function LoupeGrade() {
                         </button>
                       ))}
                   </div>
+                </div>
+              )}
+
+              {/* Live Facebook Marketplace listings (opt-in — slow scrape) */}
+              {featured && (
+                <div className={styles.trending}>
+                  <span className={styles.trendingLabel}>
+                    <Store size={13} /> Live on Facebook Marketplace · {featured.name}
+                  </span>
+                  {!fbCoords ? (
+                    <button
+                      type="button"
+                      className={styles.fbLoad}
+                      onClick={() =>
+                        setFbCoords({ lat: 40.71, lng: -74.0, radiusKm: 80 })
+                      }
+                    >
+                      <Store size={15} /> Show live listings
+                      <span className={styles.fbLoadHint}>real eBay-alternative finds · ~30s</span>
+                    </button>
+                  ) : fbLoading ? (
+                    <div className={styles.fbStatus}>
+                      <Loader2 className={styles.idSpin} size={16} /> Scanning
+                      Facebook Marketplace…
+                    </div>
+                  ) : (fbListings ?? []).length > 0 ? (
+                    <div className={styles.trendingRow}>
+                      {(fbListings ?? [])
+                        .filter((l) => l.imageUrl)
+                        .slice(0, 10)
+                        .map((l, i) => (
+                          <div key={l.url || i} className={styles.fbCard}>
+                            <button
+                              type="button"
+                              className={styles.fbThumb}
+                              onClick={() => loadListing(l.imageUrl!)}
+                              title="Inspect this listing photo"
+                            >
+                              <img src={l.imageUrl!} alt={l.title} />
+                            </button>
+                            <span className={styles.fbPrice}>
+                              {l.price ? formatMoney(l.price) : "—"}
+                            </span>
+                            <span className={styles.fbLoc}>
+                              {l.locationLabel ?? "Facebook"}
+                            </span>
+                            <a
+                              className={styles.fbLink}
+                              href={l.url}
+                              target="_blank"
+                              rel="noreferrer"
+                            >
+                              View <ExternalLink size={11} />
+                            </a>
+                          </div>
+                        ))}
+                    </div>
+                  ) : (
+                    <p className={styles.blockHint}>
+                      No Facebook listings came back this time — the scrape can
+                      be flaky.{" "}
+                      <button
+                        type="button"
+                        className={styles.valueChange}
+                        onClick={() => setFbCoords(null)}
+                      >
+                        Try again
+                      </button>
+                    </p>
+                  )}
                 </div>
               )}
             </div>

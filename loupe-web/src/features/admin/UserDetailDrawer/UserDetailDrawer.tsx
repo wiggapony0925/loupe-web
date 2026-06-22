@@ -8,8 +8,9 @@ import {
   useUnbanUser,
   useDeleteUser,
 } from "@loupe/core";
-import { Button, Modal, Skeleton, TextField } from "@/components";
+import { Button, Modal, Skeleton, TextField, useConfirm } from "@/components";
 import { useAuth } from "@/auth/AuthProvider";
+import { notify } from "@/stores/noticeStore";
 import { formatMoney } from "@/lib/format";
 import styles from "./UserDetailDrawer.module.scss";
 
@@ -35,6 +36,38 @@ export function UserDetailDrawer({ userId, open, onOpenChange }: UserDetailDrawe
   const busy =
     setRole.isPending || setPlan.isPending || ban.isPending || unban.isPending || del.isPending;
   const isPro = u?.plan === "pro";
+  const askConfirm = useConfirm();
+
+  async function togglePro() {
+    if (!u) return;
+    const grant = !isPro;
+    const ok = await askConfirm({
+      title: grant ? "Grant Loupe Pro for free?" : "Revoke Loupe Pro?",
+      tone: grant ? "mint" : "danger",
+      confirmLabel: grant ? "Comp to Pro" : "Revoke Pro",
+      message: grant ? (
+        <>
+          <strong>{u.email}</strong> gets full Pro access — unlimited cards,
+          analytics, and statements — at no charge, with no expiry. (This skips
+          Stripe entirely.)
+        </>
+      ) : (
+        <>
+          <strong>{u.email}</strong> drops back to the free tier (50-card cap,
+          paywall). Any paid Stripe subscription is unaffected.
+        </>
+      ),
+    });
+    if (!ok) return;
+    setPlan.mutate(
+      { id: u.id, plan: grant ? "pro" : "free" },
+      {
+        onSuccess: () =>
+          notify.success(grant ? `${u.email} is now Pro.` : `Pro revoked from ${u.email}.`),
+        onError: () => notify.error("Couldn't update plan — please try again."),
+      },
+    );
+  }
 
   const [confirm, setConfirm] = useState<"ban" | "delete" | null>(null);
   const [reason, setReason] = useState("");
@@ -143,7 +176,7 @@ export function UserDetailDrawer({ userId, open, onOpenChange }: UserDetailDrawe
                 size="sm"
                 disabled={busy}
                 leadingIcon={<Sparkles size={15} />}
-                onClick={() => setPlan.mutate({ id: u.id, plan: isPro ? "free" : "pro" })}
+                onClick={togglePro}
               >
                 {isPro ? "Revoke Pro" : "Comp to Pro"}
               </Button>

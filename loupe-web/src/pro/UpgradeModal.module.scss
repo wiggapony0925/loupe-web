@@ -192,3 +192,129 @@
     transform: rotate(360deg);
   }
 }
+
+// ── Trust strip (step 1) ──
+.trust {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm) var(--space-lg);
+  margin-top: var(--space-md);
+}
+
+.trustItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--ink-muted);
+
+  svg {
+    color: var(--accent-mint);
+  }
+}
+
+// ── Pay step ──
+.back {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  align-self: flex-start;
+  padding: 4px 6px;
+  margin: -4px 0 0 -6px;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--ink-muted);
+  border-radius: var(--radius-sm);
+  transition: color var(--dur-fast) var(--ease-out);
+
+  &:hover {
+    color: var(--ink);
+  }
+}
+
+.payHead {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.summary {
+  padding: var(--space-lg);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--bg-sunken);
+}
+
+.summaryRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  font-size: var(--text-md);
+  color: var(--ink-muted);
+
+  &[data-strong] {
+    font-weight: 700;
+    color: var(--ink);
+  }
+}
+
+.summaryDivider {
+  height: 1px;
+  margin: var(--space-md) 0;
+  background: var(--line);
+}
+
+.dueToday {
+  color: var(--accent-mint);
+}
+
+.summaryNote {
+  margin: var(--space-sm) 0 0;
+  font-size: var(--text-sm);
+  color: var(--ink-dim);
+}
+
+// ── Success / unavailable step ──
+.success {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--space-md);
+  padding: var(--space-lg) 0;
+}
+
+.successIcon {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  border-radius: var(--radius-pill);
+  color: var(--on-accent);
+  background: var(--accent-mint);
+
+  &[data-muted] {
+    color: var(--ink-muted);
+    background: color-mix(in srgb, var(--ink-muted) 16%, transparent);
+  }
+}
+
+.successTitle {
+  margin: 0;
+  font-size: var(--text-2xl);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+
+.successSub {
+  margin: 0 auto var(--space-sm);
+  max-width: 44ch;
+  font-size: var(--text-md);
+  line-height: 1.5;
+  color: var(--ink-muted);
+}

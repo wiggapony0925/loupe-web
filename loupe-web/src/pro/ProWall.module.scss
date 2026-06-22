@@ -1,0 +1,83 @@
+.wall {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--space-sm);
+  padding: var(--space-2xl) var(--space-xl);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background:
+    radial-gradient(120% 120% at 50% 0%, color-mix(in srgb, var(--accent-mint) 8%, transparent), transparent 60%),
+    var(--bg-elevated);
+}
+
+.icon {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  margin-bottom: var(--space-xs);
+  border-radius: var(--radius-md);
+  color: var(--accent-mint);
+  background: color-mix(in srgb, var(--accent-mint) 12%, transparent);
+}
+
+.title {
+  margin: 0;
+  font-size: var(--text-lg);
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.desc {
+  margin: 0 auto var(--space-sm);
+  max-width: 42ch;
+  font-size: var(--text-md);
+  line-height: 1.5;
+  color: var(--ink-muted);
+}
+
+// Floats over blurred content (the "preview of value" pattern).
+.overlay {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: min(420px, calc(100% - var(--space-xl)));
+  height: max-content;
+  align-self: center;
+  box-shadow: var(--shadow-pop);
+  background:
+    radial-gradient(120% 120% at 50% 0%, color-mix(in srgb, var(--accent-mint) 10%, transparent), transparent 60%),
+    color-mix(in srgb, var(--bg-elevated) 92%, transparent);
+  backdrop-filter: blur(2px);
+}
+
+// Compact one-line lock (e.g. a toolbar action that's gated).
+.inline {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-sm) var(--space-md);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--bg-elevated);
+}
+
+.inlineIcon {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: var(--radius-sm);
+  color: var(--accent-mint);
+  background: color-mix(in srgb, var(--accent-mint) 12%, transparent);
+}
+
+.inlineText {
+  flex: 1 1 auto;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--ink);
+}

@@ -105,6 +105,14 @@
       scroll-snap-align: start;
     }
   }
+
+  &__trackNoSnap {
+    scroll-snap-type: none !important;
+
+    > * {
+      scroll-snap-align: none !important;
+    }
+  }
 }
 
 @keyframes carousel-pulse {

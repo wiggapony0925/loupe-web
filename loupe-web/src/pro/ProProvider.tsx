@@ -26,6 +26,8 @@ interface ProValue {
   entitlements: Entitlements | undefined;
   /** Effective Pro access (true while entitlements load, so gates never flash). */
   isPro: boolean;
+  /** True while Pro access is a free trial. */
+  trialing: boolean;
   /** The global kill switch. False => monetization is off everywhere. */
   subscriptionsEnabled: boolean;
   /** True only when free-tier gating is actually in force (subs on + not Pro). */
@@ -114,6 +116,7 @@ export function ProProvider({ children }: { children: ReactNode }) {
     () => ({
       entitlements: ent,
       isPro,
+      trialing: ent?.trialing ?? false,
       subscriptionsEnabled,
       gatingActive,
       cardCount: ent?.card_count ?? 0,

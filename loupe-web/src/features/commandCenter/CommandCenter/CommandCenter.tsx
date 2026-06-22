@@ -1,6 +1,13 @@
 import { Link, useNavigate } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
-import { usePublicTrending, type CardSummary } from "@loupe/core";
+import {
+  usePublicTrending,
+  usePublicSealedSearch,
+  useSealedHoldings,
+  type CardSummary,
+  type SealedProduct,
+} from "@loupe/core";
+import { SealedCard } from "@/features/public/Sealed/SealedCard/SealedCard";
 import {
   Carousel,
   ShopCard,
@@ -29,9 +36,12 @@ import styles from "./CommandCenter.module.scss";
 export function CommandCenter() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const trending = usePublicTrending({ sort: "trending", limit: 20 });
-  const valuable = usePublicTrending({ sort: "value", limit: 20 });
-  const steals = usePublicTrending({ maxPrice: 5, limit: 20 });
+  const trending = usePublicTrending({ sort: "trending", limit: 40 });
+  const valuable = usePublicTrending({ sort: "value", limit: 40 });
+  const steals = usePublicTrending({ maxPrice: 5, limit: 40 });
+  const sealed = usePublicSealedSearch({ limit: 40 });
+  const { data: holdings } = useSealedHoldings({}, Boolean(user));
+  const ownedIds = new Set((holdings ?? []).map((h) => h.productId));
 
   const featured = trending.data?.[0];
   const go = (id: string) => navigate(`/cards/${encodeURIComponent(id)}`);
@@ -52,6 +62,19 @@ export function CommandCenter() {
             price={c.price}
             tag={c.rarity}
             onClick={() => go(c.id)}
+          />
+        ));
+
+  const sealedTiles = (rows: SealedProduct[] | undefined, loading: boolean) =>
+    loading
+      ? Array.from({ length: 8 }).map((_, i) => (
+          <Skeleton key={i} height={300} radius={14} />
+        ))
+      : (rows ?? []).map((p) => (
+          <SealedCard
+            key={p.id}
+            product={p}
+            owned={ownedIds.has(p.id)}
           />
         ));
 
@@ -145,6 +168,18 @@ export function CommandCenter() {
             >
               {tiles(valuable.data, valuable.isLoading)}
             </Carousel>
+
+            {(sealed.isLoading || (sealed.data?.length ?? 0) > 0) && (
+              <Carousel
+                title="Sealed products"
+                subtitle="Booster boxes, Elite Trainer Boxes, and bundles — tracked like singles."
+                itemWidth="210px"
+                animation={true}
+                action={seeAll("/sealed")}
+              >
+                {sealedTiles(sealed.data, sealed.isLoading)}
+              </Carousel>
+            )}
 
             {(steals.data?.length ?? 0) >= 4 && (
               <Carousel

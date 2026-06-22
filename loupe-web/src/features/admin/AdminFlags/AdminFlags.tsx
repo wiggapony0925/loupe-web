@@ -7,7 +7,8 @@ import {
   useDeleteFlag,
   type FeatureFlag,
 } from "@loupe/core";
-import { Button, Skeleton, NoteCard, Modal, TextField, IconButton } from "@/components";
+import { Button, Skeleton, NoteCard, Modal, TextField, IconButton, useConfirm } from "@/components";
+import { notify } from "@/stores/noticeStore";
 import styles from "./AdminFlags.module.scss";
 import admin from "../admin.module.scss";
 
@@ -24,13 +25,74 @@ export function AdminFlags() {
   const update = useUpdateFlag();
   const create = useCreateFlag();
   const del = useDeleteFlag();
+  const confirm = useConfirm();
 
   const subsFlag = flags?.find((f) => f.key === SUBSCRIPTIONS_KEY);
+
+  // The kill switch is consequential — confirm before flipping, then toast.
+  async function toggleSubscriptions() {
+    if (!subsFlag) return;
+    const turningOn = !subsFlag.enabled;
+    const ok = await confirm({
+      title: turningOn ? "Turn subscriptions ON?" : "Turn subscriptions OFF?",
+      tone: turningOn ? "mint" : "danger",
+      confirmLabel: turningOn ? "Turn on gating" : "Make everything free",
+      message: turningOn ? (
+        <>
+          Free users will be capped at <strong>50 cards</strong> and shown the
+          upgrade paywall. Existing Pro members are unaffected.
+        </>
+      ) : (
+        <>
+          <strong>Everyone</strong> becomes Pro immediately — no card limit, no
+          paywall. Use this if billing misbehaves with real users.
+        </>
+      ),
+    });
+    if (!ok) return;
+    update.mutate(
+      { id: subsFlag.id, input: { enabled: turningOn } },
+      {
+        onSuccess: () =>
+          notify.success(
+            turningOn
+              ? "Subscriptions are ON — free-tier gating is live."
+              : "Subscriptions are OFF — everyone is Pro.",
+          ),
+        onError: () => notify.error("Couldn't update — please try again."),
+      },
+    );
+  }
 
   const [open, setOpen] = useState(false);
   const [removing, setRemoving] = useState<FeatureFlag | null>(null);
   const [form, setForm] = useState({ key: "", label: "", description: "", enabled: false });
   const canCreate = form.key.trim() !== "" && form.label.trim() !== "" && !create.isPending;
+
+  // Generic flag toggle — confirm, since flipping a flag changes the app for
+  // every user. (The subscriptions kill switch has its own handler above.)
+  async function toggleFlag(f: FeatureFlag) {
+    const turningOn = !f.enabled;
+    const ok = await confirm({
+      title: `${turningOn ? "Enable" : "Disable"} “${f.label}”?`,
+      tone: turningOn ? "default" : "danger",
+      confirmLabel: turningOn ? "Enable" : "Disable",
+      message: (
+        <>
+          This {turningOn ? "shows" : "hides"} <code>{f.key}</code> for{" "}
+          <strong>all users</strong> on web and mobile, immediately.
+        </>
+      ),
+    });
+    if (!ok) return;
+    update.mutate(
+      { id: f.id, input: { enabled: turningOn } },
+      {
+        onSuccess: () => notify.success(`“${f.label}” ${turningOn ? "enabled" : "disabled"}.`),
+        onError: () => notify.error("Couldn't update — please try again."),
+      },
+    );
+  }
 
   const submit = () => {
     if (!canCreate) return;
@@ -75,7 +137,7 @@ export function AdminFlags() {
             className={styles.switch}
             data-on={subsFlag.enabled || undefined}
             disabled={update.isPending}
-            onClick={() => update.mutate({ id: subsFlag.id, input: { enabled: !subsFlag.enabled } })}
+            onClick={toggleSubscriptions}
           >
             <span className={styles.switch__dot} />
           </button>
@@ -125,7 +187,7 @@ export function AdminFlags() {
                   className={styles.switch}
                   data-on={f.enabled || undefined}
                   disabled={update.isPending}
-                  onClick={() => update.mutate({ id: f.id, input: { enabled: !f.enabled } })}
+                  onClick={() => toggleFlag(f)}
                 >
                   <span className={styles.switch__dot} />
                 </button>

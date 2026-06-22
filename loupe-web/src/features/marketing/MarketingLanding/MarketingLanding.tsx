@@ -26,6 +26,7 @@ import {
 import { AuroraField, Logo } from "@/assets";
 import { DeviceReveal } from "../DeviceReveal/DeviceReveal";
 import { TrendingCarousels } from "../TrendingCarousels/TrendingCarousels";
+import { Pricing } from "../Pricing/Pricing";
 import { useMixedTrending } from "@/hooks/useMixedTrending";
 import { formatMoney } from "@/lib/format";
 import { cx } from "@/lib/cx";
@@ -217,6 +218,8 @@ export function MarketingLanding() {
       <DeviceReveal />
 
       <TrendingCarousels />
+
+      <Pricing />
 
       <section className={styles.cta}>
         <h2>

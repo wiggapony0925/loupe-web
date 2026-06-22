@@ -22,10 +22,15 @@ import type {
   ApplicationStatusUpdateInput,
   ApplicationSubmitted,
   ApplicationTrack,
+  Announcement,
+  AnnouncementUpdate,
   BillingConfig,
   CheckoutResult,
   Entitlements,
+  PlanConfigUpdate,
   PortalSession,
+  SiteConfig,
+  SubscribeResult,
   ApplyInput,
   BlogPost,
   BlogPostInput,
@@ -425,6 +430,19 @@ export const useStartCheckout = (
 export const useBillingPortal = (
   options?: Omit<UseMutationOptions<PortalSession, ApiError, void>, "mutationFn">,
 ) => useApiMutation<PortalSession, void>(() => api.me.billingPortal(), options);
+
+/** Create a subscription for the in-app Payment Element (returns a client
+ *  secret to confirm). The webhook grants the plan once payment succeeds. */
+export const useSubscribe = (
+  options?: Omit<
+    UseMutationOptions<SubscribeResult, ApiError, "monthly" | "yearly">,
+    "mutationFn"
+  >,
+) =>
+  useApiMutation<SubscribeResult, "monthly" | "yearly">(
+    (interval) => api.me.subscribe(interval),
+    options,
+  );
 
 /** Sign-in mutation. */
 export const useLogin = () =>
@@ -1149,6 +1167,67 @@ export const useAdminFlags = (enabled = true) =>
   useApiQuery<FeatureFlag[]>(["admin-flags"], api.admin.flags.list, {
     enabled,
   });
+
+// ── Site config (admin-tunable plan shape + announcement) ──
+
+/** Public announcement banner — what every client polls + renders. */
+export const useAnnouncement = () =>
+  useApiQuery<Announcement>(["announcement"], api.announcement, {
+    staleTime: 60_000,
+  });
+
+/** The live site config (admin view) — Pro plan shape + announcement. */
+export const useAdminSiteConfig = (enabled = true) =>
+  useApiQuery<SiteConfig>(["admin-site-config"], api.admin.config.get, {
+    enabled,
+  });
+
+function invalidateSiteConfig(qc: ReturnType<typeof useQueryClient>) {
+  void qc.invalidateQueries({ queryKey: ["admin-site-config"] });
+  void qc.invalidateQueries({ queryKey: ["announcement"] });
+  // Changing the plan shape changes everyone's entitlements.
+  void qc.invalidateQueries({ queryKey: ["entitlements"] });
+}
+
+/** Update the Pro plan shape (limits + per-feature gating). */
+export const useUpdatePlanConfig = (
+  options?: Omit<
+    UseMutationOptions<SiteConfig, ApiError, PlanConfigUpdate>,
+    "mutationFn"
+  >,
+) => {
+  const qc = useQueryClient();
+  return useApiMutation<SiteConfig, PlanConfigUpdate>(
+    (input) => api.admin.config.updatePlan(input),
+    {
+      ...options,
+      onSuccess: (...a) => {
+        invalidateSiteConfig(qc);
+        options?.onSuccess?.(...a);
+      },
+    },
+  );
+};
+
+/** Update the global announcement banner. */
+export const useUpdateAnnouncement = (
+  options?: Omit<
+    UseMutationOptions<SiteConfig, ApiError, AnnouncementUpdate>,
+    "mutationFn"
+  >,
+) => {
+  const qc = useQueryClient();
+  return useApiMutation<SiteConfig, AnnouncementUpdate>(
+    (input) => api.admin.config.updateAnnouncement(input),
+    {
+      ...options,
+      onSuccess: (...a) => {
+        invalidateSiteConfig(qc);
+        options?.onSuccess?.(...a);
+      },
+    },
+  );
+};
 
 function invalidateFlags(qc: ReturnType<typeof useQueryClient>) {
   void qc.invalidateQueries({ queryKey: ["admin-flags"] });

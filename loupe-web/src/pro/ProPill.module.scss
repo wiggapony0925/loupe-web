@@ -9,6 +9,12 @@
   letter-spacing: 0.05em;
   color: var(--on-accent);
   background: var(--accent-mint);
+
+  // Free-trial members get an amber marker so "trial" reads at a glance.
+  &[data-trial] {
+    color: #2a1a00;
+    background: var(--accent-amber);
+  }
 }
 
 .upgrade {

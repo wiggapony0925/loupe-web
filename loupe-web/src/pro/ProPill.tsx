@@ -11,14 +11,18 @@ import styles from "./ProPill.module.scss";
  *   dangling CTA, no confusion.
  */
 export function ProPill() {
-  const { subscriptionsEnabled, isPro, openPaywall } = usePro();
+  const { subscriptionsEnabled, isPro, trialing, openPaywall } = usePro();
 
   if (!subscriptionsEnabled) return null;
 
   if (isPro) {
     return (
-      <span className={styles.badge} title="Loupe Pro member">
-        <Sparkles size={12} /> PRO
+      <span
+        className={styles.badge}
+        data-trial={trialing || undefined}
+        title={trialing ? "Loupe Pro — free trial" : "Loupe Pro member"}
+      >
+        <Sparkles size={12} /> {trialing ? "TRIAL" : "PRO"}
       </span>
     );
   }

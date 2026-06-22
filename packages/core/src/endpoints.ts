@@ -18,6 +18,7 @@ export const ENDPOINTS = {
     entitlements: `${V1}/me/entitlements`,
     billingConfig: `${V1}/me/billing/config`,
     billingCheckout: `${V1}/me/billing/checkout`,
+    billingSubscribe: `${V1}/me/billing/subscribe`,
     billingPortal: `${V1}/me/billing/portal`,
   },
   home: { feed: `${V1}/home/feed` },
@@ -166,6 +167,8 @@ export const ENDPOINTS = {
   },
   /** Public feature-flag map (no auth) — clients gate UI on this. */
   flags: `${V1}/flags`,
+  /** Public global announcement banner (no auth). */
+  announcement: `${V1}/announcement`,
   /** Admin developer-portal surface (requires an admin user). */
   admin: {
     metrics: `${V1}/admin/metrics`,
@@ -176,6 +179,9 @@ export const ENDPOINTS = {
     applicationStatus: (id: string) => `${V1}/admin/applications/${id}/status`,
     blog: `${V1}/admin/blog`,
     blogPost: (id: string) => `${V1}/admin/blog/${id}`,
+    config: `${V1}/admin/config`,
+    configPlan: `${V1}/admin/config/plan`,
+    configAnnouncement: `${V1}/admin/config/announcement`,
     users: `${V1}/admin/users`,
     userTest: `${V1}/admin/users/test`,
     userRole: (id: string) => `${V1}/admin/users/${id}/role`,
