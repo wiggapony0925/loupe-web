@@ -12,7 +12,14 @@ export const ENDPOINTS = {
     refresh: `${V1}/auth/refresh`,
     logout: `${V1}/auth/logout`,
   },
-  me: { root: `${V1}/me`, settings: `${V1}/me/settings` },
+  me: {
+    root: `${V1}/me`,
+    settings: `${V1}/me/settings`,
+    entitlements: `${V1}/me/entitlements`,
+    billingConfig: `${V1}/me/billing/config`,
+    billingCheckout: `${V1}/me/billing/checkout`,
+    billingPortal: `${V1}/me/billing/portal`,
+  },
   home: { feed: `${V1}/home/feed` },
   analytics: { overview: `${V1}/analytics/overview` },
   /** Auto-generated monthly/yearly PDF portfolio statements. */
@@ -172,6 +179,7 @@ export const ENDPOINTS = {
     users: `${V1}/admin/users`,
     userTest: `${V1}/admin/users/test`,
     userRole: (id: string) => `${V1}/admin/users/${id}/role`,
+    userPlan: (id: string) => `${V1}/admin/users/${id}/plan`,
     userBan: (id: string) => `${V1}/admin/users/${id}/ban`,
     userUnban: (id: string) => `${V1}/admin/users/${id}/unban`,
     user: (id: string) => `${V1}/admin/users/${id}`,

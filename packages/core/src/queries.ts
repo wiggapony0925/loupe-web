@@ -22,6 +22,10 @@ import type {
   ApplicationStatusUpdateInput,
   ApplicationSubmitted,
   ApplicationTrack,
+  BillingConfig,
+  CheckoutResult,
+  Entitlements,
+  PortalSession,
   ApplyInput,
   BlogPost,
   BlogPostInput,
@@ -388,6 +392,39 @@ export const useCard = (id: string) =>
 /** Current user — enable once a token is present. */
 export const useMe = (enabled: boolean) =>
   useApiQuery<User>(["me"], api.me.get, { enabled, retry: false });
+
+/** The signed-in user's effective Loupe Pro entitlements (plan, limits, gates).
+ *  The single source of truth the UI gates on — honours the kill switch. */
+export const useEntitlements = (enabled: boolean) =>
+  useApiQuery<Entitlements>(["entitlements"], api.me.entitlements, {
+    enabled,
+    staleTime: 60_000,
+  });
+
+/** Pro pricing + whether real Stripe checkout is live (for the paywall). */
+export const useBillingConfig = (enabled = true) =>
+  useApiQuery<BillingConfig>(["billing-config"], api.me.billingConfig, {
+    enabled,
+    staleTime: 300_000,
+  });
+
+/** Start a Loupe Pro checkout — resolves to a checkout URL or a
+ *  "launching soon" notice while Stripe isn't wired yet. */
+export const useStartCheckout = (
+  options?: Omit<
+    UseMutationOptions<CheckoutResult, ApiError, "monthly" | "yearly">,
+    "mutationFn"
+  >,
+) =>
+  useApiMutation<CheckoutResult, "monthly" | "yearly">(
+    (interval) => api.me.startCheckout(interval),
+    options,
+  );
+
+/** Open the Stripe customer portal so a Pro member can manage or cancel. */
+export const useBillingPortal = (
+  options?: Omit<UseMutationOptions<PortalSession, ApiError, void>, "mutationFn">,
+) => useApiMutation<PortalSession, void>(() => api.me.billingPortal(), options);
 
 /** Sign-in mutation. */
 export const useLogin = () =>
@@ -971,6 +1008,27 @@ export const useSetUserRole = (
       ...options,
       onSuccess: (...a) => {
         invalidateUsers(qc);
+        options?.onSuccess?.(...a);
+      },
+    },
+  );
+};
+
+/** Comp a user to Loupe Pro (or back to free). Refreshes their entitlements. */
+export const useSetUserPlan = (
+  options?: Omit<
+    UseMutationOptions<AdminUser, ApiError, { id: string; plan: "free" | "pro" }>,
+    "mutationFn"
+  >,
+) => {
+  const qc = useQueryClient();
+  return useApiMutation<AdminUser, { id: string; plan: "free" | "pro" }>(
+    ({ id, plan }) => api.admin.users.setPlan(id, plan),
+    {
+      ...options,
+      onSuccess: (...a) => {
+        invalidateUsers(qc);
+        void qc.invalidateQueries({ queryKey: ["entitlements"] });
         options?.onSuccess?.(...a);
       },
     },

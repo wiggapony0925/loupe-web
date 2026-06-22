@@ -108,6 +108,9 @@ export function PublicLayout() {
         <Link to="/sealed" className={styles["public__nav-item"]}>
           Sealed
         </Link>
+        <Link to="/grade" className={styles["public__nav-item"]}>
+          Grade
+        </Link>
         <Link to="/scanner" className={styles["public__nav-item"]}>
           Scanner
         </Link>

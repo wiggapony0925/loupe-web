@@ -1,9 +1,10 @@
 import type { ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
-import { LogOut } from "lucide-react";
+import { LogOut, Sparkles } from "lucide-react";
 import { Panel, SegmentedControl, ThemeToggle, Badge, Button } from "@/components";
 import { useUiStore, type SidebarSide } from "@/stores/uiStore";
 import { useAuth } from "@/auth/AuthProvider";
+import { usePro } from "@/pro";
 import { cx } from "@/lib/cx";
 import styles from "./Settings.module.scss";
 
@@ -17,6 +18,7 @@ export function Settings() {
   const setSide = useUiStore((s) => s.setSidebarSide);
   const collapsed = useUiStore((s) => s.sidebarCollapsed);
   const setCollapsed = useUiStore((s) => s.setSidebarCollapsed);
+  const { subscriptionsEnabled, isPro, openPaywall, manageBilling, billingBusy } = usePro();
 
   return (
     <div className={styles.page}>
@@ -24,6 +26,44 @@ export function Settings() {
         <p className={styles.eyebrow}>Account &amp; app</p>
         <h1 className={styles.title}>Settings</h1>
       </header>
+
+      {subscriptionsEnabled && (
+        <Panel padding="lg">
+          <Row
+            title="Loupe Pro"
+            desc={
+              isPro
+                ? "You're a Pro member — unlimited cards, scanner auto-import, full analytics, and statements."
+                : "Unlock unlimited cards, scanner auto-import, deep analytics, and tax/insurance statements."
+            }
+          >
+            {isPro ? (
+              <div className={styles.proControls}>
+                <Badge tone="mint" dot>
+                  Pro
+                </Badge>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  disabled={billingBusy}
+                  onClick={manageBilling}
+                >
+                  {billingBusy ? "Opening…" : "Manage"}
+                </Button>
+              </div>
+            ) : (
+              <Button
+                variant="primary"
+                size="sm"
+                leadingIcon={<Sparkles size={16} />}
+                onClick={() => openPaywall("generic")}
+              >
+                Upgrade
+              </Button>
+            )}
+          </Row>
+        </Panel>
+      )}
 
       <Panel padding="lg">
         <Row title="Account" desc={user?.email ?? "Signed in"}>

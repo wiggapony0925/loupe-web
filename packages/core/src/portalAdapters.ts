@@ -317,6 +317,8 @@ interface RawAdminUser {
   banned_at?: string | null;
   ban_reason?: string | null;
   deleted: boolean;
+  plan?: string;
+  pro_expires_at?: string | null;
 }
 
 export function toAdminUser(r: RawAdminUser): AdminUser {
@@ -332,6 +334,8 @@ export function toAdminUser(r: RawAdminUser): AdminUser {
     bannedAt: r.banned_at ?? null,
     banReason: r.ban_reason ?? null,
     deleted: Boolean(r.deleted),
+    plan: r.plan ?? "free",
+    proExpiresAt: r.pro_expires_at ?? null,
   };
 }
 

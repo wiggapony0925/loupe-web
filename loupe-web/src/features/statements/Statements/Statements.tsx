@@ -10,6 +10,7 @@ import {
   type UserReport,
 } from "@loupe/core";
 import { Panel, Button, Badge, Skeleton, NoteCard } from "@/components";
+import { usePro } from "@/pro";
 import styles from "./Statements.module.scss";
 
 const MONTHS = [
@@ -63,13 +64,59 @@ const STATUS: Record<UserReport["status"], { tone: "mint" | "amber" | "rose"; la
  * accounts. Mirrors the mobile Reports tab; reuses the shared components.
  */
 export function Statements() {
-  const reports = useReports();
-  const upcoming = useUpcomingReports();
+  const { gatingActive, openPaywall } = usePro();
+  const reports = useReports(!gatingActive);
+  const upcoming = useUpcomingReports(!gatingActive);
   const generate = useGenerateReport();
   const [busyId, setBusyId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const rows = reports.data ?? [];
+
+  // Tax/insurance statements are a Loupe Pro feature. Free users (when gating
+  // is on) get an aspirational locked state instead of the archive.
+  if (gatingActive) {
+    return (
+      <div className={styles.page}>
+        <header className={styles.head}>
+          <div>
+            <p className={styles.eyebrow}>Documents</p>
+            <h1 className={styles.title}>Statements</h1>
+          </div>
+          <Button
+            variant="primary"
+            leadingIcon={<Sparkles size={16} />}
+            onClick={() => openPaywall("statements")}
+          >
+            Upgrade to Pro
+          </Button>
+        </header>
+        <p className={styles.lede}>
+          Loupe Pro closes a PDF statement of your collection every month —
+          value, holdings, movers, and grade quality — archived forever, like a
+          brokerage account. Perfect for insurance underwriting and capital-gains
+          reporting.
+        </p>
+        <Panel padding="lg" raised className={styles.empty}>
+          <span className={styles.emptyIcon} aria-hidden>
+            <FileText size={22} />
+          </span>
+          <h3 className={styles.emptyTitle}>Statements are a Pro feature</h3>
+          <p className={styles.emptyText}>
+            Upgrade to Loupe Pro to unlock one-tap tax &amp; insurance statements
+            for your entire vault.
+          </p>
+          <Button
+            variant="primary"
+            leadingIcon={<Sparkles size={16} />}
+            onClick={() => openPaywall("statements")}
+          >
+            Upgrade to Pro
+          </Button>
+        </Panel>
+      </div>
+    );
+  }
 
   async function download(r: UserReport) {
     if (r.status !== "ready") return;

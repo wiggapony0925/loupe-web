@@ -1,0 +1,155 @@
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  flex-wrap: wrap;
+}
+.legend {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--ink-dim);
+}
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  &--outer {
+    background: var(--accent-mint);
+  }
+  &--inner {
+    background: #f3b03e;
+  }
+}
+.spacer {
+  flex: 1;
+}
+.zoomLabel {
+  font-size: var(--text-xs);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+.zoom {
+  min-width: 38px;
+  height: 30px;
+  padding: 0 var(--space-sm);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line);
+  background: var(--bg-elevated);
+  color: var(--ink-dim);
+  font-weight: 700;
+  font-size: var(--text-sm);
+
+  &--on {
+    border-color: var(--accent-mint);
+    color: var(--ink);
+    background: color-mix(in srgb, var(--accent-mint) 14%, var(--bg-elevated));
+  }
+}
+
+.stage {
+  position: relative;
+  width: 100%;
+  margin-inline: auto; // aspect-ratio + max-width set inline from the image
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius-lg);
+  background: repeating-conic-gradient(
+      var(--bg-sunken) 0% 25%,
+      var(--bg-elevated) 0% 50%
+    )
+    50% / 24px 24px;
+  border: 1px solid var(--line);
+  overflow: hidden;
+  touch-action: none;
+  user-select: none;
+}
+.img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+/* Adjustable measurement frames. */
+.frame {
+  position: absolute;
+  pointer-events: none; // only the edges are interactive
+
+  &--outer {
+    border: 1.5px solid var(--accent-mint);
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent-mint) 40%, transparent);
+  }
+  &--inner {
+    border: 1.5px dashed #f3b03e;
+  }
+}
+.edge {
+  position: absolute;
+  pointer-events: auto;
+  touch-action: none;
+
+  &--top,
+  &--bottom {
+    left: 0;
+    right: 0;
+    height: 16px;
+    cursor: ns-resize;
+  }
+  &--top {
+    top: -8px;
+  }
+  &--bottom {
+    bottom: -8px;
+  }
+  &--left,
+  &--right {
+    top: 0;
+    bottom: 0;
+    width: 16px;
+    cursor: ew-resize;
+  }
+  &--left {
+    left: -8px;
+  }
+  &--right {
+    right: -8px;
+  }
+}
+
+/* Corner loupe. */
+.lens {
+  position: absolute;
+  width: 132px;
+  height: 132px;
+  margin: -66px 0 0 -66px;
+  border-radius: 50%;
+  border: 2px solid var(--bg-base);
+  box-shadow:
+    0 0 0 1.5px var(--accent-mint),
+    var(--shadow-pop);
+  background-repeat: no-repeat;
+  pointer-events: none;
+  z-index: 5;
+}
+
+.hint {
+  font-size: var(--text-sm);
+  color: var(--ink-dim);
+  line-height: 1.5;
+
+  strong {
+    color: var(--ink);
+    font-weight: 700;
+  }
+}

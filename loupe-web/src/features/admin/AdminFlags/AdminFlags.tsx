@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Sparkles, Trash2 } from "lucide-react";
 import {
   useAdminFlags,
   useCreateFlag,
@@ -11,12 +11,21 @@ import { Button, Skeleton, NoteCard, Modal, TextField, IconButton } from "@/comp
 import styles from "./AdminFlags.module.scss";
 import admin from "../admin.module.scss";
 
+/** The Loupe Pro kill switch lives in the normal flag table, but gets its own
+ *  prominent control so it's never toggled by accident. */
+const SUBSCRIPTIONS_KEY = "subscriptions_enabled";
+const SUBSCRIPTIONS_LABEL = "Subscriptions (Loupe Pro)";
+const SUBSCRIPTIONS_DESC =
+  "Master switch for Loupe Pro. Off = everyone is Pro (no card limit, no paywall) — the safe default for testing. On = free-tier limits and the upgrade paywall are active.";
+
 /** Admin: runtime feature flags — toggle pages/components/micro-apps on web + mobile. */
 export function AdminFlags() {
   const { data: flags, isLoading } = useAdminFlags();
   const update = useUpdateFlag();
   const create = useCreateFlag();
   const del = useDeleteFlag();
+
+  const subsFlag = flags?.find((f) => f.key === SUBSCRIPTIONS_KEY);
 
   const [open, setOpen] = useState(false);
   const [removing, setRemoving] = useState<FeatureFlag | null>(null);
@@ -43,6 +52,51 @@ export function AdminFlags() {
         </Button>
       </div>
 
+      {/* ── Loupe Pro kill switch — first-class, hard to fat-finger ── */}
+      <div className={styles.killswitch} data-on={subsFlag?.enabled || undefined}>
+        <span className={styles.killswitch__icon}>
+          <Sparkles size={18} />
+        </span>
+        <div className={styles.killswitch__text}>
+          <span className={styles.killswitch__title}>
+            {SUBSCRIPTIONS_LABEL}
+            <span className={styles.killswitch__state}>
+              {subsFlag?.enabled ? "Live — gating on" : "Off — everything free"}
+            </span>
+          </span>
+          <span className={styles.killswitch__desc}>{SUBSCRIPTIONS_DESC}</span>
+        </div>
+        {subsFlag ? (
+          <button
+            type="button"
+            role="switch"
+            aria-checked={subsFlag.enabled}
+            aria-label="Toggle subscriptions"
+            className={styles.switch}
+            data-on={subsFlag.enabled || undefined}
+            disabled={update.isPending}
+            onClick={() => update.mutate({ id: subsFlag.id, input: { enabled: !subsFlag.enabled } })}
+          >
+            <span className={styles.switch__dot} />
+          </button>
+        ) : (
+          <Button
+            size="sm"
+            disabled={create.isPending}
+            onClick={() =>
+              create.mutate({
+                key: SUBSCRIPTIONS_KEY,
+                label: SUBSCRIPTIONS_LABEL,
+                description: SUBSCRIPTIONS_DESC,
+                enabled: true,
+              })
+            }
+          >
+            {create.isPending ? "Enabling…" : "Enable subscriptions"}
+          </Button>
+        )}
+      </div>
+
       {isLoading ? (
         <div className={admin.list}>
           {Array.from({ length: 4 }).map((_, i) => (
@@ -53,7 +107,9 @@ export function AdminFlags() {
         <NoteCard title="No flags yet" message="Create a flag, then gate UI on it in the apps." />
       ) : (
         <div className={admin.list}>
-          {flags.map((f) => (
+          {flags
+            .filter((f) => f.key !== SUBSCRIPTIONS_KEY)
+            .map((f) => (
             <div key={f.id} className={styles.row}>
               <div className={styles.row__main}>
                 <span className={styles.row__label}>{f.label}</span>

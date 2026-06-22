@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
+  ApiError,
   useAddGrade,
   useDeleteGrade,
   useMarket,
@@ -10,6 +11,7 @@ import {
   type RawCondition,
 } from "@loupe/core";
 import { Button, Modal, SegmentedControl, TextField } from "@/components";
+import { usePro } from "@/pro";
 import { formatMoney } from "@/lib/format";
 import { CONDITIONS, HOUSES } from "../houses";
 import styles from "./CollectionForm.module.scss";
@@ -68,6 +70,7 @@ export function CollectionForm(props: CollectionFormProps) {
   const [removing, setRemoving] = useState(false);
   const estTouched = useRef(isEdit);
 
+  const { openPaywall } = usePro();
   const add = useAddGrade();
   const update = useUpdateGrade();
   const remove = useDeleteGrade();
@@ -135,8 +138,15 @@ export function CollectionForm(props: CollectionFormProps) {
       }
       onSaved?.();
       close();
-    } catch {
-      /* surfaced inline via `error` */
+    } catch (e) {
+      // Free-tier cap reached — turn the 402 into the upgrade paywall rather
+      // than a generic "couldn't save" message.
+      if (e instanceof ApiError && e.status === 402) {
+        close();
+        openPaywall("card_limit");
+        return;
+      }
+      /* otherwise surfaced inline via `error` */
     }
   };
 

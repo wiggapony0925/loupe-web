@@ -55,8 +55,12 @@ import type {
   ApplicationTrack,
   ApplyInput,
   AppleSignInRequest,
+  BillingConfig,
   BlogPost,
   BlogPostInput,
+  CheckoutResult,
+  Entitlements,
+  PortalSession,
   GoogleSignInRequest,
   CardAttributes,
   CardListing,
@@ -579,6 +583,19 @@ export const api = {
   me: {
     /** Current authenticated user. */
     get: () => apiFetch<User>(ENDPOINTS.me.root),
+    /** Effective Loupe Pro entitlements (plan, limits, feature gates). */
+    entitlements: () => apiFetch<Entitlements>(ENDPOINTS.me.entitlements),
+    /** Pricing + whether real Stripe checkout is live yet. */
+    billingConfig: () => apiFetch<BillingConfig>(ENDPOINTS.me.billingConfig),
+    /** Begin a Pro checkout for the chosen interval. */
+    startCheckout: (interval: "monthly" | "yearly") =>
+      apiFetch<CheckoutResult>(ENDPOINTS.me.billingCheckout, {
+        method: "POST",
+        json: { interval },
+      }),
+    /** Open the Stripe customer portal (manage / cancel an active plan). */
+    billingPortal: () =>
+      apiFetch<PortalSession>(ENDPOINTS.me.billingPortal, { method: "POST" }),
   },
   analytics: {
     /** Whole-portfolio analytics in one round-trip (stats, movers, distributions). */
@@ -850,6 +867,14 @@ export const api = {
           await apiFetch(ENDPOINTS.admin.userRole(id), {
             method: "PATCH",
             json: { is_admin: isAdmin },
+          }),
+        ),
+      /** Comp a user to Loupe Pro (or back to free) — testing before Stripe. */
+      setPlan: async (id: string, plan: "free" | "pro"): Promise<AdminUser> =>
+        toAdminUser(
+          await apiFetch(ENDPOINTS.admin.userPlan(id), {
+            method: "PATCH",
+            json: { plan },
           }),
         ),
       ban: async (id: string, reason?: string | null): Promise<AdminUser> =>

@@ -21,6 +21,7 @@ import {
 } from "@/components";
 import { CollectionForm, gradeLabel } from "@/features/collection";
 import { SealedHoldings } from "@/features/public/Sealed";
+import { ProUsageBanner } from "@/pro";
 import { formatMoney } from "@/lib/format";
 import styles from "./Vault.module.scss";
 
@@ -78,6 +79,8 @@ export function Vault() {
         <p className={styles.eyebrow}>Collection</p>
         <h1 className={styles.title}>Your Vault</h1>
       </header>
+
+      <ProUsageBanner />
 
       {stats && (
         <Panel padding="lg" raised className={styles.summary}>

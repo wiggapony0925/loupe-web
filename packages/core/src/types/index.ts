@@ -6,6 +6,7 @@ export * from "./auth.types";
 export * from "./blog.types";
 export * from "./card.types";
 export * from "./careers.types";
+export * from "./entitlements.types";
 export * from "./flags.types";
 export * from "./money.types";
 export * from "./portfolio.types";

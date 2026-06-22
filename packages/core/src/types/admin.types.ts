@@ -32,6 +32,9 @@ export interface AdminUser {
   bannedAt?: string | null;
   banReason?: string | null;
   deleted: boolean;
+  /** Loupe Pro plan — "free" | "pro". Comp from the user drawer. */
+  plan: string;
+  proExpiresAt?: string | null;
 }
 
 export interface AdminUserPage {

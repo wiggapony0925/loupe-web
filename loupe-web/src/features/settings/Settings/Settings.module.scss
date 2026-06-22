@@ -73,3 +73,9 @@
     text-decoration: underline;
   }
 }
+
+.proControls {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}

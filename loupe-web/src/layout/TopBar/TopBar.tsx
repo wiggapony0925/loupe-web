@@ -7,6 +7,7 @@ import { ThemeToggle } from "@/components/ThemeToggle/ThemeToggle";
 import { Tooltip } from "@/components/Tooltip/Tooltip";
 import { SearchCombobox } from "@/components";
 import { ScanButton } from "@/features/scan";
+import { ProPill } from "@/pro";
 import { useAuth } from "@/auth/AuthProvider";
 import styles from "./TopBar.module.scss";
 
@@ -27,9 +28,11 @@ export function TopBar() {
           navigate(`/cards${p.toString() ? `?${p}` : ""}`);
         }}
         onSelectCard={(c) => navigate(`/cards/${encodeURIComponent(c.id)}`)}
+        onSelectSealed={(p) => navigate(`/sealed/${encodeURIComponent(p.id)}`)}
       />
 
       <div className={styles.actions}>
+        <ProPill />
         <ScanButton label="Scan" size="sm" />
         <span className={styles.themeToggle}>
           <ThemeToggle compact />

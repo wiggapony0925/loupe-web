@@ -4,6 +4,7 @@ import { createSyncStoragePersister } from "@tanstack/query-sync-storage-persist
 import { useState, type ReactNode } from "react";
 import { ThemeProvider } from "@/theme";
 import { AuthProvider } from "@/auth/AuthProvider";
+import { ProProvider } from "@/pro";
 import { TooltipProvider } from "@/components";
 
 const DAY_MS = 1000 * 60 * 60 * 24;
@@ -62,7 +63,9 @@ export function AppProviders({ children }: { children: ReactNode }) {
     <PersistQueryClientProvider client={client} persistOptions={persistOptions}>
       <ThemeProvider>
         <AuthProvider>
-          <TooltipProvider delayDuration={250}>{children}</TooltipProvider>
+          <ProProvider>
+            <TooltipProvider delayDuration={250}>{children}</TooltipProvider>
+          </ProProvider>
         </AuthProvider>
       </ThemeProvider>
     </PersistQueryClientProvider>

@@ -1,0 +1,223 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xl);
+}
+
+.head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  max-width: 720px;
+}
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--text-xs);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent-mint);
+}
+.title {
+  font-family: var(--font-serif);
+  font-weight: 600;
+  font-size: clamp(28px, 3.6vw, 42px);
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+  color: var(--ink);
+}
+.sub {
+  font-size: var(--text-md);
+  color: var(--ink-dim);
+  line-height: 1.5;
+}
+
+/* Upload dropzone */
+.drop {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  min-height: 320px;
+  padding: var(--space-2xl);
+  border-radius: var(--radius-xl);
+  border: 2px dashed var(--line-strong);
+  background: var(--bg-elevated);
+  color: var(--ink-dim);
+  cursor: pointer;
+  text-align: center;
+  transition:
+    border-color var(--dur-fast) var(--ease-out),
+    background-color var(--dur-fast) var(--ease-out);
+
+  &:hover {
+    border-color: var(--accent-mint);
+    background: color-mix(in srgb, var(--accent-mint) 6%, var(--bg-elevated));
+  }
+}
+.fileInput {
+  display: none;
+}
+.dropTitle {
+  font-size: var(--text-lg);
+  font-weight: 700;
+  color: var(--ink);
+}
+.dropHint {
+  font-size: var(--text-sm);
+}
+
+/* Two-column working layout */
+.grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 380px);
+  gap: var(--space-xl);
+  align-items: start;
+
+  @include bp-down("lg") {
+    grid-template-columns: 1fr;
+  }
+}
+.canvasPanel {
+  border-radius: var(--radius-xl);
+}
+.canvasActions {
+  margin-top: var(--space-md);
+}
+
+.side {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+}
+
+/* Score panel */
+.scorePanel {
+  border-radius: var(--radius-xl);
+}
+.scoreLabel {
+  font-size: var(--text-xs);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+.scoreRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  margin-top: var(--space-xs);
+}
+.scoreNum {
+  font-size: 52px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  color: var(--ink);
+  @include tabular;
+}
+.verdict {
+  margin-top: var(--space-sm);
+  font-size: var(--text-sm);
+  color: var(--ink-dim);
+}
+.subs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-md);
+  margin-top: var(--space-lg);
+  padding-top: var(--space-lg);
+  border-top: 1px solid var(--line);
+}
+.centeringNote {
+  margin-top: var(--space-md);
+  font-size: var(--text-xs);
+  color: var(--ink-dim);
+  line-height: 1.5;
+}
+
+/* Controls */
+.controls,
+.value {
+  border-radius: var(--radius-xl);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+.controlsTitle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: var(--ink);
+}
+.slider {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  input[type="range"] {
+    width: 100%;
+    accent-color: var(--accent-mint);
+  }
+}
+.sliderHead {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--text-sm);
+  color: var(--ink-dim);
+}
+.sliderVal {
+  font-weight: 700;
+  color: var(--ink);
+  @include tabular;
+}
+.controlsHint,
+.valueHint {
+  font-size: var(--text-xs);
+  color: var(--ink-dim);
+  line-height: 1.5;
+}
+
+/* Value / upside */
+.valueCard {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+}
+.valueName {
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: var(--ink);
+}
+.valueChange {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--accent-mint);
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+.valueRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-md);
+}
+.upside {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-md);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--accent-mint) 10%, var(--bg-elevated));
+  border: 1px solid color-mix(in srgb, var(--accent-mint) 30%, transparent);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--ink);
+}

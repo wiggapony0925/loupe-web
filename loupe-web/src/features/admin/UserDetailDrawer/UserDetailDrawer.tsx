@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { ShieldCheck, ShieldOff, Ban, RotateCcw, Trash2, Wallet, Star, ScanLine, DollarSign } from "lucide-react";
+import { ShieldCheck, ShieldOff, Ban, RotateCcw, Trash2, Wallet, Star, ScanLine, DollarSign, Sparkles } from "lucide-react";
 import {
   useAdminUserDetail,
   useSetUserRole,
+  useSetUserPlan,
   useBanUser,
   useUnbanUser,
   useDeleteUser,
@@ -27,10 +28,13 @@ export function UserDetailDrawer({ userId, open, onOpenChange }: UserDetailDrawe
   const { user: me } = useAuth();
   const { data: u, isLoading } = useAdminUserDetail(userId ?? "", open && Boolean(userId));
   const setRole = useSetUserRole();
+  const setPlan = useSetUserPlan();
   const ban = useBanUser();
   const unban = useUnbanUser();
   const del = useDeleteUser();
-  const busy = setRole.isPending || ban.isPending || unban.isPending || del.isPending;
+  const busy =
+    setRole.isPending || setPlan.isPending || ban.isPending || unban.isPending || del.isPending;
+  const isPro = u?.plan === "pro";
 
   const [confirm, setConfirm] = useState<"ban" | "delete" | null>(null);
   const [reason, setReason] = useState("");
@@ -103,6 +107,7 @@ export function UserDetailDrawer({ userId, open, onOpenChange }: UserDetailDrawe
             <span className={styles.badge} data-tone={u.deleted ? "neutral" : u.banned ? "rose" : "neutral"}>
               {u.deleted ? "Deleted" : u.banned ? "Banned" : "Active"}
             </span>
+            {isPro && <span className={styles.badge} data-tone="mint">Pro</span>}
             {isSelf && <span className={styles.badge} data-tone="neutral">You</span>}
           </div>
 
@@ -128,6 +133,22 @@ export function UserDetailDrawer({ userId, open, onOpenChange }: UserDetailDrawe
               </>
             )}
           </dl>
+
+          {/* Loupe Pro comp — available even for your own/super-admin account
+              so you can grant yourself Pro to test the gated experience. */}
+          {!u.deleted && (
+            <div className={styles.actions}>
+              <Button
+                variant={isPro ? "secondary" : "primary"}
+                size="sm"
+                disabled={busy}
+                leadingIcon={<Sparkles size={15} />}
+                onClick={() => setPlan.mutate({ id: u.id, plan: isPro ? "free" : "pro" })}
+              >
+                {isPro ? "Revoke Pro" : "Comp to Pro"}
+              </Button>
+            </div>
+          )}
 
           {locked ? (
             <p className={styles.lockNote}>
