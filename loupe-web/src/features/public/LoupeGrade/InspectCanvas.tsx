@@ -57,8 +57,9 @@ export function InspectCanvas({ src, outer, inner, onChange, onAutoFit }: Props)
     if (!zone) return;
     const fit = () => {
       const zw = zone.clientWidth;
-      const zh = zone.clientHeight;
-      if (!zw || !zh) return;
+      // Reserve room at the bottom so the floating dock never covers the card.
+      const zh = zone.clientHeight - 96;
+      if (zw <= 0 || zh <= 0) return;
       const w = Math.min(zw, zh * ratio);
       setBox({ w, h: w / ratio });
     };
@@ -144,55 +145,16 @@ export function InspectCanvas({ src, outer, inner, onChange, onAutoFit }: Props)
 
   return (
     <div className={styles.wrap}>
-      <div className={styles.toolbar}>
-        <div className={styles.seg}>
-          <button
-            type="button"
-            className={cx(styles.segBtn, view === "card" && styles["segBtn--on"])}
-            onClick={() => setView("card")}
-          >
-            <Square size={14} /> Card
-          </button>
-          <button
-            type="button"
-            className={cx(
-              styles.segBtn,
-              view === "corners" && styles["segBtn--on"],
-            )}
-            onClick={() => setView("corners")}
-          >
-            <Crosshair size={14} /> Corners
-          </button>
+      {view === "card" && (
+        <div className={styles.legendChip}>
+          <span className={styles.legend}>
+            <span className={cx(styles.dot, styles["dot--outer"])} /> Card edge
+          </span>
+          <span className={styles.legend}>
+            <span className={cx(styles.dot, styles["dot--inner"])} /> Print border
+          </span>
         </div>
-        {view === "card" && (
-          <>
-            <span className={styles.legend}>
-              <span className={cx(styles.dot, styles["dot--outer"])} /> Card edge
-            </span>
-            <span className={styles.legend}>
-              <span className={cx(styles.dot, styles["dot--inner"])} /> Print
-              border
-            </span>
-          </>
-        )}
-        <span className={styles.spacer} />
-        {onAutoFit && (
-          <button type="button" className={styles.autofit} onClick={onAutoFit}>
-            <Wand2 size={14} /> Auto-fit
-          </button>
-        )}
-        <span className={styles.zoomLabel}>Loupe</span>
-        {ZOOMS.map((z) => (
-          <button
-            key={z}
-            type="button"
-            className={cx(styles.zoom, zoom === z && styles["zoom--on"])}
-            onClick={() => setZoom(z)}
-          >
-            {z}×
-          </button>
-        ))}
-      </div>
+      )}
 
       <div ref={zoneRef} className={styles.stageBox}>
         {view === "card" ? (
@@ -255,19 +217,59 @@ export function InspectCanvas({ src, outer, inner, onChange, onAutoFit }: Props)
           </div>
         )}
       </div>
-      <p className={styles.hint}>
-        {view === "card" ? (
+
+      {/* Figma-style floating control dock */}
+      <div className={styles.dock}>
+        <div className={styles.seg}>
+          <button
+            type="button"
+            className={cx(styles.segBtn, view === "card" && styles["segBtn--on"])}
+            onClick={() => setView("card")}
+            title="Card view"
+          >
+            <Square size={14} /> Card
+          </button>
+          <button
+            type="button"
+            className={cx(
+              styles.segBtn,
+              view === "corners" && styles["segBtn--on"],
+            )}
+            onClick={() => setView("corners")}
+            title="4-corner view"
+          >
+            <Crosshair size={14} /> Corners
+          </button>
+        </div>
+
+        <span className={styles.dockDiv} />
+
+        <span className={styles.dockLabel}>Loupe</span>
+        {ZOOMS.map((z) => (
+          <button
+            key={z}
+            type="button"
+            className={cx(styles.zoom, zoom === z && styles["zoom--on"])}
+            onClick={() => setZoom(z)}
+          >
+            {z}×
+          </button>
+        ))}
+
+        {onAutoFit && (
           <>
-            Frames auto-fit to the card — drag the <strong>green</strong> edge or{" "}
-            <strong>amber</strong> print border to fine-tune. Hover to loupe.
-          </>
-        ) : (
-          <>
-            All four corners at {zoom}× — the read for the corner sub-grade.
-            Switch the loupe zoom above.
+            <span className={styles.dockDiv} />
+            <button
+              type="button"
+              className={styles.autofit}
+              onClick={onAutoFit}
+              title="Re-detect the card edges"
+            >
+              <Wand2 size={14} /> Auto-fit
+            </button>
           </>
         )}
-      </p>
+      </div>
     </div>
   );
 }
