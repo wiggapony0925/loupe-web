@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { Check, ExternalLink, Plus } from "lucide-react";
+import { Check, Expand, ExternalLink, Plus } from "lucide-react";
 import {
   useAddSealedHolding,
   useSealedHoldings,
@@ -18,7 +18,9 @@ import {
   NoteCard,
   Skeleton,
 } from "@/components";
+import { Card3DModal } from "../ProductDetail/Card3DModal/Card3DModal";
 import { useAuth } from "@/auth/AuthProvider";
+import { useSetHref } from "@/hooks/useSetHref";
 import { formatMoney } from "@/lib/format";
 import { SEALED_TYPE_LABEL } from "../Sealed/SealedCard/SealedCard";
 import styles from "./SealedDetail.module.scss";
@@ -42,6 +44,8 @@ export function SealedDetail() {
   const add = useAddSealedHolding();
   const { data: holdings } = useSealedHoldings({}, Boolean(user));
   const [justAdded, setJustAdded] = useState(false);
+  const [viewer, setViewer] = useState(false);
+  const setHref = useSetHref(product?.tcg, product?.setName);
 
   if (isLoading) return <SealedDetailSkeleton />;
   if (isError || !product) {
@@ -94,7 +98,12 @@ export function SealedDetail() {
       <nav className={styles.crumbs}>
         <Link to="/sealed">Sealed</Link>
         <span>›</span>
-        {product.setName && <span>{product.setName}</span>}
+        {product.setName &&
+          (setHref ? (
+            <Link to={setHref}>{product.setName}</Link>
+          ) : (
+            <span>{product.setName}</span>
+          ))}
         {product.setName && <span>›</span>}
         <span className={styles.crumbsCurrent}>{typeLabel}</span>
       </nav>
@@ -102,13 +111,23 @@ export function SealedDetail() {
       <div className={styles.hero}>
         <Panel padding="lg" className={styles.art}>
           {product.imageUrl ? (
-            <div className={styles.photo}>
-              <img
-                src={product.imageUrl}
-                alt={product.name}
-                className={styles.photoImg}
-              />
-            </div>
+            <>
+              <div className={styles.photo}>
+                <img
+                  src={product.imageUrl}
+                  alt={product.name}
+                  className={styles.photoImg}
+                />
+              </div>
+              <button
+                type="button"
+                className={styles.expand}
+                onClick={() => setViewer(true)}
+                aria-label="Expand product image"
+              >
+                <Expand size={16} />
+              </button>
+            </>
           ) : (
             <MediaPlaceholder kind="sealed" label={product.setName ?? undefined} />
           )}
@@ -117,7 +136,14 @@ export function SealedDetail() {
         <div className={styles.info}>
           <span className={styles.eyebrow}>
             <Badge tone="mint">{typeLabel}</Badge>
-            {product.setName}
+            {product.setName &&
+              (setHref ? (
+                <Link to={setHref} className={styles.setLink}>
+                  {product.setName}
+                </Link>
+              ) : (
+                product.setName
+              ))}
           </span>
           <h1 className={styles.name}>{product.name}</h1>
 
@@ -209,6 +235,17 @@ export function SealedDetail() {
           />
         </div>
       </section>
+
+      {product.imageUrl && (
+        <Card3DModal
+          open={viewer}
+          onOpenChange={setViewer}
+          src={product.imageUrl}
+          alt={product.name}
+          title={product.name}
+          subtitle={[product.setName, typeLabel].filter(Boolean).join(" · ")}
+        />
+      )}
     </div>
   );
 }

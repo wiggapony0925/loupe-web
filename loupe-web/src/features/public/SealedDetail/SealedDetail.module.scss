@@ -32,7 +32,32 @@
 }
 
 .art {
+  position: relative;
   border-radius: var(--radius-xl);
+}
+
+.expand {
+  position: absolute;
+  top: calc(var(--space-lg) + 8px);
+  right: calc(var(--space-lg) + 8px);
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius-md);
+  color: var(--ink);
+  background: color-mix(in srgb, var(--bg-base) 80%, transparent);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  border: 1px solid var(--line);
+  transition:
+    background-color var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out);
+
+  &:hover {
+    background: var(--bg-elevated);
+    border-color: var(--line-strong);
+  }
 }
 
 /* White product field — matches the tile treatment. */
@@ -65,6 +90,16 @@
   font-size: var(--text-sm);
   font-weight: 600;
   color: var(--ink-dim);
+}
+
+.setLink {
+  color: var(--ink-dim);
+  font-weight: 600;
+
+  &:hover {
+    color: var(--accent-mint);
+    text-decoration: underline;
+  }
 }
 
 .name {

@@ -9,6 +9,7 @@ import {
   usePriceHistory,
   useValuation,
   useCardSnapshot,
+  useCardAttributes,
   CARD_CHART_RANGE_TO_BACKEND,
   type GradePrice,
   type Money,
@@ -39,6 +40,7 @@ import { buildComparePresets } from "./compareTiers";
 import { WatchlistButton } from "../WatchlistButton/WatchlistButton";
 import { PriceAlertButton } from "../PriceAlertButton/PriceAlertButton";
 import { AddToCollectionButton } from "@/features/collection";
+import { useSetHref } from "@/hooks/useSetHref";
 import { formatMoney } from "@/lib/format";
 import styles from "./ProductDetail.module.scss";
 
@@ -108,6 +110,8 @@ export function ProductDetail() {
   const { data: quotes } = useMarketplacePrices(id);
   const { data: valuation } = useValuation(id);
   const { data: snapshot } = useCardSnapshot(id);
+  const { data: attributes } = useCardAttributes(id);
+  const setHref = useSetHref(attributes?.tcg, card?.setName);
   const [tier, setTier] = useState<PriceTier>({ house: "raw" });
   const [compareKeys, setCompareKeys] = useState<string[]>([]);
   const [viewer, setViewer] = useState(false);
@@ -189,7 +193,12 @@ export function ProductDetail() {
       <nav className={styles.product__crumbs}>
         <Link to="/cards">All Cards</Link>
         <span>›</span>
-        <span>{card.setName}</span>
+        {card.setName &&
+          (setHref ? (
+            <Link to={setHref}>{card.setName}</Link>
+          ) : (
+            <span>{card.setName}</span>
+          ))}
         <span>›</span>
         <span className={styles["product__crumbs-current"]}>{card.name}</span>
       </nav>
