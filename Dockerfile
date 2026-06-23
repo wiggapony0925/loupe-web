@@ -6,6 +6,7 @@ WORKDIR /app
 # workspace symlinks intact (root lockfile drives all workspaces).
 COPY package.json package-lock.json ./
 COPY packages/core/package.json ./packages/core/package.json
+COPY packages/chart/package.json ./packages/chart/package.json
 COPY loupe-web/package.json ./loupe-web/package.json
 RUN npm ci
 

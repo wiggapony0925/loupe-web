@@ -8,25 +8,23 @@ import {
   type CSSProperties,
   type PointerEvent as ReactPointerEvent,
 } from "react";
+import {
+  computeAvailableRanges,
+  computeChartGeometry,
+  DAY,
+  nearestIndexByT,
+  normalizeSeries,
+  RANGE_LABEL,
+} from "@loupe/chart";
+import type { ChartPoint, ChartSeries, RangeKey } from "@loupe/chart";
 import { cx } from "@/lib/cx";
 import { RangePills } from "./RangePills/RangePills";
 import styles from "./MarketChart.module.scss";
 
-export interface ChartPoint {
-  /** Epoch ms. */
-  t: number;
-  v: number;
-}
-
-export interface ChartSeries {
-  id: string;
-  label?: string;
-  /** CSS color; falls back to the dynamic accent / palette. */
-  color?: string;
-  points: ChartPoint[];
-}
-
-export type RangeKey = "1D" | "1W" | "1M" | "3M" | "6M" | "1Y" | "ALL";
+// The chart math now lives in the framework-agnostic `@loupe/chart` package
+// so the mobile app (react-native-svg) renders the *same* geometry. Re-export
+// the shared types so existing `@/components/MarketChart` imports keep working.
+export type { ChartPoint, ChartSeries, RangeKey };
 
 export interface MarketChartProps {
   series: ChartSeries[];
@@ -52,26 +50,6 @@ export interface MarketChartProps {
   onRangeChange?: (r: RangeKey) => void;
 }
 
-const RANGE_DAYS: Record<RangeKey, number> = {
-  "1D": 1,
-  "1W": 7,
-  "1M": 30,
-  "3M": 90,
-  "6M": 182,
-  "1Y": 365,
-  ALL: Infinity,
-};
-/** Friendly resting subtitle per range (e.g. "Past week", "All time"). */
-const RANGE_LABEL: Record<RangeKey, string> = {
-  "1D": "Today",
-  "1W": "Past week",
-  "1M": "Past month",
-  "3M": "Past 3 months",
-  "6M": "Past 6 months",
-  "1Y": "Past year",
-  ALL: "All time",
-};
-const DAY = 86_400_000;
 const PALETTE = [
   "var(--accent-blue)",
   "var(--accent-purple, #8b5cf6)",
@@ -104,49 +82,13 @@ function useElementWidth(ref: React.RefObject<HTMLElement | null>) {
   return w;
 }
 
-/** Catmull-Rom → cubic-bezier path for smooth, non-overshooting lines. */
-function buildLine(
-  pts: ReadonlyArray<readonly [number, number]>,
-  smooth: boolean,
-): string {
-  if (pts.length === 0) return "";
-  if (pts.length < 3 || !smooth)
-    return pts.map((p, i) => `${i ? "L" : "M"}${p[0]} ${p[1]}`).join(" ");
-  const at = (i: number) => pts[Math.min(Math.max(i, 0), pts.length - 1)]!;
-  let d = `M${at(0)[0]} ${at(0)[1]}`;
-  for (let i = 0; i < pts.length - 1; i++) {
-    const p0 = at(i - 1);
-    const p1 = at(i);
-    const p2 = at(i + 1);
-    const p3 = at(i + 2);
-    const c1x = p1[0] + (p2[0] - p0[0]) / 6;
-    const c1y = p1[1] + (p2[1] - p0[1]) / 6;
-    const c2x = p2[0] - (p3[0] - p1[0]) / 6;
-    const c2y = p2[1] - (p3[1] - p1[1]) / 6;
-    d += ` C${c1x.toFixed(2)} ${c1y.toFixed(2)} ${c2x.toFixed(2)} ${c2y.toFixed(2)} ${p2[0].toFixed(2)} ${p2[1].toFixed(2)}`;
-  }
-  return d;
-}
-
-function nearestIndexByT(pts: ChartPoint[], t: number) {
-  let best = 0;
-  let bestD = Infinity;
-  for (let i = 0; i < pts.length; i++) {
-    const pt = pts[i];
-    if (!pt) continue;
-    const d = Math.abs(pt.t - t);
-    if (d < bestD) {
-      bestD = d;
-      best = i;
-    }
-  }
-  return best;
-}
-
 /**
  * Custom interactive financial chart — the reusable primitive behind every
  * price/market surface. Built on SVG + pointer events (no chart lib): crosshair
  * scrubbing, color-by-change, gridlines, axis labels, draw-in animation, multi-series.
+ *
+ * The geometry (path building, scales, range slicing) comes from the shared
+ * `@loupe/chart` package; this file is just the web (SVG + pointer) renderer.
  */
 export function MarketChart({
   series,
@@ -171,39 +113,12 @@ export function MarketChart({
   const [active, setActive] = useState<number | null>(null);
 
   // Normalize: ensure finite, ascending timestamps (fall back to index spacing).
-  const norm = useMemo<ChartSeries[]>(
-    () =>
-      series.map((s) => {
-        const ok =
-          s.points.length > 1 && s.points.every((p) => Number.isFinite(p.t));
-        const pts = ok
-          ? [...s.points].sort((a, b) => a.t - b.t)
-          : s.points.map((p, i) => ({ t: i * DAY, v: p.v }));
-        return { ...s, points: pts };
-      }),
-    [series],
+  const norm = useMemo<ChartSeries[]>(() => normalizeSeries(series), [series]);
+
+  const availableRanges = useMemo(
+    () => computeAvailableRanges({ normalized: norm, ranges, controlled }),
+    [norm, ranges, controlled],
   );
-
-  const fullSpanDays = useMemo(() => {
-    let lo = Infinity;
-    let hi = -Infinity;
-    for (const s of norm)
-      for (const p of s.points) {
-        if (p.t < lo) lo = p.t;
-        if (p.t > hi) hi = p.t;
-      }
-    return hi > lo ? (hi - lo) / DAY : 0;
-  }, [norm]);
-
-  const availableRanges = useMemo(() => {
-    // Controlled: the host owns the range set + data; show pills verbatim.
-    if (controlled) return ranges.length ? ranges : (["ALL"] as RangeKey[]);
-    const list = ranges.filter(
-      (r) => r === "ALL" || RANGE_DAYS[r] < fullSpanDays * 0.98,
-    );
-    if (!list.includes("ALL")) list.push("ALL");
-    return list.length ? list : (["ALL"] as RangeKey[]);
-  }, [controlled, ranges, fullSpanDays]);
 
   const effectiveRange: RangeKey = controlled
     ? range
@@ -211,63 +126,22 @@ export function MarketChart({
         ? range
         : availableRanges[availableRanges.length - 1]) ?? "ALL");
 
-  // Slice to range, compute domain + pixel geometry.
-  const geo = useMemo(() => {
-    const innerW = Math.max(1, width - PAD.right);
-    const innerH = Math.max(1, height - PAD.top - PAD.bottom);
-
-    let tMax = -Infinity;
-    for (const s of norm) for (const p of s.points) if (p.t > tMax) tMax = p.t;
-    // Controlled mode: data is already the right window — never slice.
-    const cutoff =
-      controlled || effectiveRange === "ALL"
-        ? -Infinity
-        : tMax - RANGE_DAYS[effectiveRange] * DAY;
-
-    const sliced = norm.map((s) => {
-      let pts = s.points.filter((p) => p.t >= cutoff);
-      if (pts.length < 2) pts = s.points.slice(-2);
-      return { ...s, points: pts };
-    });
-
-    let tMin = Infinity;
-    let tHi = -Infinity;
-    let vMin = Infinity;
-    let vMax = -Infinity;
-    for (const s of sliced)
-      for (const p of s.points) {
-        if (p.t < tMin) tMin = p.t;
-        if (p.t > tHi) tHi = p.t;
-        if (p.v < vMin) vMin = p.v;
-        if (p.v > vMax) vMax = p.v;
-      }
-    const vPad = (vMax - vMin || Math.abs(vMax) || 1) * 0.08;
-    vMin -= vPad;
-    vMax += vPad;
-    const tSpan = tHi - tMin || 1;
-    const vSpan = vMax - vMin || 1;
-
-    const xOf = (t: number) => ((t - tMin) / tSpan) * innerW;
-    const yOf = (v: number) => PAD.top + innerH * (1 - (v - vMin) / vSpan);
-
-    const built = sliced.map((s, i) => {
-      const coords = s.points.map((p) => [xOf(p.t), yOf(p.v)] as const);
-      const line = buildLine(coords, smoothing);
-      const last = coords[coords.length - 1] ?? [0, 0];
-      const area = line
-        ? `${line} L${last[0]} ${PAD.top + innerH} L${coords[0]?.[0] ?? 0} ${PAD.top + innerH} Z`
-        : "";
-      return {
-        series: s,
-        coords,
-        line,
-        area,
-        color: s.color ?? PALETTE[i % PALETTE.length]!,
-      };
-    });
-
-    return { built, innerW, innerH, vMin, vMax, tMin, tHi, xOf, yOf };
-  }, [norm, effectiveRange, controlled, width, height, smoothing]);
+  // Slice to range + compute domain/pixel geometry — all from the shared
+  // `@loupe/chart` package, so mobile draws the exact same paths.
+  const geo = useMemo(
+    () =>
+      computeChartGeometry({
+        normalized: norm,
+        effectiveRange,
+        controlled,
+        width,
+        height,
+        smoothing,
+        padding: PAD,
+        palette: PALETTE,
+      }),
+    [norm, effectiveRange, controlled, width, height, smoothing],
+  );
 
   // Span-aware time formatter (used when the host doesn't pass one): a
   // multi-year ALL window shows years, a multi-month window shows "Mon 'YY",

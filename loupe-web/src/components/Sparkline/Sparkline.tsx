@@ -1,5 +1,5 @@
 import { useId, useMemo } from "react";
-import { trendOf } from "@/lib/format";
+import { buildSparkline } from "@loupe/chart";
 import { token } from "@/theme";
 import styles from "./Sparkline.module.scss";
 
@@ -29,24 +29,12 @@ export function Sparkline({
     if (data.length < 2) {
       return { line: "", area: "", stroke: token.ink.dim };
     }
-    const min = Math.min(...data);
-    const max = Math.max(...data);
-    const span = max - min || 1;
-    const stepX = width / (data.length - 1);
-    // Inset vertically by the stroke so the peak/trough aren't clipped.
-    const pad = strokeWidth;
-    const points = data.map((value, i) => {
-      const x = i * stepX;
-      const y = pad + (height - pad * 2) * (1 - (value - min) / span);
-      return [x, y] as const;
-    });
-    const linePath = points.map(([x, y], i) => `${i === 0 ? "M" : "L"}${x.toFixed(2)} ${y.toFixed(2)}`).join(" ");
-    const lastPoint = points[points.length - 1];
-    const lastX = lastPoint ? lastPoint[0] : width;
-    const areaPath = `${linePath} L${lastX.toFixed(2)} ${height} L0 ${height} Z`;
-    const dir = trendOf((data[data.length - 1] ?? 0) - (data[0] ?? 0));
-    const resolved = color ?? (dir === "down" ? token.down : token.up);
-    return { line: linePath, area: areaPath, stroke: resolved };
+    // Geometry from the shared `@loupe/chart` package — the mobile Sparkline
+    // draws the same path. Inset vertically by the stroke so peaks/troughs
+    // aren't clipped.
+    const geom = buildSparkline({ values: data, width, height, pad: strokeWidth });
+    const resolved = color ?? (geom.direction === "down" ? token.down : token.up);
+    return { line: geom.line, area: geom.area, stroke: resolved };
   }, [data, width, height, strokeWidth, color]);
 
   return (

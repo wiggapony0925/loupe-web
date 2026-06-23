@@ -1,11 +1,11 @@
 import { useState } from "react";
+import { buildBars, BAR_GRID, type BarDatum } from "@loupe/chart";
 import { cx } from "@/lib/cx";
 import styles from "./BarChart.module.scss";
 
-export interface BarDatum {
-  label: string;
-  value: number;
-}
+// Bar geometry (max/fraction/highlight) is shared via `@loupe/chart`; the
+// mobile bar charts use the same math. Re-export the datum type for consumers.
+export type { BarDatum };
 
 export interface BarChartProps {
   data: BarDatum[];
@@ -20,9 +20,6 @@ export interface BarChartProps {
   ariaLabel?: string;
   onBar?: (index: number) => void;
 }
-
-/** Horizontal gridlines (as a fraction of the plot height, top→bottom). */
-const GRID = [0, 0.25, 0.5, 0.75, 1];
 
 /**
  * A flat, interactive bar chart — hover (or focus) any bar to drive a live
@@ -43,18 +40,8 @@ export function BarChart({
   const [hover, setHover] = useState<number | null>(null);
   if (data.length === 0) return null;
 
-  const max = Math.max(...data.map((d) => d.value), 1);
-  let rest = highlightIndex ?? 0;
-  if (highlightIndex === undefined) {
-    let peak = -Infinity;
-    data.forEach((d, i) => {
-      if (d.value > peak) {
-        peak = d.value;
-        rest = i;
-      }
-    });
-  }
-  const active = hover ?? rest;
+  const { bars, highlight } = buildBars({ data, highlightIndex });
+  const active = hover ?? highlight;
   const current = data[active] ?? data[0]!;
 
   return (
@@ -73,13 +60,13 @@ export function BarChart({
         onPointerLeave={() => setHover(null)}
       >
         <div className={styles.grid} aria-hidden>
-          {GRID.map((g) => (
+          {BAR_GRID.map((g) => (
             <span key={g} className={styles.gridLine} style={{ top: `${g * 100}%` }} />
           ))}
         </div>
 
-        {data.map((d, i) => {
-          const pct = Math.max(2, (d.value / max) * 100);
+        {bars.map((d, i) => {
+          const pct = Math.max(2, d.fraction * 100);
           const on = i === active;
           const Tag = onBar ? "button" : "div";
           return (

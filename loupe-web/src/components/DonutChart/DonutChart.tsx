@@ -1,9 +1,9 @@
+import { buildDonut, type DonutDatum } from "@loupe/chart";
 import styles from "./DonutChart.module.scss";
 
-export interface DonutDatum {
-  label: string;
-  value: number;
-}
+// Ring geometry now lives in the shared `@loupe/chart` package so the mobile
+// DonutChart draws the same ring. Re-export the datum type for consumers.
+export type { DonutDatum };
 
 export interface DonutChartProps {
   data: DonutDatum[];
@@ -45,36 +45,14 @@ export function DonutChart({
   ariaLabel,
   onSlice,
 }: DonutChartProps) {
-  const cleaned = data.filter((d) => d.value > 0);
-  if (cleaned.length === 0) return null;
+  const geo = buildDonut({ data, size, maxSlices });
+  if (!geo) return null;
 
-  let slices = cleaned;
-  if (cleaned.length > maxSlices) {
-    const head = cleaned.slice(0, maxSlices);
-    const restVal = cleaned.slice(maxSlices).reduce((s, d) => s + d.value, 0);
-    slices = [...head, { label: "Other", value: restVal }];
-  }
-
-  const total = slices.reduce((s, d) => s + d.value, 0) || 1;
-  const stroke = Math.round(size * 0.12);
-  const r = (size - stroke) / 2;
-  const c = 2 * Math.PI * r;
-
-  let acc = 0;
-  const segs = slices.map((d, i) => {
-    const frac = d.value / total;
-    const dash = frac * c;
-    const seg = {
-      label: d.label,
-      value: d.value,
-      pct: frac * 100,
-      color: d.label === "Other" ? REST : TONES[i % TONES.length],
-      dash,
-      offset: -acc,
-    };
-    acc += dash;
-    return seg;
-  });
+  const { stroke, radius: r, circumference: c } = geo;
+  const segs = geo.segments.map((s) => ({
+    ...s,
+    color: s.isOther ? REST : TONES[s.colorIndex % TONES.length],
+  }));
 
   return (
     <div className={styles.wrap}>
