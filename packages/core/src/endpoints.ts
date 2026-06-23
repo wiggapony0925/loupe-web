@@ -11,6 +11,11 @@ export const ENDPOINTS = {
     apple: `${V1}/auth/apple`,
     refresh: `${V1}/auth/refresh`,
     logout: `${V1}/auth/logout`,
+    mfaVerify: `${V1}/auth/mfa/verify`,
+    mfaSetup: `${V1}/auth/mfa/setup`,
+    mfaEnable: `${V1}/auth/mfa/enable`,
+    mfaDisable: `${V1}/auth/mfa/disable`,
+    mfaStatus: `${V1}/auth/mfa/status`,
   },
   me: {
     root: `${V1}/me`,

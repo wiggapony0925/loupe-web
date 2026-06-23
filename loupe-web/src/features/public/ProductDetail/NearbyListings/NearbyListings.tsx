@@ -60,17 +60,28 @@ export function NearbyListings({ cardId }: { cardId: string }) {
     );
   }
 
-  if (isLoading) return null;
-  if (!listings || listings.length === 0) return null;
+  const rows = listings ?? [];
+  // The nearest copy decides the heading: if it's far, we found it by widening
+  // the search, so call it "Closest listings" instead of "Near you".
+  const nearestKm = rows.find((l) => l.distanceKm != null)?.distanceKm ?? null;
+  const expanded = nearestKm != null && nearestKm > 60;
 
   return (
     <section className={styles.nearby}>
       <div className={styles.nearby__head}>
-        <h2 className={styles.nearby__title}>Near you</h2>
-        <span className={styles.nearby__sub}>Facebook Marketplace listings nearby</span>
+        <h2 className={styles.nearby__title}>{expanded ? "Closest listings" : "Near you"}</h2>
+        <span className={styles.nearby__sub}>
+          {isLoading
+            ? "Searching Facebook Marketplace…"
+            : rows.length === 0
+              ? "No Facebook Marketplace listings for this card right now."
+              : expanded
+                ? "None in your radius — here are the closest we found."
+                : "Facebook Marketplace listings nearby · closest first"}
+        </span>
       </div>
       <div className={styles.nearby__rows}>
-        {listings.slice(0, 8).map((l, i) => (
+        {rows.slice(0, 8).map((l, i) => (
           <a
             key={`${l.url}-${i}`}
             href={l.url}

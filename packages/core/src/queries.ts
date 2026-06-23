@@ -82,6 +82,7 @@ import type {
   SignInRequest,
   SignUpRequest,
   TestAccount,
+  LoginResult,
   TokenPair,
   UpdateGradeInput,
   User,
@@ -457,9 +458,10 @@ export const useSubscribe = (
     options,
   );
 
-/** Sign-in mutation. */
+/** Sign-in mutation. Resolves to a {@link LoginResult} — a token pair, or an
+ *  MFA challenge when the account has two-factor enabled. */
 export const useLogin = () =>
-  useApiMutation<TokenPair, SignInRequest>(api.auth.login);
+  useApiMutation<LoginResult, SignInRequest>(api.auth.login);
 
 /** Sign-up mutation. */
 export const useRegister = () =>

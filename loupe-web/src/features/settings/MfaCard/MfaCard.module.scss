@@ -1,0 +1,109 @@
+// Mirrors the Settings Row layout, plus the enrollment modal internals.
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-lg);
+}
+
+.rowText {
+  min-width: 0;
+}
+
+.rowTitle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  font-size: var(--text-md);
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.rowDesc {
+  margin-top: 2px;
+  font-size: var(--text-sm);
+  color: var(--ink-muted);
+  max-width: 52ch;
+}
+
+.rowControl {
+  flex-shrink: 0;
+}
+
+// ── Enrollment modal ──
+.enroll {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+}
+
+.steps {
+  margin: 0;
+  padding-left: 1.2em;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: var(--text-sm);
+  color: var(--ink-muted);
+}
+
+.qrWrap {
+  align-self: center;
+  padding: var(--space-md);
+  background: #ffffff; // QR needs a light quiet zone to scan reliably
+  border-radius: var(--radius-md);
+}
+
+.qr {
+  display: block;
+  width: 184px;
+  height: 184px;
+}
+
+.manual {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--ink-muted);
+}
+
+.secret {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 2px 8px;
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: var(--text-sm);
+  letter-spacing: 0.04em;
+  color: var(--ink);
+  background: var(--bg-sunken);
+  border-radius: var(--radius-sm);
+  user-select: all;
+}
+
+.error {
+  margin: 0;
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--accent-rose);
+}
+
+.codes {
+  list-style: none;
+  margin: 0;
+  padding: var(--space-md);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px 16px;
+  background: var(--bg-sunken);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: var(--text-md);
+  letter-spacing: 0.06em;
+  color: var(--ink);
+}
+
+.enrollActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-sm);
+}

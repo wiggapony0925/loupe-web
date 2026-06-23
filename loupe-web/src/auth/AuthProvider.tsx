@@ -7,11 +7,17 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { api, configureApi, type TokenPair, type User } from "@loupe/core";
+import { api, configureApi, type User } from "@loupe/core";
 import { notify } from "@/stores/noticeStore";
 
 const TOKEN_KEY = "loupe.auth.token";
 const USER_KEY = "loupe.auth.user";
+
+/** Outcome of an email/password sign-in: either fully signed in, or a 2FA
+ *  challenge that must be completed with {@link AuthValue.completeMfa}. */
+export type LoginOutcome =
+  | { status: "ok"; user: User }
+  | { status: "mfa"; mfaToken: string };
 
 function readCachedUser(): User | null {
   try {
@@ -35,7 +41,11 @@ interface AuthValue {
   isAuthed: boolean;
   /** True only while hydrating a token with no cached user yet (no flash). */
   loading: boolean;
-  login: (email: string, password: string) => Promise<User>;
+  /** Email + password sign-in. Resolves `{status:"ok"}` when signed in, or
+   *  `{status:"mfa"}` when a second factor is needed (then call completeMfa). */
+  login: (email: string, password: string) => Promise<LoginOutcome>;
+  /** Finish a 2FA sign-in with the challenge token + a TOTP/backup code. */
+  completeMfa: (mfaToken: string, code: string) => Promise<User>;
   register: (email: string, password: string, displayName?: string) => Promise<User>;
   /** Sign in with a Google ID token (from the Google Identity SDK). */
   signInWithGoogle: (idToken: string) => Promise<User>;
@@ -113,19 +123,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [logout, setUser]);
 
   // Single place that persists a fresh TokenPair → token + user. Every sign-in
-  // path (email, register, Google, Apple) funnels through here.
+  // path (email, register, Google, Apple, MFA) funnels through here.
   const setSession = useCallback(
-    (tp: TokenPair) => {
-      localStorage.setItem(TOKEN_KEY, tp.access_token);
-      setUser(tp.user);
-      return tp.user;
+    (s: { access_token: string; user: User }) => {
+      localStorage.setItem(TOKEN_KEY, s.access_token);
+      setUser(s.user);
+      return s.user;
     },
     [setUser],
   );
 
   const login = useCallback(
-    async (email: string, password: string) =>
-      setSession(await api.auth.login({ email, password })),
+    async (email: string, password: string): Promise<LoginOutcome> => {
+      const res = await api.auth.login({ email, password });
+      // 2FA-enabled account: tokens withheld until the code is verified.
+      if (res.mfa_required && res.mfa_token) {
+        return { status: "mfa", mfaToken: res.mfa_token };
+      }
+      if (res.access_token && res.user) {
+        setSession({ access_token: res.access_token, user: res.user });
+        return { status: "ok", user: res.user };
+      }
+      throw new Error("Unexpected sign-in response");
+    },
+    [setSession],
+  );
+
+  const completeMfa = useCallback(
+    async (mfaToken: string, code: string) =>
+      setSession(await api.auth.mfaVerify({ mfa_token: mfaToken, code })),
     [setSession],
   );
 
@@ -164,12 +190,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isAuthed: Boolean(user),
       loading,
       login,
+      completeMfa,
       register,
       signInWithGoogle,
       signInWithApple,
       logout,
     }),
-    [user, loading, login, register, signInWithGoogle, signInWithApple, logout],
+    [user, loading, login, completeMfa, register, signInWithGoogle, signInWithApple, logout],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

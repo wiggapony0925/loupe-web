@@ -4,6 +4,7 @@ import { LogOut, Sparkles } from "lucide-react";
 import { Panel, SegmentedControl, ThemeToggle, Badge, Button } from "@/components";
 import { useUiStore, type SidebarSide } from "@/stores/uiStore";
 import { useAuth } from "@/auth/AuthProvider";
+import { MfaCard } from "../MfaCard/MfaCard";
 import { usePro } from "@/pro";
 import { cx } from "@/lib/cx";
 import styles from "./Settings.module.scss";
@@ -84,6 +85,8 @@ export function Settings() {
         <Divider />
         <Row title="Account ID" desc={user?.id ?? "—"} mono />
       </Panel>
+
+      <MfaCard />
 
       <Panel padding="lg">
         <Row title="Appearance" desc="Light, dark, or follow your system — flips every token instantly.">

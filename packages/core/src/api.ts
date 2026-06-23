@@ -117,6 +117,11 @@ import type {
   SearchPage,
   SignInRequest,
   SignUpRequest,
+  LoginResult,
+  MfaEnableResult,
+  MfaSetup,
+  MfaStatus,
+  MfaVerifyRequest,
   TokenPair,
   UpdateGradeInput,
   User,
@@ -547,9 +552,10 @@ export const api = {
     },
   },
   auth: {
-    /** Email + password sign-in → TokenPair. */
+    /** Email + password sign-in. Returns tokens, or an MFA challenge when the
+     *  account has two-factor enabled (complete it via {@link mfaVerify}). */
     login: (body: SignInRequest) =>
-      apiFetch<TokenPair>(ENDPOINTS.auth.login, {
+      apiFetch<LoginResult>(ENDPOINTS.auth.login, {
         method: "POST",
         json: body,
         skipAuth: true,
@@ -585,6 +591,31 @@ export const api = {
     /** Clear the server-set HttpOnly auth cookie (web sign-out). */
     logout: () =>
       apiFetch<null>(ENDPOINTS.auth.logout, { method: "POST" }),
+    /** Complete a 2FA sign-in: exchange the login challenge + a code for tokens. */
+    mfaVerify: (body: MfaVerifyRequest) =>
+      apiFetch<TokenPair>(ENDPOINTS.auth.mfaVerify, {
+        method: "POST",
+        json: body,
+        skipAuth: true,
+      }),
+    /** Begin 2FA enrollment — returns a secret + QR (requires auth). */
+    mfaSetup: () =>
+      apiFetch<MfaSetup>(ENDPOINTS.auth.mfaSetup, { method: "POST" }),
+    /** Confirm enrollment with a live code; returns one-time backup codes. */
+    mfaEnable: (code: string) =>
+      apiFetch<MfaEnableResult>(ENDPOINTS.auth.mfaEnable, {
+        method: "POST",
+        json: { code },
+      }),
+    /** Disable 2FA after re-verifying a code. */
+    mfaDisable: (code: string) =>
+      apiFetch<null>(ENDPOINTS.auth.mfaDisable, {
+        method: "POST",
+        json: { code },
+      }),
+    /** Whether the signed-in user currently has 2FA enabled. */
+    mfaStatus: () =>
+      apiFetch<MfaStatus>(ENDPOINTS.auth.mfaStatus),
   },
   me: {
     /** Current authenticated user. */

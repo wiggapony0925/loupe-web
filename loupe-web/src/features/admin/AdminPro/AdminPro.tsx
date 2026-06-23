@@ -1,13 +1,11 @@
 import { useEffect, useState } from "react";
-import { Megaphone, Save, Sparkles } from "lucide-react";
+import { Save } from "lucide-react";
 import {
   useAdminSiteConfig,
   useUpdatePlanConfig,
-  useUpdateAnnouncement,
   type PlanConfig,
-  type AnnouncementTone,
 } from "@loupe/core";
-import { Button, Skeleton, TextField, SegmentedControl, useConfirm } from "@/components";
+import { Button, Skeleton, TextField, useConfirm } from "@/components";
 import { notify } from "@/stores/noticeStore";
 import styles from "./AdminPro.module.scss";
 import admin from "../admin.module.scss";
@@ -22,13 +20,11 @@ const FEATURE_GATES: Array<{ key: keyof PlanConfig; label: string; blurb: string
   { key: "gate_statements", label: "Tax & insurance statements", blurb: "One-tap PDF statements." },
 ];
 
-const TONES: AnnouncementTone[] = ["info", "success", "warning", "error"];
-
-/** Admin: full control of the Loupe Pro plan shape + the global announcement. */
+/** Admin: full control of the Loupe Pro plan shape (limits + per-feature
+ *  gating). Announcements live in their own tab. */
 export function AdminPro() {
   const { data, isLoading } = useAdminSiteConfig();
   const updatePlan = useUpdatePlanConfig();
-  const updateAnn = useUpdateAnnouncement();
   const confirm = useConfirm();
 
   // Editable limit fields (committed on Save).
@@ -37,11 +33,6 @@ export function AdminPro() {
   const [stmtLimit, setStmtLimit] = useState("");
   const [stmtUnlimited, setStmtUnlimited] = useState(false);
 
-  // Announcement draft.
-  const [annEnabled, setAnnEnabled] = useState(false);
-  const [annMessage, setAnnMessage] = useState("");
-  const [annTone, setAnnTone] = useState<AnnouncementTone>("info");
-
   useEffect(() => {
     if (!data) return;
     const p = data.plan;
@@ -49,9 +40,6 @@ export function AdminPro() {
     setCardLimit(p.free_card_limit == null ? "" : String(p.free_card_limit));
     setStmtUnlimited(p.free_statement_limit == null);
     setStmtLimit(p.free_statement_limit == null ? "" : String(p.free_statement_limit));
-    setAnnEnabled(data.announcement.enabled);
-    setAnnMessage(data.announcement.message);
-    setAnnTone(data.announcement.tone);
   }, [data]);
 
   async function toggleGate(key: keyof PlanConfig, label: string, current: boolean) {
@@ -112,17 +100,6 @@ export function AdminPro() {
     );
   }
 
-  function publishAnnouncement() {
-    updateAnn.mutate(
-      { enabled: annEnabled, message: annMessage.trim(), tone: annTone },
-      {
-        onSuccess: () =>
-          notify.success(annEnabled ? "Announcement is live for all users." : "Announcement saved (hidden)."),
-        onError: failToast,
-      },
-    );
-  }
-
   if (isLoading || !data) {
     return (
       <div className={admin.page}>
@@ -135,9 +112,10 @@ export function AdminPro() {
     <div className={admin.page}>
       <div className={admin.head}>
         <div>
-          <h1 className={admin.title}>Pro &amp; announcements</h1>
+          <h1 className={admin.title}>Loupe Pro</h1>
           <p className={admin.subtitle}>
-            Shape the Loupe Pro plan and broadcast a message — live, no deploy.
+            Shape the plan — free-tier limits and what&rsquo;s gated behind Pro.
+            Live, no deploy.
           </p>
         </div>
       </div>
@@ -217,42 +195,6 @@ export function AdminPro() {
             </div>
           );
         })}
-      </section>
-
-      {/* ── Announcement banner ── */}
-      <section className={styles.card}>
-        <h2 className={styles.cardTitle}>
-          <Megaphone size={18} /> Announcement banner
-        </h2>
-        <p className={styles.cardHint}>Shown to every user through the global banner.</p>
-        <TextField
-          label="Message"
-          placeholder="e.g. New: sealed product tracking is live 🎉"
-          value={annMessage}
-          onChange={(e) => setAnnMessage(e.target.value)}
-        />
-        <div className={styles.annRow}>
-          <div className={styles.annTone}>
-            <span className={styles.annToneLabel}>Tone</span>
-            <SegmentedControl<AnnouncementTone>
-              aria-label="Announcement tone"
-              value={annTone}
-              onChange={setAnnTone}
-              options={TONES.map((t) => ({ value: t, label: t.charAt(0).toUpperCase() + t.slice(1) }))}
-            />
-          </div>
-          <label className={styles.check}>
-            <input type="checkbox" checked={annEnabled} onChange={(e) => setAnnEnabled(e.target.checked)} />
-            Show to all users
-          </label>
-        </div>
-        <Button
-          leadingIcon={annEnabled ? <Sparkles size={16} /> : <Save size={16} />}
-          disabled={updateAnn.isPending || (annEnabled && !annMessage.trim())}
-          onClick={publishAnnouncement}
-        >
-          {annEnabled ? "Publish to everyone" : "Save"}
-        </Button>
       </section>
     </div>
   );

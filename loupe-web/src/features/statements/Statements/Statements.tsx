@@ -10,7 +10,7 @@ import {
   type UserReport,
 } from "@loupe/core";
 import { Panel, Button, Badge, Skeleton, NoteCard } from "@/components";
-import { useProFeature, ProWall } from "@/pro";
+import { useProFeature, usePro, ProWall } from "@/pro";
 import styles from "./Statements.module.scss";
 
 const MONTHS = [
@@ -64,40 +64,21 @@ const STATUS: Record<UserReport["status"], { tone: "mint" | "amber" | "rose"; la
  * accounts. Mirrors the mobile Reports tab; reuses the shared components.
  */
 export function Statements() {
-  // Statements are a Loupe Pro feature — one reusable wall, no bespoke layout.
+  // Free users keep one statement (their latest); Pro unlocks the full archive
+  // + on-demand generation. The reusable wall sells the rest.
   const { allowed, requirePro } = useProFeature("statements");
-  const reports = useReports(allowed);
+  const { entitlements } = usePro();
+  const freeLimit = entitlements?.limits.free_statements ?? 1;
+  const reports = useReports(true);
   const upcoming = useUpcomingReports(allowed);
   const generate = useGenerateReport();
   const [busyId, setBusyId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const rows = reports.data ?? [];
-
-  if (!allowed) {
-    return (
-      <div className={styles.page}>
-        <header className={styles.head}>
-          <div>
-            <p className={styles.eyebrow}>Documents</p>
-            <h1 className={styles.title}>Statements</h1>
-          </div>
-        </header>
-        <p className={styles.lede}>
-          Loupe Pro closes a PDF statement of your collection every month —
-          value, holdings, movers, and grade quality — archived forever, like a
-          brokerage account. Perfect for insurance underwriting and capital-gains
-          reporting.
-        </p>
-        <ProWall
-          feature="statements"
-          title="Statements are a Pro feature"
-          description="Upgrade to Loupe Pro to unlock one-tap tax & insurance statements for your entire vault."
-          onUpgrade={() => requirePro()}
-        />
-      </div>
-    );
-  }
+  // Free tier sees only its latest `freeLimit` statement(s); the rest are walled.
+  const visibleRows = allowed ? rows : rows.slice(0, freeLimit);
+  const lockedCount = allowed ? 0 : Math.max(0, rows.length - visibleRows.length);
 
   async function download(r: UserReport) {
     if (r.status !== "ready") return;
@@ -221,7 +202,7 @@ export function Statements() {
           </Panel>
         ) : (
           <Panel padding="none" raised className={styles.list}>
-            {rows.map((r) => {
+            {visibleRows.map((r) => {
               const s = STATUS[r.status];
               return (
                 <div key={r.id} className={styles.row}>
@@ -258,6 +239,24 @@ export function Statements() {
               );
             })}
           </Panel>
+        )}
+
+        {/* Free tier: latest statement is downloadable above; the full archive
+            + automatic monthly closes are Pro. */}
+        {!allowed && (
+          <div className={styles.lockWrap}>
+            <ProWall
+              feature="statements"
+              title={
+                lockedCount > 0
+                  ? `${lockedCount} more statement${lockedCount > 1 ? "s" : ""} in your archive`
+                  : "Your full statement history, automated"
+              }
+              description="Free includes your latest statement. Loupe Pro unlocks the entire archive forever, on-demand generation, and an auto-closed PDF every month — built for insurance and capital-gains reporting."
+              cta="Unlock with Pro"
+              onUpgrade={() => requirePro()}
+            />
+          </div>
         )}
       </section>
     </div>
