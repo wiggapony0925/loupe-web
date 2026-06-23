@@ -51,6 +51,8 @@ export {
   useStartCheckout,
   useSubscribe,
   useBillingPortal,
+  useRecents,
+  usePutRecents,
   useLogin,
   useRegister,
   useWatchlist,

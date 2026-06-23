@@ -65,6 +65,7 @@ import type {
   CheckoutResult,
   Entitlements,
   PortalSession,
+  Recents,
   SubscribeResult,
   GoogleSignInRequest,
   CardAttributes,
@@ -608,6 +609,11 @@ export const api = {
     /** Open the Stripe customer portal (manage / cancel an active plan). */
     billingPortal: () =>
       apiFetch<PortalSession>(ENDPOINTS.me.billingPortal, { method: "POST" }),
+    /** Cross-device recents (searches + recently-viewed). */
+    recents: () => apiFetch<Recents>(ENDPOINTS.me.recents),
+    /** Replace recents with the client's merged + capped list. */
+    putRecents: (payload: Recents) =>
+      apiFetch<Recents>(ENDPOINTS.me.recents, { method: "PUT", json: payload }),
   },
   analytics: {
     /** Whole-portfolio analytics in one round-trip (stats, movers, distributions). */

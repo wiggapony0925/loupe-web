@@ -29,6 +29,7 @@ import type {
   Entitlements,
   PlanConfigUpdate,
   PortalSession,
+  Recents,
   SiteConfig,
   SubscribeResult,
   ApplyInput,
@@ -430,6 +431,18 @@ export const useStartCheckout = (
 export const useBillingPortal = (
   options?: Omit<UseMutationOptions<PortalSession, ApiError, void>, "mutationFn">,
 ) => useApiMutation<PortalSession, void>(() => api.me.billingPortal(), options);
+
+/** The signed-in user's cross-device recents (searches + recently-viewed). */
+export const useRecents = (enabled = true) =>
+  useApiQuery<Recents>(["me-recents"], api.me.recents, {
+    enabled,
+    staleTime: 60_000,
+  });
+
+/** Replace the server copy of recents with the client's merged list. */
+export const usePutRecents = (
+  options?: Omit<UseMutationOptions<Recents, ApiError, Recents>, "mutationFn">,
+) => useApiMutation<Recents, Recents>((p) => api.me.putRecents(p), options);
 
 /** Create a subscription for the in-app Payment Element (returns a client
  *  secret to confirm). The webhook grants the plan once payment succeeds. */

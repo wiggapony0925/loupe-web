@@ -20,6 +20,7 @@ export const ENDPOINTS = {
     billingCheckout: `${V1}/me/billing/checkout`,
     billingSubscribe: `${V1}/me/billing/subscribe`,
     billingPortal: `${V1}/me/billing/portal`,
+    recents: `${V1}/me/recents`,
   },
   home: { feed: `${V1}/home/feed` },
   analytics: { overview: `${V1}/analytics/overview` },

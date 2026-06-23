@@ -11,6 +11,7 @@ export * from "./entitlements.types";
 export * from "./flags.types";
 export * from "./money.types";
 export * from "./portfolio.types";
+export * from "./recents.types";
 export * from "./report.types";
 export * from "./sealed.types";
 export * from "./search.types";
