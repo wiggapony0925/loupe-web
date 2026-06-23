@@ -8,7 +8,7 @@ import {
   type KeyboardEvent,
 } from "react";
 import { DropdownMenu } from "radix-ui";
-import { Check, ChevronDown, Loader2, Search, X } from "lucide-react";
+import { Check, ChevronDown, Clock, Loader2, Search, X } from "lucide-react";
 import {
   usePublicSearch,
   usePublicSealedSearch,
@@ -16,6 +16,7 @@ import {
   type CardSummary,
   type SealedProduct,
 } from "@loupe/core";
+import { useRecentStore } from "@/stores/recentStore";
 import { CardThumb } from "@/components/CardThumb/CardThumb";
 import { Sparkline } from "@/components/Sparkline/Sparkline";
 import { formatMoney } from "@/lib/format";
@@ -111,7 +112,17 @@ export function SearchCombobox({
     [enabled, sealedAllowed, sealedData],
   );
 
+  // Recent searches + recently-viewed (device-local; mirrors the mobile app).
+  const searches = useRecentStore((s) => s.searches);
+  const viewed = useRecentStore((s) => s.viewed);
+  const pushSearch = useRecentStore((s) => s.pushSearch);
+  const removeSearch = useRecentStore((s) => s.removeSearch);
+  const clearSearches = useRecentStore((s) => s.clearSearches);
+
   const showPanel = open && debounced.length >= 2;
+  // When the field is focused but empty, surface recents instead of nothing.
+  const showRecent =
+    open && debounced.length < 2 && (searches.length > 0 || viewed.length > 0);
   const cardCount = suggestions.length;
   const sealedCount = sealed.length;
   // Flat, keyboard-navigable order: cards, then sealed, then the "search all" row.
@@ -144,15 +155,18 @@ export function SearchCombobox({
   function submit(e?: FormEvent) {
     e?.preventDefault();
     setOpen(false);
+    pushSearch(query.trim());
     onSearch(query.trim(), category.tcg);
   }
   function selectCard(c: CardSummary) {
     setOpen(false);
+    pushSearch(query.trim());
     setQuery("");
     onSelectCard(c);
   }
   function selectSealed(p: SealedProduct) {
     setOpen(false);
+    pushSearch(query.trim());
     setQuery("");
     onSelectSealed?.(p);
   }
@@ -259,6 +273,81 @@ export function SearchCombobox({
           <Search />
         </button>
       </form>
+
+      {showRecent && (
+        <div className={styles.combo__panel} role="listbox">
+          {searches.length > 0 && (
+            <>
+              <div className={styles.combo__recentHead}>
+                <span className={styles.combo__section}>Recent searches</span>
+                <button
+                  type="button"
+                  className={styles.combo__clearAll}
+                  onClick={() => clearSearches()}
+                >
+                  Clear
+                </button>
+              </div>
+              <div className={styles.combo__chips}>
+                {searches.map((q) => (
+                  <span key={q} className={styles.combo__chip}>
+                    <button
+                      type="button"
+                      className={styles.combo__chipText}
+                      onClick={() => setQuery(q)}
+                    >
+                      <Clock size={12} /> {q}
+                    </button>
+                    <button
+                      type="button"
+                      className={styles.combo__chipX}
+                      onClick={() => removeSearch(q)}
+                      aria-label={`Remove ${q}`}
+                    >
+                      <X size={12} />
+                    </button>
+                  </span>
+                ))}
+              </div>
+            </>
+          )}
+          {viewed.length > 0 && (
+            <>
+              <div className={styles.combo__section}>Recently viewed</div>
+              {viewed.map((v) => (
+                <button
+                  key={v.id}
+                  type="button"
+                  className={styles.combo__row}
+                  onClick={() =>
+                    v.kind === "sealed"
+                      ? selectSealed({
+                          id: v.id,
+                          name: v.name,
+                        } as unknown as SealedProduct)
+                      : selectCard({
+                          id: v.id,
+                          name: v.name,
+                        } as unknown as CardSummary)
+                  }
+                >
+                  <span className={styles.combo__thumb}>
+                    <CardThumb src={v.imageUrl ?? ""} alt={v.name} size="sm" />
+                  </span>
+                  <span className={styles.combo__rowText}>
+                    <span className={styles.combo__rowName}>{v.name}</span>
+                    <span className={styles.combo__rowMeta}>
+                      {[v.setName, v.kind === "sealed" ? "Sealed" : null]
+                        .filter(Boolean)
+                        .join(" · ")}
+                    </span>
+                  </span>
+                </button>
+              ))}
+            </>
+          )}
+        </div>
+      )}
 
       {showPanel && (
         <div className={styles.combo__panel} id={listId} role="listbox">

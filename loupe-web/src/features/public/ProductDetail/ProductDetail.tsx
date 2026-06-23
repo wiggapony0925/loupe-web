@@ -1,5 +1,6 @@
-import { useMemo, useState, type CSSProperties } from "react";
+import { useEffect, useMemo, useState, type CSSProperties } from "react";
 import { cx } from "@/lib/cx";
+import { useRecentStore } from "@/stores/recentStore";
 import { Link, useParams } from "react-router-dom";
 import { Expand, ExternalLink, ScanLine, ShieldCheck } from "lucide-react";
 import {
@@ -113,8 +114,29 @@ export function ProductDetail() {
   const { data: attributes } = useCardAttributes(id);
   const setHref = useSetHref(attributes?.tcg, card?.setName);
   const [tier, setTier] = useState<PriceTier>({ house: "raw" });
+
+  // Record this card for the "Recently viewed" rail in search.
+  const pushViewed = useRecentStore((s) => s.pushViewed);
+  useEffect(() => {
+    if (card)
+      pushViewed({
+        id: card.id,
+        name: card.name,
+        imageUrl: card.imageUrl,
+        setName: card.setName,
+        kind: "card",
+      });
+  }, [card, pushViewed]);
   const [compareKeys, setCompareKeys] = useState<string[]>([]);
   const [viewer, setViewer] = useState(false);
+  // Grade-aware compare options derived from the current tier: pick PSA 7 and
+  // the chips are BGS 7 / CGC 7 / TAG 7 / Raw; switch to PSA 8 and they all
+  // re-grade to 8 (keys are per-house so a toggled chip stays on). Must stay
+  // above the early returns below — all hooks run on every render.
+  const comparePresets = useMemo(
+    () => buildComparePresets(tier),
+    [tier.house, tier.grade],
+  );
 
   if (isLoading) return <ProductDetailSkeleton />;
   if (isError || !card) {
@@ -138,13 +160,6 @@ export function ProductDetail() {
     setCompareKeys((keys) =>
       keys.includes(key) ? keys.filter((k) => k !== key) : [...keys, key],
     );
-  // Grade-aware compare options derived from the current tier: pick PSA 7 and
-  // the chips are BGS 7 / CGC 7 / TAG 7 / Raw; switch to PSA 8 and they all
-  // re-grade to 8 (keys are per-house so a toggled chip stays on).
-  const comparePresets = useMemo(
-    () => buildComparePresets(tier),
-    [tier.house, tier.grade],
-  );
   const compareTiers = comparePresets.filter((p) =>
     compareKeys.includes(p.key),
   );

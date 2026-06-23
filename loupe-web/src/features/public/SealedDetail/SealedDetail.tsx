@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { Check, Expand, ExternalLink, Plus } from "lucide-react";
 import {
@@ -21,6 +21,7 @@ import {
 import { Card3DModal } from "../ProductDetail/Card3DModal/Card3DModal";
 import { useAuth } from "@/auth/AuthProvider";
 import { useSetHref } from "@/hooks/useSetHref";
+import { useRecentStore } from "@/stores/recentStore";
 import { formatMoney } from "@/lib/format";
 import { SEALED_TYPE_LABEL } from "../Sealed/SealedCard/SealedCard";
 import styles from "./SealedDetail.module.scss";
@@ -48,6 +49,17 @@ export function SealedDetail() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const add = useAddSealedHolding();
+  const pushViewed = useRecentStore((s) => s.pushViewed);
+  useEffect(() => {
+    if (product)
+      pushViewed({
+        id: product.id,
+        name: product.name,
+        imageUrl: product.imageUrl,
+        setName: product.setName,
+        kind: "sealed",
+      });
+  }, [product, pushViewed]);
   const { data: holdings } = useSealedHoldings({}, Boolean(user));
   const [justAdded, setJustAdded] = useState(false);
   const [viewer, setViewer] = useState(false);

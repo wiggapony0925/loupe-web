@@ -177,6 +177,65 @@
     color: var(--ink-dim);
   }
 
+  // Recent searches header (section + clear) + the chip row.
+  &__recentHead {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    .combo__section {
+      border-top: 0;
+      margin-top: 0;
+    }
+  }
+  &__clearAll {
+    padding: var(--space-sm) var(--space-md);
+    font-size: var(--text-xs);
+    font-weight: 700;
+    color: var(--ink-dim);
+
+    &:hover {
+      color: var(--ink);
+    }
+  }
+  &__chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 0 var(--space-md) var(--space-sm);
+  }
+  &__chip {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: var(--bg-elevated);
+  }
+  &__chipText {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 4px 5px 10px;
+    font-size: var(--text-sm);
+    font-weight: 600;
+    color: var(--ink);
+
+    &:hover {
+      color: var(--accent-mint);
+    }
+  }
+  &__chipX {
+    display: grid;
+    place-items: center;
+    width: 22px;
+    height: 26px;
+    color: var(--ink-dim);
+
+    &:hover {
+      color: var(--ink);
+    }
+  }
+
   &__row {
     display: flex;
     align-items: center;
