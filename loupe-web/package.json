@@ -35,9 +35,12 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint . --ext .ts,.tsx --max-warnings=0",
     "format": "prettier --write \"src/**/*.{ts,tsx,scss}\"",
-    "test:contract": "node scripts/contract-check.mjs"
+    "test:contract": "node scripts/contract-check.mjs",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build"
   },
   "dependencies": {
+    "@loupe/chart": "*",
     "@loupe/core": "*",
     "@stripe/react-stripe-js": "^3.10.0",
     "@stripe/stripe-js": "^5.10.0",
@@ -51,15 +54,20 @@
     "react-markdown": "^10.1.0",
     "react-router-dom": "^7.1.1",
     "remark-gfm": "^4.0.1",
-    "zustand": "^5.0.1",
-    "@loupe/chart": "*"
+    "zustand": "^5.0.1"
   },
   "devDependencies": {
+    "@storybook/addon-a11y": "^10.4.6",
+    "@storybook/addon-docs": "^10.4.6",
+    "@storybook/react-vite": "^10.4.6",
     "@types/react": "~19.2.10",
     "@types/react-dom": "~19.2.1",
     "@vitejs/plugin-react": "^4.3.4",
+    "@vitest/coverage-v8": "^4.1.9",
     "sass": "^1.83.0",
+    "storybook": "^10.4.6",
     "typescript": "~5.9.2",
-    "vite": "^6.0.7"
+    "vite": "^6.0.7",
+    "vitest": "^4.1.9"
   }
 }
