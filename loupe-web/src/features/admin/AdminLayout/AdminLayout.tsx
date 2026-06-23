@@ -21,6 +21,7 @@ import { Logo } from "@/assets";
 import { ThemeToggle, ScrollToTop, Avatar } from "@/components";
 import { NotFound } from "@/features/misc/NotFound/NotFound";
 import { useAuth } from "@/auth/AuthProvider";
+import { isEmbedded } from "@/lib/embedded";
 import { cx } from "@/lib/cx";
 import styles from "./AdminLayout.module.scss";
 
@@ -184,9 +185,13 @@ export function AdminLayout() {
         </nav>
 
         <div className={styles.sidebar__foot}>
-          <Link to="/app" className={styles.backToApp}>
-            <ArrowLeft size={15} /> Back to app
-          </Link>
+          {/* Hidden in the mobile WebView (embedded mode) — the bundled portal
+              must stay dev-only, with no escape into the rest of the app. */}
+          {!isEmbedded() && (
+            <Link to="/app" className={styles.backToApp}>
+              <ArrowLeft size={15} /> Back to app
+            </Link>
+          )}
           <div className={styles.userCard}>
             <Avatar name={name} src={user.avatar_url ?? undefined} size="sm" />
             <span className={styles.userCard__meta}>

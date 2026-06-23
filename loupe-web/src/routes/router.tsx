@@ -1,9 +1,10 @@
-import { createBrowserRouter, Navigate, Outlet } from "react-router-dom";
+import { createBrowserRouter, Navigate } from "react-router-dom";
 import { lazy, Suspense, type ComponentType, type ReactElement } from "react";
 import { RequireAuth } from "@/auth/RequireAuth";
 import { FeatureGate } from "@/components";
 import { NotFound } from "@/features/misc/NotFound/NotFound";
 import { RouteError } from "@/routes/RouteError";
+import { EmbeddedGuard } from "@/routes/EmbeddedGuard";
 
 /**
  * Routes are code-split: each page (and the admin/site/blog bundles) loads on
@@ -84,6 +85,7 @@ const M = {
   landing: () =>
     import("@/features/marketing/MarketingLanding/MarketingLanding"),
   scanner: () => import("@/features/marketing/Scanner/Scanner"),
+  cardScanner: () => import("@/features/scan/CardScanner/CardScanner"),
   login: () => import("@/features/auth/Login/Login"),
   signup: () => import("@/features/auth/Signup/Signup"),
   publicLayout: () => import("@/features/public/PublicLayout/PublicLayout"),
@@ -112,8 +114,10 @@ export const router = createBrowserRouter([
   {
     // Pathless root: a render/load error in ANY route bubbles here and shows the
     // branded recovery screen (keeps the URL, offers reload / go-home) instead
-    // of React Router's default unstyled error page.
-    element: <Outlet />,
+    // of React Router's default unstyled error page. EmbeddedGuard renders the
+    // child <Outlet/> but confines navigation to /admin when the app is loaded
+    // inside the mobile dev-portal WebView.
+    element: <EmbeddedGuard />,
     errorElement: <RouteError />,
     children: [
   { path: "/", element: el(M.landing, "MarketingLanding") },
@@ -122,6 +126,8 @@ export const router = createBrowserRouter([
   // Full-screen workspace — deliberately outside PublicLayout (no nav/footer
   // chrome), edge-to-edge like a Figma canvas.
   { path: "/grade", element: el(M.loupeGrade, "LoupeGrade") },
+  // Full-screen in-browser card scanner (camera + photo upload).
+  { path: "/scan", element: el(M.cardScanner, "CardScanner") },
   {
     element: el(M.publicLayout, "PublicLayout"),
     children: [
