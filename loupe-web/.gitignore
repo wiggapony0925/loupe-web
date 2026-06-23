@@ -6,3 +6,6 @@ dist-ssr
 .vite
 .DS_Store
 *.tsbuildinfo
+
+*storybook.log
+storybook-static

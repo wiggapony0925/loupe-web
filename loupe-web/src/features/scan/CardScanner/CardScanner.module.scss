@@ -1,0 +1,714 @@
+// Full-screen in-browser scanner. Always rendered over a dark camera feed, so
+// the chrome uses fixed dark-glass values (like the mobile viewfinder) rather
+// than theme tokens — only the mint accent comes from the palette.
+
+$glass: rgba(8, 11, 13, 0.55);
+$glass-strong: rgba(5, 8, 10, 0.9);
+$hairline: rgba(255, 255, 255, 0.12);
+
+.scan {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  overflow: hidden;
+  background: #000;
+  color: #fff;
+}
+
+.video,
+.canvas,
+.backdrop {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.video {
+  object-fit: cover;
+}
+
+.canvas {
+  display: none;
+}
+
+.backdrop {
+  background:
+    radial-gradient(80% 60% at 50% 30%, color-mix(in srgb, var(--accent-mint) 16%, transparent), transparent 70%),
+    linear-gradient(180deg, #0b0f12, #050708);
+}
+
+// ── Top bar ──
+.top {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+  padding: max(env(safe-area-inset-top), 14px) 16px 14px;
+}
+
+.iconBtn {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  color: #fff;
+  background: $glass;
+  border: 1px solid $hairline;
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  cursor: pointer;
+  transition: transform var(--dur-fast) var(--ease-out);
+
+  &:hover {
+    transform: scale(1.05);
+  }
+  &:active {
+    transform: scale(0.95);
+  }
+}
+
+.title {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+}
+
+.categoryBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  color: #fff;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  cursor: pointer;
+}
+
+.titleMain {
+  font-size: 15px;
+  font-weight: 700;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.7);
+}
+
+.chev {
+  color: rgba(255, 255, 255, 0.7);
+  transition: transform var(--dur-fast) var(--ease-out);
+}
+.chevOpen {
+  transform: rotate(180deg);
+}
+
+.tcgMenu {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 6;
+  width: 184px;
+  display: flex;
+  flex-direction: column;
+  padding: 6px;
+  border-radius: var(--radius-md);
+  background: $glass-strong;
+  border: 1px solid $hairline;
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  box-shadow: var(--shadow-pop);
+}
+
+.tcgOption {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 9px 12px;
+  border-radius: var(--radius-sm);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.85);
+  cursor: pointer;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.08);
+  }
+}
+.tcgOptionActive {
+  color: var(--accent-mint);
+}
+
+.menuScrim {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  background: transparent;
+  border: 0;
+  cursor: default;
+}
+
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.66);
+}
+
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.5);
+  transition: background var(--dur-fast) var(--ease-out);
+
+  &.dotOn {
+    background: var(--accent-mint);
+    box-shadow: 0 0 8px var(--accent-mint);
+  }
+}
+
+// ── Reticle ──
+.reticleWrap {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+
+.reticle {
+  position: relative;
+  width: min(78vw, 300px);
+  aspect-ratio: 2.5 / 3.5;
+  border-radius: 18px;
+  transition: box-shadow var(--dur-med) var(--ease-out);
+}
+
+.reticleLocked {
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent-mint) 70%, transparent);
+}
+
+.corner {
+  position: absolute;
+  width: 30px;
+  height: 30px;
+  border: 3px solid var(--accent-mint);
+  border-radius: 4px;
+}
+.corner_tl {
+  top: -2px;
+  left: -2px;
+  border-right: 0;
+  border-bottom: 0;
+  border-top-left-radius: 16px;
+}
+.corner_tr {
+  top: -2px;
+  right: -2px;
+  border-left: 0;
+  border-bottom: 0;
+  border-top-right-radius: 16px;
+}
+.corner_bl {
+  bottom: -2px;
+  left: -2px;
+  border-right: 0;
+  border-top: 0;
+  border-bottom-left-radius: 16px;
+}
+.corner_br {
+  bottom: -2px;
+  right: -2px;
+  border-left: 0;
+  border-top: 0;
+  border-bottom-right-radius: 16px;
+}
+
+.sweep {
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  height: 2px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, transparent, var(--accent-mint), transparent);
+  box-shadow: 0 0 12px var(--accent-mint);
+  animation: sweep 1.7s var(--ease-out) infinite;
+}
+
+@keyframes sweep {
+  0% {
+    top: 6%;
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+  }
+  80% {
+    opacity: 1;
+  }
+  100% {
+    top: 94%;
+    opacity: 0;
+  }
+}
+
+// ── Permission / fallback ──
+.permission {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-md);
+  padding: var(--space-2xl);
+  text-align: center;
+  color: #fff;
+
+  svg {
+    color: var(--accent-mint);
+  }
+}
+
+.permissionTitle {
+  font-size: var(--text-lg);
+  font-weight: 700;
+}
+
+.permissionSub {
+  max-width: 34ch;
+  font-size: var(--text-sm);
+  color: rgba(255, 255, 255, 0.66);
+  margin-bottom: var(--space-sm);
+}
+
+// ── Identifying / no-match feedback (centered over the frame) ──
+.feedback {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-2xl);
+  pointer-events: none;
+}
+
+.feedbackPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 16px;
+  border-radius: var(--radius-pill);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: var(--accent-mint);
+  background: $glass-strong;
+  border: 1px solid color-mix(in srgb, var(--accent-mint) 30%, transparent);
+}
+
+.noMatch {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-sm);
+  text-align: center;
+  color: #fff;
+  pointer-events: auto;
+
+  svg {
+    color: rgba(255, 255, 255, 0.8);
+  }
+}
+
+.noMatchTitle {
+  font-size: var(--text-lg);
+  font-weight: 700;
+}
+
+.noMatchSub {
+  max-width: 32ch;
+  font-size: var(--text-sm);
+  color: rgba(255, 255, 255, 0.62);
+  margin-bottom: var(--space-sm);
+}
+
+// ── Results sheet ──
+.sheet {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  padding: var(--space-lg) 16px max(env(safe-area-inset-bottom), 18px);
+  background: linear-gradient(180deg, transparent, $glass-strong 22%);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}
+
+// When the live control bar is shown, lift the result sheet above it.
+.sheetAboveControls {
+  bottom: 104px;
+}
+
+// ── Hero top match (big art so the card is actually visible) ──
+.hero {
+  display: flex;
+  gap: var(--space-md);
+  width: 100%;
+  padding: 10px;
+  border-radius: 16px;
+  text-align: left;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid color-mix(in srgb, var(--accent-mint) 38%, transparent);
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-out);
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.11);
+  }
+}
+
+.heroArt {
+  flex-shrink: 0;
+  width: 84px;
+  height: 118px;
+  border-radius: 9px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.heroBody {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  min-width: 0;
+  flex: 1;
+}
+
+.heroName {
+  font-size: var(--text-lg);
+  font-weight: 800;
+  line-height: 1.15;
+}
+
+.heroMeta {
+  font-size: var(--text-sm);
+  color: rgba(255, 255, 255, 0.62);
+}
+
+.heroOpen {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 4px;
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: var(--accent-mint);
+}
+
+.hint {
+  text-align: center;
+  font-size: var(--text-sm);
+  color: rgba(255, 255, 255, 0.6);
+  padding: var(--space-sm) 0;
+}
+
+.sheetHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.sheetTitle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--text-sm);
+  font-weight: 700;
+
+  svg {
+    color: var(--accent-mint);
+  }
+}
+
+.confidence {
+  font-size: var(--text-sm);
+  font-weight: 800;
+  color: var(--accent-mint);
+  font-variant-numeric: tabular-nums;
+}
+
+.results {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 46vh;
+  overflow-y: auto;
+}
+
+.result {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid $hairline;
+  color: #fff;
+  cursor: pointer;
+  text-align: left;
+  transition:
+    background var(--dur-fast) var(--ease-out),
+    transform var(--dur-fast) var(--ease-out);
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateY(-1px);
+
+    .resultArrow {
+      transform: translateX(2px);
+      color: var(--accent-mint);
+    }
+  }
+}
+
+.resultThumb {
+  flex-shrink: 0;
+  width: 42px;
+  height: 58px;
+  border-radius: 7px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.resultBody {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+  gap: 2px;
+}
+
+.resultName {
+  font-size: var(--text-md);
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.resultMeta {
+  font-size: var(--text-xs);
+  color: rgba(255, 255, 255, 0.6);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.resultPct {
+  flex-shrink: 0;
+  font-size: var(--text-xs);
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.75);
+  font-variant-numeric: tabular-nums;
+}
+
+.resultArrow {
+  flex-shrink: 0;
+  color: rgba(255, 255, 255, 0.4);
+  transition:
+    transform var(--dur-fast) var(--ease-out),
+    color var(--dur-fast) var(--ease-out);
+}
+
+.gradeCta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 12px;
+  border-radius: 14px;
+  font-size: var(--text-md);
+  font-weight: 700;
+  color: var(--accent-mint);
+  background: color-mix(in srgb, var(--accent-mint) 14%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent-mint) 36%, transparent);
+  cursor: pointer;
+  transition:
+    background var(--dur-fast) var(--ease-out),
+    transform var(--dur-fast) var(--ease-out);
+
+  &:hover {
+    background: color-mix(in srgb, var(--accent-mint) 22%, transparent);
+    transform: translateY(-1px);
+  }
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+.scanningPill {
+  align-self: center;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: var(--radius-pill);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  color: var(--accent-mint);
+  background: color-mix(in srgb, var(--accent-mint) 14%, transparent);
+}
+
+.spin {
+  animation: spin 0.9s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+// ── Camera control bar (Collectr-style) ──
+.controls {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 4;
+  height: 104px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 32px max(env(safe-area-inset-bottom), 12px);
+}
+
+.ctrlSide {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  color: #fff;
+  background: $glass;
+  border: 1px solid $hairline;
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  cursor: pointer;
+}
+
+.shutter {
+  display: grid;
+  place-items: center;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: #fff;
+  border: 4px solid rgba(255, 255, 255, 0.35);
+  color: var(--accent-mint);
+  cursor: pointer;
+  transition: transform var(--dur-fast) var(--ease-out);
+
+  &:active {
+    transform: scale(0.92);
+  }
+}
+
+.shutterBusy {
+  background: color-mix(in srgb, var(--accent-mint) 22%, #0b0f12);
+  border-color: color-mix(in srgb, var(--accent-mint) 50%, transparent);
+}
+
+.controlsHint {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(104px + 6px);
+  text-align: center;
+  font-size: var(--text-xs);
+  color: rgba(255, 255, 255, 0.6);
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.6);
+  pointer-events: none;
+}
+
+// ── Recent scans strip ──
+.recents {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: var(--space-md) 16px max(env(safe-area-inset-bottom), 16px);
+  background: linear-gradient(180deg, transparent, $glass-strong 30%);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}
+
+.recentsAboveControls {
+  bottom: 104px;
+}
+
+.recentsLabel {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.recentsRow {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.recentItem {
+  flex-shrink: 0;
+  width: 44px;
+  height: 62px;
+  border-radius: 7px;
+  overflow: hidden;
+  padding: 0;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid $hairline;
+  cursor: pointer;
+  transition: transform var(--dur-fast) var(--ease-out);
+
+  &:hover {
+    transform: translateY(-2px);
+    border-color: color-mix(in srgb, var(--accent-mint) 50%, transparent);
+  }
+}
+
+.fileInput {
+  display: none;
+}

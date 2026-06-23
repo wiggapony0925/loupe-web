@@ -96,6 +96,36 @@
     }
   }
 
+  // Prominent scan entry — a mint pill so the app's primary verb is always one
+  // tap from the header, not buried in the category nav next to "Scanner".
+  &__scan {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    border-radius: var(--radius-pill);
+    font-size: var(--text-sm);
+    font-weight: 700;
+    color: var(--on-accent);
+    background: var(--accent-mint);
+    white-space: nowrap;
+    @include focus-ring;
+
+    &:hover {
+      filter: brightness(1.06);
+    }
+
+    @include bp-down("sm") {
+      padding: 8px 10px;
+    }
+  }
+
+  &__scan-label {
+    @include bp-down("sm") {
+      display: none;
+    }
+  }
+
   &__promo {
     position: relative;
     z-index: 1;

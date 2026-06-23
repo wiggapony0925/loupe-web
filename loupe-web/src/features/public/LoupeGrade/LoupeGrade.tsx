@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   Upload,
   RefreshCw,
@@ -80,6 +80,7 @@ async function downscale(file: File, maxDim = 1600, quality = 0.82): Promise<Blo
  */
 export function LoupeGrade() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuth();
   const [src, setSrc] = useState<string | null>(null);
   const [outer, setOuter] = useState<Frame>(DEFAULT_OUTER);
@@ -113,6 +114,24 @@ export function LoupeGrade() {
     },
   });
   const addGrade = useAddGrade();
+
+  // Pre-attach a card handed in via navigation state — the "Grade in
+  // playground" button on the scanner result sheet + card detail. Lands the
+  // user here with the card already selected (value ladder loads); they just
+  // drop a photo to measure centering. One-shot on mount.
+  const prefilled = useRef(false);
+  useEffect(() => {
+    if (prefilled.current) return;
+    const incoming = (
+      location.state as {
+        card?: { id: string; name: string; imageUrl?: string | null; setName?: string | null };
+      } | null
+    )?.card;
+    if (incoming?.id) {
+      prefilled.current = true;
+      setCard(incoming);
+    }
+  }, [location.state]);
 
   const setFrame = useCallback((which: "outer" | "inner", f: Frame) => {
     (which === "outer" ? setOuter : setInner)(f);

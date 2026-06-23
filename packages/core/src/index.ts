@@ -11,6 +11,11 @@ export { ENDPOINTS } from "./endpoints";
 export { api } from "./api";
 export * from "./types";
 export {
+  useScanLoop,
+  type UseScanLoopOptions,
+  type ScanLoopResult,
+} from "./useScanLoop";
+export {
   CARD_CHART_RANGES,
   CARD_CHART_RANGE_TO_BACKEND,
   labelForCardChartRange,

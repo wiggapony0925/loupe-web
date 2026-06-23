@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, Outlet, useNavigate } from "react-router-dom";
-import { LayoutDashboard, ShoppingCart, User } from "lucide-react";
+import { LayoutDashboard, ScanLine, ShoppingCart, User } from "lucide-react";
 import { SearchCombobox, ThemeToggle, Footer, Modal, Button, FeatureGate, ScrollToTop } from "@/components";
 import { AuroraField, Logo } from "@/assets";
 import { useAuth } from "@/auth/AuthProvider";
@@ -46,6 +46,10 @@ export function PublicLayout() {
           onSelectSealed={(p) => navigate(`/sealed/${encodeURIComponent(p.id)}`)}
         />
         <div className={styles["public__actions"]}>
+          <Link to="/scan" className={styles["public__scan"]} aria-label="Scan a card">
+            <ScanLine size={18} />
+            <span className={styles["public__scan-label"]}>Scan</span>
+          </Link>
           <ThemeToggle compact />
           {user ? (
             <Link to="/app" className={styles["public__action"]}>
@@ -107,6 +111,9 @@ export function PublicLayout() {
         </Link>
         <Link to="/sealed" className={styles["public__nav-item"]}>
           Sealed
+        </Link>
+        <Link to="/scan" className={styles["public__nav-item"]}>
+          Scan
         </Link>
         <Link to="/grade" className={styles["public__nav-item"]}>
           Grade

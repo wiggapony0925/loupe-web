@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState, type CSSProperties } from "react";
 import { cx } from "@/lib/cx";
 import { useRecentStore } from "@/stores/recentStore";
 import { Link, useParams } from "react-router-dom";
-import { Expand, ExternalLink, ScanLine, ShieldCheck } from "lucide-react";
+import { Expand, ExternalLink, ScanLine, ScanSearch, ShieldCheck } from "lucide-react";
 import {
   useCard,
   useMarket,
@@ -535,6 +535,21 @@ export function ProductDetail() {
             slabbed.
           </p>
           <div className={styles.gradeCta__actions}>
+            <Link
+              to="/grade"
+              state={{
+                card: {
+                  id: card.id,
+                  name: card.name,
+                  imageUrl: card.imageUrl,
+                  setName: card.setName,
+                },
+              }}
+            >
+              <Button variant="primary" size="lg" leadingIcon={<ScanSearch size={18} />}>
+                Grade in playground
+              </Button>
+            </Link>
             <ScanButton label="Scan a card" size="lg" />
             <Link to="/scanner">
               <Button variant="secondary" size="lg">

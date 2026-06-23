@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Camera, ImageUp, Loader2, ScanLine } from "lucide-react";
-import { useIdentifyCard, type ScanResult } from "@loupe/core";
+import { Camera, ImageUp, Loader2, ScanLine, ScanSearch } from "lucide-react";
+import { useIdentifyCard, type ScanCandidate, type ScanResult } from "@loupe/core";
 import { Modal, Button, CardThumb } from "@/components";
+import { candidateArt } from "../candidateArt";
 import styles from "./ScanModal.module.scss";
 
 export interface ScanModalProps {
@@ -66,6 +67,14 @@ export function ScanModal({ open, onOpenChange }: ScanModalProps) {
 
   const top = result?.candidates ?? [];
 
+  /** Take the matched card straight into the Loupe Grade playground. */
+  function gradeInPlayground(c: ScanCandidate) {
+    onOpenChange(false);
+    navigate("/grade", {
+      state: { card: { id: c.id, name: c.name, imageUrl: c.imageUrl, setName: c.setName } },
+    });
+  }
+
   return (
     <Modal
       open={open}
@@ -118,11 +127,9 @@ export function ScanModal({ open, onOpenChange }: ScanModalProps) {
                   navigate(`/cards/${encodeURIComponent(c.id)}`);
                 }}
               >
-                {c.imageUrl && (
-                  <span className={styles.match__art}>
-                    <CardThumb src={c.imageUrl} alt={c.name} size="sm" />
-                  </span>
-                )}
+                <span className={styles.match__art}>
+                  <CardThumb src={candidateArt(c)} alt={c.name} size="sm" />
+                </span>
                 <span className={styles.match__body}>
                   <span className={styles.match__name}>{c.name}</span>
                   <span className={styles.match__meta}>
@@ -132,6 +139,14 @@ export function ScanModal({ open, onOpenChange }: ScanModalProps) {
                 <span className={styles.match__conf}>{Math.round(c.confidence * 100)}%</span>
               </button>
             ))}
+            <Button
+              block
+              size="md"
+              leadingIcon={<ScanSearch size={16} />}
+              onClick={() => gradeInPlayground(top[0]!)}
+            >
+              Grade in playground
+            </Button>
           </div>
         )}
 
