@@ -1,12 +1,12 @@
 // ───────────────────────────────────────────────────────────────────────────
-// tokens.scss — the "Precision" palette as CSS custom properties.
-// 1:1 mirror of loupe-frontend/src/presentation/theme/tokens.ts so the web
-// client and the Expo app are visually identical. Flips on the `data-theme`
-// attribute stamped on <html> (see index.html bootstrap + ThemeProvider).
+// tokens.scss — AUTO-GENERATED from @loupe/tokens. DO NOT EDIT BY HAND.
+// Edit packages/tokens/src/tokens.js, then run `npm run gen:tokens` (root).
+// This guarantees the web client and the Expo app share one palette source.
+// Flips on the `data-theme` attribute stamped on <html>.
 // ───────────────────────────────────────────────────────────────────────────
 
 :root {
-  // ── Radius (px → rem-ish, kept as px to match RN tokens) ──
+  // ── Radius ──
   --radius-xs: 2px;
   --radius-sm: 6px;
   --radius-md: 10px;
@@ -24,13 +24,9 @@
   --space-3xl: 48px;
 
   // ── Typography ──
-  /* Inter for UI/body; falls back to the platform sans before it loads. */
-  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "SF Pro Text",
-    "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   --font-mono: "SF Mono", "JetBrains Mono", ui-monospace, Menlo, monospace;
-  /* Fraunces — editorial display serif (optical sizing) for marketing headlines. */
-  --font-serif: "Fraunces", "New York", "Iowan Old Style", "Palatino Linotype",
-    Georgia, "Times New Roman", serif;
+  --font-serif: "Fraunces", "New York", "Iowan Old Style", "Palatino Linotype", Georgia, "Times New Roman", serif;
 
   --text-xs: 11px;
   --text-sm: 13px;
@@ -73,12 +69,8 @@
   --accent-rose: #ff453a;
   --accent-purple: #9d6bff;
 
-  // Ink that sits on a bright accent fill (text on a mint button, etc.) — a
-  // near-black with a faint green cast. Theme-invariant: the accent fills stay
-  // bright enough in both themes for dark ink to clear contrast.
   --on-accent: #06140d;
 
-  // Semantic deltas (gains/losses) lean on mint/rose like Robinhood.
   --up: var(--accent-mint);
   --down: var(--accent-rose);
 

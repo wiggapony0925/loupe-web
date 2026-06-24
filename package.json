@@ -6,5 +6,8 @@
   "workspaces": [
     "packages/*",
     "loupe-web"
-  ]
+  ],
+  "scripts": {
+    "gen:tokens": "node packages/tokens/scripts/gen-scss.mjs"
+  }
 }
