@@ -25,7 +25,9 @@ import {
   NoteCard,
   Stat,
   Delta,
+  SignInGate,
 } from "@/components";
+import { useAuth } from "@/auth/AuthProvider";
 import { ScanButton } from "@/features/scan";
 import { GradeSelector, tierLabel, type PriceTier } from "./GradeSelector/GradeSelector";
 import { Card3DModal } from "./Card3DModal/Card3DModal";
@@ -101,6 +103,7 @@ function marketplaces(name: string) {
 /** Public product page (TCGplayer-style): identity, buy box, market history, marketplaces. */
 export function ProductDetail() {
   const { openExternal } = useLoupeNavigation();
+  const { user } = useAuth();
   const { id = "" } = useParams();
   const { data: card, isLoading, isError } = useCard(id);
   const { data: market } = useMarket(id);
@@ -444,6 +447,19 @@ export function ProductDetail() {
           <CostBasisStrip cardId={card.id} marketAmount={price} />
           <ActiveAlerts cardId={card.id} cardName={card.name} />
         </div>
+      )}
+
+      {/* Guests see their would-be position zone as a sign-in invite. Signing in
+          mints a nav key (this card + "add to collection") so they return here
+          and the add form opens — the authed view shows cost basis / P/L / alerts
+          in its place (CostBasisStrip + ActiveAlerts above). */}
+      {!user && (
+        <SignInGate
+          title="Track this card in your vault"
+          message="Sign in to add it to your collection, watch its price, and see your cost basis and P/L right here."
+          intent="collection.add"
+          card={{ id: card.id, title: card.name }}
+        />
       )}
 
       {/* Verified per-house × grade prices (population + Δ). */}
