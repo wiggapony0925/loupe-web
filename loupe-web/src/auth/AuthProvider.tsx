@@ -56,6 +56,8 @@ interface AuthValue {
     opts?: { nonce?: string; displayName?: string },
   ) => Promise<User>;
   logout: () => void;
+  /** Revoke every session for this user (all devices), then sign out here. */
+  logoutEverywhere: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthValue | null>(null);
@@ -91,6 +93,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Clear the HttpOnly auth cookie too (JS can't, so the server does).
     // Best-effort: never block sign-out on the network call.
     void api.auth.logout().catch(() => {});
+    setUser(null);
+  }, [setUser]);
+
+  // Sign out on every device: ask the server to revoke all of this user's
+  // tokens (bumps the token epoch), THEN clear the local session. The revoke
+  // call needs the current token, so it must run before we drop it.
+  const logoutEverywhere = useCallback(async () => {
+    await api.auth.logoutAll().catch(() => {
+      /* best-effort — still clear locally so the user is signed out here */
+    });
+    try {
+      localStorage.removeItem(TOKEN_KEY);
+    } catch {
+      /* ignore */
+    }
     setUser(null);
   }, [setUser]);
 
@@ -196,8 +213,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       signInWithGoogle,
       signInWithApple,
       logout,
+      logoutEverywhere,
     }),
-    [user, loading, login, completeMfa, register, signInWithGoogle, signInWithApple, logout],
+    [
+      user,
+      loading,
+      login,
+      completeMfa,
+      register,
+      signInWithGoogle,
+      signInWithApple,
+      logout,
+      logoutEverywhere,
+    ],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

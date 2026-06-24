@@ -1,7 +1,8 @@
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
-import { LogOut, Sparkles } from "lucide-react";
-import { Panel, SegmentedControl, ThemeToggle, Badge, Button } from "@/components";
+import { LogOut, MonitorSmartphone, Sparkles } from "lucide-react";
+import { Panel, SegmentedControl, ThemeToggle, Badge, Button, useConfirm } from "@/components";
+import { notify } from "@/stores/noticeStore";
 import { useUiStore } from "@/stores/uiStore";
 import { useAuth } from "@/auth/AuthProvider";
 import { MfaCard } from "../MfaCard/MfaCard";
@@ -14,12 +15,34 @@ const VERSION = "0.1.0";
 /** Account + app settings — mirrors the mobile Settings (account, appearance, layout, about). */
 export function Settings() {
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
+  const { user, logout, logoutEverywhere } = useAuth();
+  const confirm = useConfirm();
+  const [signingOutAll, setSigningOutAll] = useState(false);
   const side = useUiStore((s) => s.sidebarSide);
   const setSide = useUiStore((s) => s.setSidebarSide);
   const collapsed = useUiStore((s) => s.sidebarCollapsed);
   const setCollapsed = useUiStore((s) => s.setSidebarCollapsed);
   const { subscriptionsEnabled, isPro, openPaywall, manageBilling, billingBusy } = usePro();
+
+  async function onSignOutEverywhere() {
+    const ok = await confirm({
+      title: "Sign out everywhere?",
+      message:
+        "This signs you out on every device and revokes all active sessions — use it if you've lost a device or think your account is compromised. You'll need to sign in again.",
+      confirmLabel: "Sign out everywhere",
+      cancelLabel: "Cancel",
+      tone: "danger",
+    });
+    if (!ok) return;
+    setSigningOutAll(true);
+    try {
+      await logoutEverywhere();
+      void navigate("/");
+    } catch {
+      notify.error("Couldn't sign out everywhere. Please try again.");
+      setSigningOutAll(false);
+    }
+  }
 
   return (
     <div className={styles.page}>
@@ -78,6 +101,21 @@ export function Settings() {
             }}
           >
             Sign out
+          </Button>
+        </Row>
+        <Divider />
+        <Row
+          title="Sign out everywhere"
+          desc="Revoke every device and active session. Use this if you've lost a device."
+        >
+          <Button
+            variant="secondary"
+            size="sm"
+            disabled={signingOutAll}
+            leadingIcon={<MonitorSmartphone size={16} />}
+            onClick={onSignOutEverywhere}
+          >
+            {signingOutAll ? "Signing out…" : "Sign out all"}
           </Button>
         </Row>
         <Divider />
