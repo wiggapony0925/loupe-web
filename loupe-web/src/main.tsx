@@ -1,8 +1,12 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { configureApi } from "@loupe/core";
+import { initSentry } from "@/observability/sentry";
 import "@/styles/global.scss";
 import App from "@/App";
+
+// Error + performance monitoring. No-op unless VITE_SENTRY_DSN is set.
+initSentry();
 
 // Configure the shared API layer before first render: same-origin /v1 (proxied
 // by Vite in dev, nginx in prod) and the bearer token from localStorage.
