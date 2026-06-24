@@ -19,6 +19,7 @@ export interface FlaggableProps {
  * (default shown); `inspecting` is true only for an admin in inspect mode;
  * `toggle` flips the flag (create-or-toggle) to hide/show the region.
  */
+// eslint-disable-next-line react-refresh/only-export-components -- hook co-located with its component
 export function useFlaggable(flag: string, label?: string) {
   const visible = useFeatureFlag(flag, true);
   const { user } = useAuth();

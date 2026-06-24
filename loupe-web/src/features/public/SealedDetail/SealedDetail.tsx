@@ -100,7 +100,7 @@ export function SealedDetail() {
   const hasSpread =
     low != null && high != null && high > low && marketPrice != null;
   const spreadPct = hasSpread
-    ? Math.min(100, Math.max(0, ((marketPrice! - low!) / (high! - low!)) * 100))
+    ? Math.min(100, Math.max(0, ((marketPrice - low) / (high - low)) * 100))
     : 0;
 
   // Real value line: MSRP-at-release → current market. Reuses the card price
@@ -112,7 +112,7 @@ export function SealedDetail() {
 
   function handleAdd() {
     if (!user) {
-      navigate("/login");
+      void navigate("/login");
       return;
     }
     if (owned || add.isPending) return;

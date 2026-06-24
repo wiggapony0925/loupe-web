@@ -1,6 +1,7 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { AlertTriangle, CheckCircle2, Info, X, WifiOff } from "lucide-react";
 import { useNoticeStore, notify, type NoticeTone } from "@/stores/noticeStore";
+import { useOnlineStatus } from "@/hooks/useOnlineStatus";
 import styles from "./Banner.module.scss";
 
 const ICONS: Record<NoticeTone, typeof Info> = {
@@ -21,27 +22,25 @@ export function Banner() {
   const notices = useNoticeStore((s) => s.notices);
   const dismiss = useNoticeStore((s) => s.dismiss);
 
-  // Surface connectivity loss/restoration as a banner automatically.
+  // Surface connectivity loss/restoration as a banner automatically. The ref
+  // guards the "back online" toast so it only fires on an offline→online
+  // transition, never on first load.
+  const online = useOnlineStatus();
+  const wasOnline = useRef(online);
   useEffect(() => {
-    const onOffline = () =>
+    if (!online) {
       useNoticeStore.getState().push({
         id: OFFLINE_ID,
         tone: "warning",
         message: "You're offline. Some features may not work until you reconnect.",
         dismissible: false,
       });
-    const onOnline = () => {
+    } else if (!wasOnline.current) {
       dismiss(OFFLINE_ID);
       notify.success("Back online.", 2500);
-    };
-    if (!navigator.onLine) onOffline();
-    window.addEventListener("offline", onOffline);
-    window.addEventListener("online", onOnline);
-    return () => {
-      window.removeEventListener("offline", onOffline);
-      window.removeEventListener("online", onOnline);
-    };
-  }, [dismiss]);
+    }
+    wasOnline.current = online;
+  }, [online, dismiss]);
 
   if (notices.length === 0) return null;
 

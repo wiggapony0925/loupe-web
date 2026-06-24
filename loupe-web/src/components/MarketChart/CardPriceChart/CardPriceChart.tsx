@@ -5,7 +5,6 @@ import {
   CARD_CHART_RANGES,
   CARD_CHART_RANGE_TO_BACKEND,
   type CardChartRange,
-  type PriceSeries,
 } from "@loupe/core";
 import { formatMoney } from "@/lib/format";
 import { MarketChart, type ChartSeries, type RangeKey } from "../MarketChart";
@@ -84,12 +83,12 @@ export function CardPriceChart({
 
   const primary = results[0];
   const currency =
-    (primary?.data as PriceSeries | undefined)?.currency ?? "USD";
+    (primary?.data)?.currency ?? "USD";
   const fmtMoney = (v: number) => formatMoney({ amount: v, currency });
 
   const series: ChartSeries[] = tiers
     .map((t, i): ChartSeries | null => {
-      const data = results[i]?.data as PriceSeries | undefined;
+      const data = results[i]?.data;
       if (!data || data.points.length < 2) return null;
       return {
         id: `${t.house}-${t.grade ?? "raw"}`,
@@ -110,7 +109,7 @@ export function CardPriceChart({
           height={height}
           header={header}
           title={title}
-          range={range as RangeKey}
+          range={range}
           ranges={CARD_CHART_RANGES as unknown as RangeKey[]}
           onRangeChange={(r) => setRange(r as CardChartRange)}
           format={fmtMoney}

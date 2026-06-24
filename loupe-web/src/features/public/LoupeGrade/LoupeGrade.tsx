@@ -176,7 +176,7 @@ export function LoupeGrade() {
       setOuter(DEFAULT_OUTER);
       setInner(DEFAULT_INNER);
       autoDetect(url);
-      autoIdentify(file);
+      void autoIdentify(file);
     },
     [autoDetect, autoIdentify],
   );
@@ -190,7 +190,7 @@ export function LoupeGrade() {
       if (!c.imageUrl) return;
       setSrc((prev) => {
         if (prev?.startsWith("blob:")) URL.revokeObjectURL(prev);
-        return c.imageUrl!;
+        return c.imageUrl;
       });
       setOuter(DEFAULT_OUTER);
       setInner(DEFAULT_INNER);
@@ -278,7 +278,7 @@ export function LoupeGrade() {
   const gradeInt = Math.round(result.estimate);
   function saveGraded() {
     if (!user) {
-      navigate("/login");
+      void navigate("/login");
       return;
     }
     if (!card || saved || addGrade.isPending) return;

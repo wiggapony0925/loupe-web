@@ -1,13 +1,24 @@
-import { QueryClient } from "@tanstack/react-query";
+import { QueryClient, QueryCache, MutationCache } from "@tanstack/react-query";
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 import { createSyncStoragePersister } from "@tanstack/query-sync-storage-persister";
-import { useState, type ReactNode } from "react";
+import { lazy, Suspense, useState, type ReactNode } from "react";
 import { ThemeProvider } from "@/theme";
 import { AuthProvider } from "@/auth/AuthProvider";
 import { ProProvider } from "@/pro";
 import { ConfirmProvider, TooltipProvider } from "@/components";
+import { reportError } from "@/observability/sentry";
 
 const DAY_MS = 1000 * 60 * 60 * 24;
+
+// React Query inspector — dev-only. The lazy import is gated on `import.meta.env.DEV`
+// so it compiles to `() => null` and is tree-shaken out of the production bundle.
+const ReactQueryDevtools = import.meta.env.DEV
+  ? lazy(() =>
+      import("@tanstack/react-query-devtools").then((m) => ({
+        default: m.ReactQueryDevtools,
+      })),
+    )
+  : () => null;
 
 /**
  * Catalog query keys worth persisting to disk. Card identity (names, sets, art,
@@ -38,6 +49,20 @@ export function AppProviders({ children }: { children: ReactNode }) {
   const [client] = useState(
     () =>
       new QueryClient({
+        // Report every failed query/mutation to Sentry from one place — the key
+        // gives context for which request failed — so no per-call error plumbing
+        // is needed anywhere in the app.
+        queryCache: new QueryCache({
+          onError: (error, query) =>
+            reportError(error, { kind: "query", queryKey: query.queryKey }),
+        }),
+        mutationCache: new MutationCache({
+          onError: (error, _vars, _ctx, mutation) =>
+            reportError(error, {
+              kind: "mutation",
+              mutationKey: mutation.options.mutationKey,
+            }),
+        }),
         defaultOptions: {
           // gcTime must outlive the persisted maxAge so restored catalog
           // queries aren't garbage-collected before they're reused.
@@ -70,6 +95,11 @@ export function AppProviders({ children }: { children: ReactNode }) {
           </ProProvider>
         </AuthProvider>
       </ThemeProvider>
+      {import.meta.env.DEV && (
+        <Suspense fallback={null}>
+          <ReactQueryDevtools initialIsOpen={false} buttonPosition="bottom-left" />
+        </Suspense>
+      )}
     </PersistQueryClientProvider>
   );
 }

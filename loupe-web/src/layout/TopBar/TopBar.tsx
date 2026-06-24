@@ -25,7 +25,7 @@ export function TopBar() {
           const p = new URLSearchParams();
           if (query) p.set("q", query);
           if (tcg && tcg !== "all") p.set("game", tcg);
-          navigate(`/cards${p.toString() ? `?${p}` : ""}`);
+          void navigate(`/cards${p.toString() ? `?${p}` : ""}`);
         }}
         onSelectCard={(c) => navigate(`/cards/${encodeURIComponent(c.id)}`)}
         onSelectSealed={(p) => navigate(`/sealed/${encodeURIComponent(p.id)}`)}
@@ -62,7 +62,7 @@ export function TopBar() {
                 className={styles.menuItem}
                 onSelect={() => {
                   logout();
-                  navigate("/");
+                  void navigate("/");
                 }}
               >
                 <LogOut size={16} /> Sign out

@@ -101,7 +101,7 @@ export function UpgradeModal({ open, reason, onOpenChange }: UpgradeModalProps) 
     void qc.invalidateQueries({ queryKey: ["entitlements"] });
     void qc.invalidateQueries({ queryKey: ["me"] });
     // The webhook needs a beat; refresh again shortly.
-    window.setTimeout(() => qc.invalidateQueries({ queryKey: ["entitlements"] }), 2500);
+    window.setTimeout(() => void qc.invalidateQueries({ queryKey: ["entitlements"] }), 2500);
     setStep("success");
   }
 

@@ -1,5 +1,6 @@
 import { Component, type ErrorInfo, type ReactNode } from "react";
 import { AlertTriangle } from "lucide-react";
+import { reportError } from "@/observability/sentry";
 import styles from "./ErrorBoundary.module.scss";
 
 /**
@@ -64,8 +65,9 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, info: ErrorInfo) {
-    // Surface to the console (and any wired observability) without crashing.
+    // Surface to the console and to Sentry (no-op unless a DSN is configured).
     console.error("[ErrorBoundary]", error, info.componentStack);
+    reportError(error, { componentStack: info.componentStack });
   }
 
   render() {

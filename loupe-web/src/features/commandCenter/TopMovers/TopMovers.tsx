@@ -19,8 +19,8 @@ import styles from "./TopMovers.module.scss";
  */
 export function TopMovers({ onCard }: { onCard: (id: string) => void }) {
   const { data } = useAnalyticsOverview();
-  const gainers = data?.movers.gainers ?? [];
-  const losers = data?.movers.losers ?? [];
+  const gainers = useMemo(() => data?.movers.gainers ?? [], [data]);
+  const losers = useMemo(() => data?.movers.losers ?? [], [data]);
 
   const ids = useMemo(
     () =>

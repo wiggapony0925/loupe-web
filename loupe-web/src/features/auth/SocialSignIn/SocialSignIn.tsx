@@ -71,13 +71,17 @@ export function SocialSignIn({
 
     g.accounts.id.initialize({
       client_id: GOOGLE_CLIENT_ID,
-      callback: async (resp) => {
-        try {
-          const user = await handlers.current.signInWithGoogle(resp.credential);
-          handlers.current.onSuccess(user);
-        } catch {
-          handlers.current.setError("Google sign-in failed. Please try again.");
-        }
+      callback: (resp) => {
+        // GSI's callback type is `() => void`; run the async sign-in as a
+        // fire-and-forget IIFE so we don't hand it a Promise.
+        void (async () => {
+          try {
+            const user = await handlers.current.signInWithGoogle(resp.credential);
+            handlers.current.onSuccess(user);
+          } catch {
+            handlers.current.setError("Google sign-in failed. Please try again.");
+          }
+        })();
       },
     });
 

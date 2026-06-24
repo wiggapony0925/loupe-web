@@ -84,7 +84,7 @@ export function CardScanner() {
   }, []);
 
   useEffect(() => {
-    startCamera();
+    void startCamera();
     return () => stopCamera();
   }, [startCamera, stopCamera]);
 
@@ -146,7 +146,7 @@ export function CardScanner() {
   const pick = useCallback(
     (c: ScanCandidate) => {
       stopCamera();
-      navigate(`/cards/${c.id}`);
+      void navigate(`/cards/${c.id}`);
     },
     [navigate, stopCamera],
   );
@@ -164,7 +164,7 @@ export function CardScanner() {
   const gradeInPlayground = useCallback(
     (c: ScanCandidate) => {
       stopCamera();
-      navigate("/grade", {
+      void navigate("/grade", {
         state: {
           card: {
             id: c.id,
@@ -180,7 +180,7 @@ export function CardScanner() {
 
   const close = useCallback(() => {
     stopCamera();
-    navigate(-1);
+    void navigate(-1);
   }, [navigate, stopCamera]);
 
   return (
@@ -343,12 +343,12 @@ export function CardScanner() {
           {/* Hero card — big art so you can actually SEE the match. */}
           <button className={styles.hero} onClick={() => pick(candidates[0]!)}>
             <span className={styles.heroArt}>
-              <CardThumb src={candidateArt(candidates[0]!)} alt={candidates[0]!.name} size="md" />
+              <CardThumb src={candidateArt(candidates[0])} alt={candidates[0].name} size="md" />
             </span>
             <span className={styles.heroBody}>
-              <span className={styles.heroName}>{candidates[0]!.name}</span>
+              <span className={styles.heroName}>{candidates[0].name}</span>
               <span className={styles.heroMeta}>
-                {[candidates[0]!.setName, candidates[0]!.number && `#${candidates[0]!.number}`]
+                {[candidates[0].setName, candidates[0].number && `#${candidates[0].number}`]
                   .filter(Boolean)
                   .join(" · ") || "Tap to open the card"}
               </span>

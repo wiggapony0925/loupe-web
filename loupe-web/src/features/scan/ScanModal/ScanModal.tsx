@@ -70,7 +70,7 @@ export function ScanModal({ open, onOpenChange }: ScanModalProps) {
   /** Take the matched card straight into the Loupe Grade playground. */
   function gradeInPlayground(c: ScanCandidate) {
     onOpenChange(false);
-    navigate("/grade", {
+    void navigate("/grade", {
       state: { card: { id: c.id, name: c.name, imageUrl: c.imageUrl, setName: c.setName } },
     });
   }
@@ -124,7 +124,7 @@ export function ScanModal({ open, onOpenChange }: ScanModalProps) {
                 className={styles.match}
                 onClick={() => {
                   onOpenChange(false);
-                  navigate(`/cards/${encodeURIComponent(c.id)}`);
+                  void navigate(`/cards/${encodeURIComponent(c.id)}`);
                 }}
               >
                 <span className={styles.match__art}>

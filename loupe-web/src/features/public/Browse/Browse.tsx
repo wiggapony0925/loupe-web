@@ -119,7 +119,7 @@ export function Browse() {
   const active = isSearch ? search : browse;
   const data = active.data;
 
-  const results = data?.results ?? [];
+  const results = useMemo(() => data?.results ?? [], [data]);
   const total = data?.total ?? 0;
 
   // List view shows Robinhood-style sparkline rows. One *batched* request fetches

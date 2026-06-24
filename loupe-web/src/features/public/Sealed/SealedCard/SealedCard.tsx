@@ -6,6 +6,7 @@ import { formatMoney } from "@/lib/format";
 import styles from "./SealedCard.module.scss";
 
 /** Human-readable product-type labels (mirrors SealedProductTypeEnum). */
+// eslint-disable-next-line react-refresh/only-export-components -- shared label map co-located with the card
 export const SEALED_TYPE_LABEL: Record<string, string> = {
   booster_box: "Booster Box",
   booster_pack: "Booster Pack",

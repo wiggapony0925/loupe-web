@@ -21,6 +21,8 @@ import { CardThumb } from "@/components/CardThumb/CardThumb";
 import { Sparkline } from "@/components/Sparkline/Sparkline";
 import { formatMoney } from "@/lib/format";
 import { cx } from "@/lib/cx";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
+import { useClickOutside } from "@/hooks/useClickOutside";
 import styles from "./SearchCombobox.module.scss";
 
 const CATEGORIES = [
@@ -75,17 +77,12 @@ export function SearchCombobox({
     CATEGORIES[0],
   );
   const [query, setQuery] = useState(initialQuery);
-  const [debounced, setDebounced] = useState(initialQuery.trim());
+  // Debounced so suggestions don't fire a request per keystroke.
+  const debounced = useDebouncedValue(query.trim(), 220);
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(-1);
   const rootRef = useRef<HTMLDivElement>(null);
   const listId = useId();
-
-  // Debounce for suggestions so we don't fire a request per keystroke.
-  useEffect(() => {
-    const t = setTimeout(() => setDebounced(query.trim()), 220);
-    return () => clearTimeout(t);
-  }, [query]);
 
   const enabled = open && debounced.length >= 2;
   const { data, isFetching, isError } = usePublicSearch(
@@ -143,14 +140,7 @@ export function SearchCombobox({
   useEffect(() => setActive(-1), [debounced, cardCount, sealedCount]);
 
   // Close when clicking outside.
-  useEffect(() => {
-    function onDoc(e: MouseEvent) {
-      if (rootRef.current && !rootRef.current.contains(e.target as Node))
-        setOpen(false);
-    }
-    document.addEventListener("mousedown", onDoc);
-    return () => document.removeEventListener("mousedown", onDoc);
-  }, []);
+  useClickOutside(rootRef, () => setOpen(false));
 
   function submit(e?: FormEvent) {
     e?.preventDefault();

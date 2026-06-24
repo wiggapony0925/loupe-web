@@ -44,7 +44,7 @@ export function Status() {
 
   useEffect(() => {
     void check();
-    const id = window.setInterval(check, 30_000);
+    const id = window.setInterval(() => void check(), 30_000);
     return () => window.clearInterval(id);
   }, [check]);
 

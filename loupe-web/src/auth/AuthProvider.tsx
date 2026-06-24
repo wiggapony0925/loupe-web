@@ -9,6 +9,7 @@ import {
 } from "react";
 import { api, configureApi, type User } from "@loupe/core";
 import { notify } from "@/stores/noticeStore";
+import { setSentryUser } from "@/observability/sentry";
 
 const TOKEN_KEY = "loupe.auth.token";
 const USER_KEY = "loupe.auth.user";
@@ -57,7 +58,6 @@ interface AuthValue {
   logout: () => void;
 }
 
-// eslint-disable-next-line react-refresh/only-export-components
 const AuthContext = createContext<AuthValue | null>(null);
 
 /**
@@ -79,6 +79,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const setUser = useCallback((u: User | null) => {
     setUserState(u);
     writeCachedUser(u);
+    setSentryUser(u ? { id: u.id, email: u.email } : null);
   }, []);
 
   const logout = useCallback(() => {
