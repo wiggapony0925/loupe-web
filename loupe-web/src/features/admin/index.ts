@@ -6,6 +6,7 @@ export { AdminFlags } from "./AdminFlags/AdminFlags";
 export { AdminPro } from "./AdminPro/AdminPro";
 export { AdminAnnounce } from "./AdminAnnounce/AdminAnnounce";
 export { AdminSimulator } from "./AdminSimulator/AdminSimulator";
+export { AdminNavKeys } from "./AdminNavKeys/AdminNavKeys";
 export { AdminJobs } from "./AdminJobs/AdminJobs";
 export { AdminApplications } from "./AdminApplications/AdminApplications";
 export { AdminBlog } from "./AdminBlog/AdminBlog";

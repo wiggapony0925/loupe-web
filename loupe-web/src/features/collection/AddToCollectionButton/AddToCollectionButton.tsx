@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { Pencil, Plus } from "lucide-react";
 import type { CardSummary } from "@loupe/core";
 import { Button, Modal } from "@/components";
 import { useAuth } from "@/auth/AuthProvider";
+import { useRequestSignIn, useResumeOnReturn } from "@/hooks/useNavKey";
 import { CollectionForm } from "../CollectionForm/CollectionForm";
 import { useCardOwnership } from "../useCardOwnership";
 import styles from "./AddToCollectionButton.module.scss";
@@ -17,11 +17,14 @@ import styles from "./AddToCollectionButton.module.scss";
  */
 export function AddToCollectionButton({ card, block = true }: { card: CardSummary; block?: boolean }) {
   const { user } = useAuth();
-  const navigate = useNavigate();
+  const requestSignIn = useRequestSignIn();
   const { count, first } = useCardOwnership(card.id);
   const [signinOpen, setSigninOpen] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
+
+  // Returning signed-in from the sign-in prompt? Re-open the add form.
+  useResumeOnReturn("collection.add", () => setCreateOpen(true));
 
   const openCreate = () => (user ? setCreateOpen(true) : setSigninOpen(true));
   const owned = count > 0;
@@ -52,7 +55,17 @@ export function AddToCollectionButton({ card, block = true }: { card: CardSummar
             <Button variant="secondary" onClick={() => setSigninOpen(false)}>
               Maybe later
             </Button>
-            <Button onClick={() => navigate("/login")}>Sign in</Button>
+            <Button
+              onClick={() =>
+                requestSignIn({
+                  intent: "collection.add",
+                  card: { id: card.id, title: card.name },
+                  src: "add-to-collection-button",
+                })
+              }
+            >
+              Sign in
+            </Button>
           </>
         }
       />

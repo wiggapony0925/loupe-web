@@ -15,6 +15,7 @@ import {
   Search,
   Menu,
   X,
+  KeyRound,
   type LucideIcon,
 } from "lucide-react";
 import { Logo } from "@/assets";
@@ -69,7 +70,10 @@ const NAV: NavGroup[] = [
   },
   {
     label: "Tools",
-    items: [{ to: "/admin/simulator", label: "Device simulator", icon: Smartphone, hint: "Preview" }],
+    items: [
+      { to: "/admin/simulator", label: "Device simulator", icon: Smartphone, hint: "Preview" },
+      { to: "/admin/navkeys", label: "Nav keys", icon: KeyRound, hint: "Sign-in deep links" },
+    ],
   },
 ];
 

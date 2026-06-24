@@ -1,11 +1,12 @@
 import { useState, type FormEvent } from "react";
-import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
+import { Link, Navigate, useNavigate } from "react-router-dom";
 import { Lock, Mail, ShieldCheck } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ApiError, type User } from "@loupe/core";
 import { Button, TextField } from "@/components";
 import { useAuth } from "@/auth/AuthProvider";
+import { useResolveNavKey } from "@/hooks/useNavKey";
 import { AuthLayout } from "../AuthLayout/AuthLayout";
 import { SocialSignIn } from "../SocialSignIn/SocialSignIn";
 import { loginSchema, type LoginValues } from "../authSchemas";
@@ -16,8 +17,8 @@ import styles from "../AuthForm.module.scss";
 export function Login() {
   const { login, completeMfa, user } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation();
-  const from = (location.state as { from?: string } | null)?.from ?? "/app";
+  // Where to land after sign-in — driven by the nav key the guest arrived with.
+  const { to: from } = useResolveNavKey();
 
   const {
     register,
