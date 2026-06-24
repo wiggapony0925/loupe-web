@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Search } from "lucide-react";
-import { useTrackApplication, type ApplicationStatus } from "@loupe/core";
+import { useTrackApplication } from "@loupe/core";
 import { Button, TextField, NoteCard, Skeleton } from "@/components";
 import { SitePage } from "../SitePage/SitePage";
 import { STATUS_LABEL, STATUS_TONE } from "../applicationStatus";
@@ -60,17 +60,17 @@ export function ApplicationTrack() {
                 {data.applicantName} · applied {formatDate(data.createdAt)}
               </span>
             </div>
-            <span className={styles.badge} data-tone={STATUS_TONE[data.status as ApplicationStatus]}>
-              {STATUS_LABEL[data.status as ApplicationStatus]}
+            <span className={styles.badge} data-tone={STATUS_TONE[data.status]}>
+              {STATUS_LABEL[data.status]}
             </span>
           </div>
 
           <ol className={styles.timeline}>
             {[...data.events].reverse().map((ev) => (
               <li key={ev.id} className={styles.event}>
-                <span className={styles.event__dot} data-tone={STATUS_TONE[ev.status as ApplicationStatus]} />
+                <span className={styles.event__dot} data-tone={STATUS_TONE[ev.status]} />
                 <div className={styles.event__body}>
-                  <span className={styles.event__status}>{STATUS_LABEL[ev.status as ApplicationStatus]}</span>
+                  <span className={styles.event__status}>{STATUS_LABEL[ev.status]}</span>
                   {ev.message && <p className={styles.event__message}>{ev.message}</p>}
                   <span className={styles.event__time}>{formatDate(ev.createdAt)}</span>
                 </div>

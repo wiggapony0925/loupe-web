@@ -58,7 +58,6 @@ interface AuthValue {
   logout: () => void;
 }
 
-// eslint-disable-next-line react-refresh/only-export-components
 const AuthContext = createContext<AuthValue | null>(null);
 
 /**

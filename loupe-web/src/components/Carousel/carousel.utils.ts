@@ -40,7 +40,7 @@ export function cloneCarouselChildren(children: ReactNode, count: number = 2): R
       if (isValidElement(child)) {
         return cloneElement(child, {
           key: `clone-${i}-${child.key ?? index}`,
-        } as any);
+        });
       }
       return child;
     });

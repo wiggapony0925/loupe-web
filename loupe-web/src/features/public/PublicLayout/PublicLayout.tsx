@@ -25,7 +25,7 @@ export function PublicLayout() {
     const p = new URLSearchParams();
     if (q) p.set("q", q);
     if (tcg && tcg !== "all") p.set("game", tcg);
-    navigate(`/cards${p.toString() ? `?${p}` : ""}`);
+    void navigate(`/cards${p.toString() ? `?${p}` : ""}`);
   };
 
   return (
@@ -81,7 +81,7 @@ export function PublicLayout() {
             <Button
               onClick={() => {
                 setCartOpen(false);
-                navigate("/cards");
+                void navigate("/cards");
               }}
             >
               Browse cards

@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { LogOut, Sparkles } from "lucide-react";
 import { Panel, SegmentedControl, ThemeToggle, Badge, Button } from "@/components";
-import { useUiStore, type SidebarSide } from "@/stores/uiStore";
+import { useUiStore } from "@/stores/uiStore";
 import { useAuth } from "@/auth/AuthProvider";
 import { MfaCard } from "../MfaCard/MfaCard";
 import { usePro } from "@/pro";
@@ -74,7 +74,7 @@ export function Settings() {
             leadingIcon={<LogOut size={16} />}
             onClick={() => {
               logout();
-              navigate("/");
+              void navigate("/");
             }}
           >
             Sign out
@@ -103,7 +103,7 @@ export function Settings() {
               { value: "right", label: "Right" },
             ]}
             value={side}
-            onChange={(v) => setSide(v as SidebarSide)}
+            onChange={(v) => setSide(v)}
           />
         </Row>
         <Divider />

@@ -14,7 +14,7 @@ export function EmbeddedGuard() {
   const offLimits = isEmbedded() && !location.pathname.startsWith("/admin");
 
   useEffect(() => {
-    if (offLimits) navigate("/admin", { replace: true });
+    if (offLimits) void navigate("/admin", { replace: true });
   }, [offLimits, navigate]);
 
   // Render nothing for an off-limits route so its content never flashes before

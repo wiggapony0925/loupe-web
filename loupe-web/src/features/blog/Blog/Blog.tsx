@@ -4,6 +4,7 @@ import { useBlogPosts, type BlogPost } from "@loupe/core";
 import { Skeleton, NoteCard, Avatar } from "@/components";
 import styles from "./Blog.module.scss";
 
+// eslint-disable-next-line react-refresh/only-export-components -- date helper co-located with the Blog page
 export function formatPostDate(post: Pick<BlogPost, "publishedAt" | "createdAt">): string {
   return new Date(post.publishedAt ?? post.createdAt).toLocaleDateString("en-US", {
     year: "numeric",

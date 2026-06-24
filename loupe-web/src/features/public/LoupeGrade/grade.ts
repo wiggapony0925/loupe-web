@@ -270,13 +270,13 @@ export function detectCard(
   };
 
   const TH = 60;
-  const rowHas = new Array(H).fill(0);
-  const colHas = new Array(W).fill(0);
+  const rowHas = new Array<number>(H).fill(0);
+  const colHas = new Array<number>(W).fill(0);
   for (let y = 0; y < H; y++)
     for (let x = 0; x < W; x++) {
       if (dist(at(d, W, x, y), bg) > TH) {
-        rowHas[y]++;
-        colHas[x]++;
+        rowHas[y] = (rowHas[y] ?? 0) + 1;
+        colHas[x] = (colHas[x] ?? 0) + 1;
       }
     }
   const firstAbove = (arr: number[], min: number) =>

@@ -135,6 +135,9 @@ export function ProductDetail() {
   // above the early returns below — all hooks run on every render.
   const comparePresets = useMemo(
     () => buildComparePresets(tier),
+    // Recompute only when the house/grade actually change, not on every new
+    // `tier` object identity.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [tier.house, tier.grade],
   );
 

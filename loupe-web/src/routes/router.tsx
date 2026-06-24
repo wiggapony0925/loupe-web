@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components -- routing config module: small fallback components are intentionally co-located with the router definition */
 import { createBrowserRouter, Navigate } from "react-router-dom";
 import { lazy, Suspense, type ComponentType, type ReactElement } from "react";
 import { RequireAuth } from "@/auth/RequireAuth";

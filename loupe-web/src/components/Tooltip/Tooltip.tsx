@@ -24,4 +24,5 @@ export function Tooltip({ content, side = "top", children }: TooltipProps) {
 }
 
 /** Mount once near the app root so all tooltips share timing. */
+// eslint-disable-next-line react-refresh/only-export-components -- re-export of the Radix provider, co-located with the Tooltip
 export const TooltipProvider = RT.Provider;

@@ -107,6 +107,7 @@ const COMPANIES: Company[] = [
   },
 ];
 
+// eslint-disable-next-line react-refresh/only-export-components -- label helper co-located with the selector
 export function tierLabel(t: PriceTier): string {
   const c = COMPANIES.find((x) => x.key === t.house);
   if (!c || c.key === "raw") return "Raw";
