@@ -33,6 +33,9 @@ jobs:
       - name: Typecheck
         run: npm run typecheck -w loupe-web
 
+      - name: Lint
+        run: npm run lint -w loupe-web
+
       - name: Unit tests
         run: npm test -w loupe-web
 
