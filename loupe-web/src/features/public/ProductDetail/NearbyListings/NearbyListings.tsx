@@ -2,6 +2,7 @@ import { useState } from "react";
 import { ExternalLink, MapPin } from "lucide-react";
 import { useNearbyListings } from "@loupe/core";
 import { Button } from "@/components";
+import { useLoupeNavigation } from "@/hooks/useLoupeNavigation";
 import { formatMoney } from "@/lib/format";
 import styles from "./NearbyListings.module.scss";
 
@@ -12,6 +13,7 @@ import styles from "./NearbyListings.module.scss";
  * Renders nothing until the user opts in (and self-hides if there are none).
  */
 export function NearbyListings({ cardId }: { cardId: string }) {
+  const { openExternal } = useLoupeNavigation();
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [geoState, setGeoState] = useState<"idle" | "asking" | "denied">("idle");
 
@@ -88,6 +90,10 @@ export function NearbyListings({ cardId }: { cardId: string }) {
             target="_blank"
             rel="noreferrer"
             className={styles.row}
+            onClick={(e) => {
+              e.preventDefault();
+              void openExternal(l.url);
+            }}
           >
             <div className={styles.row__id}>
               <span className={styles.row__title}>{l.title || "Listing"}</span>

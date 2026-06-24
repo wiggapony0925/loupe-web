@@ -14,10 +14,17 @@ import {
 import { useScanLoop, type ScanCandidate } from "@loupe/core";
 import { Button, CardThumb } from "@/components";
 import { cx } from "@/lib/cx";
+import { isMobileDevice } from "@/lib/device";
 import { candidateArt } from "../candidateArt";
 import styles from "./CardScanner.module.scss";
 
-type CamState = "idle" | "starting" | "live" | "denied" | "unsupported";
+type CamState =
+  | "idle"
+  | "starting"
+  | "live"
+  | "denied"
+  | "unsupported"
+  | "desktop";
 
 /** Confidence at which we treat the top candidate as a confident lock. */
 const LOCK = 0.6;
@@ -62,6 +69,12 @@ export function CardScanner() {
   }, []);
 
   const startCamera = useCallback(async () => {
+    // Live camera is a phone flow — a desktop webcam is front-facing and can't
+    // scan a card. Steer desktop users to photo upload instead of opening it.
+    if (!isMobileDevice()) {
+      setCamState("desktop");
+      return;
+    }
     if (!navigator.mediaDevices?.getUserMedia) {
       setCamState("unsupported");
       return;
@@ -267,19 +280,25 @@ export function CardScanner() {
 
       {/* Permission / upload entry — only when idle (no result, not mid-scan,
           no recent miss) so it never competes with live feedback. */}
-      {(camState === "denied" || camState === "unsupported") &&
+      {(camState === "denied" ||
+        camState === "unsupported" ||
+        camState === "desktop") &&
         candidates.length === 0 &&
         !scanning &&
         !noMatch && (
           <div className={styles.permission}>
             <Camera size={28} />
             <p className={styles.permissionTitle}>
-              {camState === "unsupported"
-                ? "This browser can’t open the camera"
-                : "Camera access is off"}
+              {camState === "desktop"
+                ? "Camera scanning works best on your phone"
+                : camState === "unsupported"
+                  ? "This browser can’t open the camera"
+                  : "Camera access is off"}
             </p>
             <p className={styles.permissionSub}>
-              Upload a clear photo of the card instead — same instant identification.
+              {camState === "desktop"
+                ? "Open Loupe on your phone to scan live, or upload a clear photo of the card here — same instant identification."
+                : "Upload a clear photo of the card instead — same instant identification."}
             </p>
             <Button leadingIcon={<ImageUp size={16} />} onClick={() => fileRef.current?.click()}>
               Upload a photo

@@ -6,6 +6,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { useActiveTheme } from "./useActiveTheme";
 
 /** Theme preference the user can pick. `system` follows the OS. */
 export type ThemeMode = "light" | "dark" | "system";
@@ -43,24 +44,24 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     const stored = localStorage.getItem(STORAGE_KEY) as ThemeMode | null;
     return stored ?? "system";
   });
-  const [resolved, setResolved] = useState<ResolvedTheme>(() => resolve(mode));
+  // The painted theme — derived from <html data-theme> via MutationObserver, so
+  // it stays correct even when the attribute changes outside React (the OS in
+  // system mode, another tab, or a native WebView injecting the app's theme into
+  // the embedded dev portal).
+  const resolved = useActiveTheme();
 
-  // Apply the resolved scheme to the DOM + keep React state in sync.
+  // Stamp the resolved scheme onto <html> whenever the preference changes.
   useEffect(() => {
-    const next = resolve(mode);
-    document.documentElement.setAttribute("data-theme", next);
-    setResolved(next);
+    document.documentElement.setAttribute("data-theme", resolve(mode));
   }, [mode]);
 
-  // When following the system, react live to OS theme changes.
+  // In system mode, mirror live OS theme changes onto <html>; the observer above
+  // then propagates them into `resolved`.
   useEffect(() => {
     if (mode !== "system") return;
     const mq = window.matchMedia("(prefers-color-scheme: dark)");
-    const onChange = () => {
-      const next = systemScheme();
-      document.documentElement.setAttribute("data-theme", next);
-      setResolved(next);
-    };
+    const onChange = () =>
+      document.documentElement.setAttribute("data-theme", systemScheme());
     mq.addEventListener("change", onChange);
     return () => mq.removeEventListener("change", onChange);
   }, [mode]);

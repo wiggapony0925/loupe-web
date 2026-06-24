@@ -42,6 +42,7 @@ import { WatchlistButton } from "../WatchlistButton/WatchlistButton";
 import { PriceAlertButton } from "../PriceAlertButton/PriceAlertButton";
 import { AddToCollectionButton } from "@/features/collection";
 import { useSetHref } from "@/hooks/useSetHref";
+import { useLoupeNavigation } from "@/hooks/useLoupeNavigation";
 import { formatMoney } from "@/lib/format";
 import styles from "./ProductDetail.module.scss";
 
@@ -99,6 +100,7 @@ function marketplaces(name: string) {
 
 /** Public product page (TCGplayer-style): identity, buy box, market history, marketplaces. */
 export function ProductDetail() {
+  const { openExternal } = useLoupeNavigation();
   const { id = "" } = useParams();
   const { data: card, isLoading, isError } = useCard(id);
   const { data: market } = useMarket(id);
@@ -268,6 +270,10 @@ export function ProductDetail() {
             target="_blank"
             rel="noreferrer"
             className={styles["product__buybox-cta"]}
+            onClick={(e) => {
+              e.preventDefault();
+              void openExternal(buyHref);
+            }}
           >
             <Button block size="lg" trailingIcon={<ExternalLink size={16} />}>
               View listings
@@ -470,6 +476,10 @@ export function ProductDetail() {
                   styles["product__market-row"],
                   isLowest && styles["product__market-row--lowest"],
                 )}
+                onClick={(e) => {
+                  e.preventDefault();
+                  void openExternal(m.href);
+                }}
               >
                 <span
                   className={styles["product__market-glyph"]}
