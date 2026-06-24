@@ -7,6 +7,7 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 COPY packages/core/package.json ./packages/core/package.json
 COPY packages/chart/package.json ./packages/chart/package.json
+COPY packages/tokens/package.json ./packages/tokens/package.json
 COPY loupe-web/package.json ./loupe-web/package.json
 RUN npm ci
 
