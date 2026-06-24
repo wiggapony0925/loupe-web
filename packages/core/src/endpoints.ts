@@ -11,6 +11,7 @@ export const ENDPOINTS = {
     apple: `${V1}/auth/apple`,
     refresh: `${V1}/auth/refresh`,
     logout: `${V1}/auth/logout`,
+    logoutAll: `${V1}/auth/logout-all`,
     mfaVerify: `${V1}/auth/mfa/verify`,
     mfaSetup: `${V1}/auth/mfa/setup`,
     mfaEnable: `${V1}/auth/mfa/enable`,

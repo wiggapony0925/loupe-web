@@ -591,6 +591,11 @@ export const api = {
     /** Clear the server-set HttpOnly auth cookie (web sign-out). */
     logout: () =>
       apiFetch<null>(ENDPOINTS.auth.logout, { method: "POST" }),
+    /** Sign out everywhere: revoke every outstanding access + refresh token for
+     *  the current user across all devices (bumps the server-side token epoch).
+     *  Requires the current token, so call it before clearing local session. */
+    logoutAll: () =>
+      apiFetch<null>(ENDPOINTS.auth.logoutAll, { method: "POST" }),
     /** Complete a 2FA sign-in: exchange the login challenge + a code for tokens. */
     mfaVerify: (body: MfaVerifyRequest) =>
       apiFetch<TokenPair>(ENDPOINTS.auth.mfaVerify, {
