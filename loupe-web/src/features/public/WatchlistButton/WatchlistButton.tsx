@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { Check, Heart } from "lucide-react";
 import { useAddToWatchlist, type CardSummary } from "@loupe/core";
 import { Button, Modal } from "@/components";
 import { useAuth } from "@/auth/AuthProvider";
+import { useRequestSignIn, useResumeOnReturn } from "@/hooks/useNavKey";
 
 /**
  * "Add to watchlist" — sign-in-gated. For guests it opens a sign-in modal;
@@ -12,18 +12,25 @@ import { useAuth } from "@/auth/AuthProvider";
  */
 export function WatchlistButton({ card, block = true }: { card: CardSummary; block?: boolean }) {
   const { user } = useAuth();
-  const navigate = useNavigate();
+  const requestSignIn = useRequestSignIn();
   const [signinOpen, setSigninOpen] = useState(false);
   const [added, setAdded] = useState(false);
   const add = useAddToWatchlist({ onSuccess: () => setAdded(true) });
+
+  const pin = () => {
+    if (added || add.isPending) return;
+    add.mutate(card.id);
+  };
+
+  // Returning signed-in from the sign-in prompt? Pin the card automatically.
+  useResumeOnReturn("watchlist.add", pin);
 
   const onClick = () => {
     if (!user) {
       setSigninOpen(true);
       return;
     }
-    if (added || add.isPending) return;
-    add.mutate(card.id);
+    pin();
   };
 
   return (
@@ -53,7 +60,17 @@ export function WatchlistButton({ card, block = true }: { card: CardSummary; blo
             <Button variant="secondary" onClick={() => setSigninOpen(false)}>
               Maybe later
             </Button>
-            <Button onClick={() => navigate("/login")}>Sign in</Button>
+            <Button
+              onClick={() =>
+                requestSignIn({
+                  intent: "watchlist.add",
+                  card: { id: card.id, title: card.name },
+                  src: "watchlist-button",
+                })
+              }
+            >
+              Sign in
+            </Button>
           </>
         }
       />

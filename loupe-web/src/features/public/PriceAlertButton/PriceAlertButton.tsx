@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { Bell, BellRing, Check } from "lucide-react";
 import {
   useCreateAlert,
@@ -9,6 +8,7 @@ import {
 } from "@loupe/core";
 import { Button, Modal, TextField, SegmentedControl } from "@/components";
 import { useAuth } from "@/auth/AuthProvider";
+import { useRequestSignIn, useResumeOnReturn } from "@/hooks/useNavKey";
 import { formatMoney } from "@/lib/format";
 import styles from "./PriceAlertButton.module.scss";
 
@@ -33,10 +33,12 @@ export function PriceAlertButton({
   block?: boolean;
 }) {
   const { user } = useAuth();
-  const navigate = useNavigate();
+  const requestSignIn = useRequestSignIn();
   const [signinOpen, setSigninOpen] = useState(false);
   const [open, setOpen] = useState(false);
   const [done, setDone] = useState(false);
+  // Returning signed-in from the sign-in prompt? Re-open the alert sheet.
+  useResumeOnReturn("alert.set", () => setOpen(true));
   const [condition, setCondition] = useState<PriceAlertCondition>("below");
   const [amount, setAmount] = useState(() =>
     currentPrice?.amount ? String(round(currentPrice.amount)) : "",
@@ -159,7 +161,17 @@ export function PriceAlertButton({
             <Button variant="secondary" onClick={() => setSigninOpen(false)}>
               Maybe later
             </Button>
-            <Button onClick={() => navigate("/login")}>Sign in</Button>
+            <Button
+              onClick={() =>
+                requestSignIn({
+                  intent: "alert.set",
+                  card: { id: card.id, title: card.name },
+                  src: "price-alert-button",
+                })
+              }
+            >
+              Sign in
+            </Button>
           </>
         }
       />

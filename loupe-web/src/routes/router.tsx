@@ -198,6 +198,7 @@ export const router = createBrowserRouter([
       { path: "announce", element: el(M.admin, "AdminAnnounce") },
       { path: "flags", element: el(M.admin, "AdminFlags") },
       { path: "simulator", element: el(M.admin, "AdminSimulator") },
+      { path: "navkeys", element: el(M.admin, "AdminNavKeys") },
       { path: "jobs", element: el(M.admin, "AdminJobs") },
       { path: "applications", element: el(M.admin, "AdminApplications") },
       { path: "blog", element: el(M.admin, "AdminBlog") },
