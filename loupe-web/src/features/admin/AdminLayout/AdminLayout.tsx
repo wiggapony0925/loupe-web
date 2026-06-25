@@ -24,6 +24,7 @@ import {
   Library,
   Radio,
   ShieldCheck,
+  TerminalSquare,
   type LucideIcon,
 } from "lucide-react";
 import { Logo } from "@/assets";
@@ -103,6 +104,7 @@ const NAV: NavGroup[] = [
     label: "Tools",
     items: [
       { to: "/admin/insights", label: "Ask your data", icon: Sparkles, hint: "NL → SQL" },
+      { to: "/admin/console", label: "API console", icon: TerminalSquare, hint: "Run GET requests" },
       { to: "/admin/simulator", label: "Device simulator", icon: Smartphone, hint: "Preview" },
       { to: "/admin/navkeys", label: "Nav keys", icon: KeyRound, hint: "Sign-in deep links" },
     ],

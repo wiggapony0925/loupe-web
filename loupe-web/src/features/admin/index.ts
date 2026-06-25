@@ -13,6 +13,7 @@ export { AdminGrades } from "./AdminGrades/AdminGrades";
 export { AdminPulse } from "./AdminPulse/AdminPulse";
 export { AdminEngagement } from "./AdminEngagement/AdminEngagement";
 export { AdminInsights } from "./AdminInsights/AdminInsights";
+export { AdminConsole } from "./AdminConsole/AdminConsole";
 export { AdminUsers } from "./AdminUsers/AdminUsers";
 export { AdminFlags } from "./AdminFlags/AdminFlags";
 export { AdminPro } from "./AdminPro/AdminPro";
