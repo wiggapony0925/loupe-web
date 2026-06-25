@@ -47,6 +47,7 @@
     "@hookform/resolvers": "^5.4.0",
     "@loupe/chart": "*",
     "@loupe/core": "*",
+    "@loupe/grade": "*",
     "@loupe/tokens": "*",
     "@sentry/react": "^10.60.0",
     "@stripe/react-stripe-js": "^3.10.0",
