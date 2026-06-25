@@ -213,6 +213,7 @@ export const ENDPOINTS = {
     userCancelSubscription: (id: string) =>
       `${V1}/admin/users/${id}/subscription/cancel`,
     userRefund: (id: string) => `${V1}/admin/users/${id}/refund`,
+    userImpersonate: (id: string) => `${V1}/admin/users/${id}/impersonate`,
     jobs: `${V1}/admin/jobs`,
     job: (id: string) => `${V1}/admin/jobs/${id}`,
     applications: `${V1}/admin/applications`,

@@ -131,6 +131,7 @@ export {
   useRevokeUserSessions,
   useCancelUserSubscription,
   useRefundUser,
+  useImpersonateUser,
   useAdminCatalog,
   useAdminScanner,
   useAdminGrades,

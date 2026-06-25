@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ShieldCheck, ShieldOff, Ban, RotateCcw, Trash2, Wallet, Star, ScanLine, DollarSign, Sparkles, LogOut, CreditCard, Receipt } from "lucide-react";
+import { ShieldCheck, ShieldOff, Ban, RotateCcw, Trash2, Wallet, Star, ScanLine, DollarSign, Sparkles, LogOut, CreditCard, Receipt, Eye } from "lucide-react";
 import {
   useAdminUserDetail,
   useSetUserRole,
@@ -10,6 +10,7 @@ import {
   useRevokeUserSessions,
   useCancelUserSubscription,
   useRefundUser,
+  useImpersonateUser,
 } from "@loupe/core";
 import { Button, Modal, Skeleton, TextField, useConfirm } from "@/components";
 import { useAuth } from "@/auth/AuthProvider";
@@ -29,7 +30,7 @@ function dt(iso?: string | null): string {
 
 /** Full user record + admin actions, shown when a user row is opened. */
 export function UserDetailDrawer({ userId, open, onOpenChange }: UserDetailDrawerProps) {
-  const { user: me } = useAuth();
+  const { user: me, impersonate } = useAuth();
   const { data: u, isLoading } = useAdminUserDetail(userId ?? "", open && Boolean(userId));
   const setRole = useSetUserRole();
   const setPlan = useSetUserPlan();
@@ -39,6 +40,7 @@ export function UserDetailDrawer({ userId, open, onOpenChange }: UserDetailDrawe
   const revokeSessions = useRevokeUserSessions();
   const cancelSub = useCancelUserSubscription();
   const refund = useRefundUser();
+  const impersonateUser = useImpersonateUser();
   const busy =
     setRole.isPending ||
     setPlan.isPending ||
@@ -47,7 +49,8 @@ export function UserDetailDrawer({ userId, open, onOpenChange }: UserDetailDrawe
     del.isPending ||
     revokeSessions.isPending ||
     cancelSub.isPending ||
-    refund.isPending;
+    refund.isPending ||
+    impersonateUser.isPending;
   const isPro = u?.plan === "pro";
   const askConfirm = useConfirm();
 
@@ -95,6 +98,27 @@ export function UserDetailDrawer({ userId, open, onOpenChange }: UserDetailDrawe
           notify.error(e?.message || "Couldn't cancel — please try again."),
       },
     );
+  }
+
+  async function doImpersonate() {
+    if (!u) return;
+    const ok = await askConfirm({
+      title: `View the app as ${u.email}?`,
+      tone: "mint",
+      confirmLabel: "Impersonate",
+      message: (
+        <>
+          Opens the app in this tab as <strong>{u.email}</strong>. Your admin
+          session is preserved — use &ldquo;Exit&rdquo; in the banner to return.
+          This is audited.
+        </>
+      ),
+    });
+    if (!ok) return;
+    impersonateUser.mutate(u.id, {
+      onSuccess: (r) => impersonate(r.token, r.email),
+      onError: (e) => notify.error(e?.message || "Couldn't impersonate — super-admin only."),
+    });
   }
 
   async function doRefund() {
@@ -321,6 +345,17 @@ export function UserDetailDrawer({ userId, open, onOpenChange }: UserDetailDrawe
               >
                 {u.isAdmin ? "Revoke admin" : "Make admin"}
               </Button>
+              {!u.deleted && (
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  disabled={busy}
+                  leadingIcon={<Eye size={15} />}
+                  onClick={doImpersonate}
+                >
+                  Impersonate
+                </Button>
+              )}
               {!u.deleted &&
                 (u.banned ? (
                   <Button variant="secondary" size="sm" disabled={busy} leadingIcon={<RotateCcw size={15} />} onClick={() => unban.mutate(u.id)}>

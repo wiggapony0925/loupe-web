@@ -1,6 +1,7 @@
 import { RouterProvider } from "react-router-dom";
 import { AppProviders } from "@/providers/AppProviders";
 import { AnnouncementHost, ErrorBoundary, InspectOverlay } from "@/components";
+import { ImpersonationBanner } from "@/auth/ImpersonationBanner";
 import { router } from "@/routes/router";
 import { useRecentsSync } from "@/hooks/useRecentsSync";
 
@@ -24,6 +25,7 @@ export default function App() {
             PublicLayout, MarketingLanding). */}
         <AnnouncementHost />
         <RouterProvider router={router} />
+        <ImpersonationBanner />
         <InspectOverlay />
       </AppProviders>
     </ErrorBoundary>

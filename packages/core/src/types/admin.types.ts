@@ -41,6 +41,13 @@ export interface AdminUser {
   hasSubscription: boolean;
 }
 
+/** A short-lived token for viewing the app as another user. */
+export interface ImpersonateResult {
+  token: string;
+  email: string;
+  expiresIn: number;
+}
+
 /** Result of refunding a user's latest charge. */
 export interface RefundResult {
   refundId: string;

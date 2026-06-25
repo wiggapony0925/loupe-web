@@ -19,6 +19,7 @@ import type {
   AdminUserPage,
   AdminUsersParams,
   RefundResult,
+  ImpersonateResult,
   AuditFacets,
   AuditPage,
   AuditParams,
@@ -1451,6 +1452,11 @@ export const useRevokeUserSessions = (
     },
   );
 };
+
+/** Mint a token to view the app as a user (super-admin). */
+export const useImpersonateUser = (
+  options?: Omit<UseMutationOptions<ImpersonateResult, ApiError, string>, "mutationFn">,
+) => useApiMutation<ImpersonateResult, string>((id) => api.admin.users.impersonate(id), options);
 
 /** Refund a user's latest charge (super-admin, money-out). */
 export const useRefundUser = (

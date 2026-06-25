@@ -1,0 +1,40 @@
+.bar {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px 9px 16px;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: #1c1605;
+  background: var(--accent-amber);
+  border-radius: var(--radius-pill);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+
+  strong {
+    font-weight: 800;
+  }
+}
+
+.exit {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 12px;
+  font: inherit;
+  font-size: var(--text-xs);
+  font-weight: 700;
+  color: #1c1605;
+  background: color-mix(in srgb, #1c1605 14%, transparent);
+  border: 0;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+
+  &:hover {
+    background: color-mix(in srgb, #1c1605 24%, transparent);
+  }
+}

@@ -13,6 +13,36 @@ import { setSentryUser } from "@/observability/sentry";
 
 const TOKEN_KEY = "loupe.auth.token";
 const USER_KEY = "loupe.auth.user";
+// Impersonation lives in sessionStorage (per-tab), so it takes precedence over
+// the admin's localStorage token *in this tab only* and never overwrites it —
+// the admin's session survives in localStorage and other tabs untouched.
+const IMP_TOKEN_KEY = "loupe.impersonate.token";
+const IMP_EMAIL_KEY = "loupe.impersonate.email";
+
+function impersonationToken(): string | null {
+  try {
+    return sessionStorage.getItem(IMP_TOKEN_KEY);
+  } catch {
+    return null;
+  }
+}
+function impersonatingEmail(): string | null {
+  try {
+    return sessionStorage.getItem(IMP_EMAIL_KEY);
+  } catch {
+    return null;
+  }
+}
+function isImpersonatingNow(): boolean {
+  return Boolean(impersonationToken());
+}
+function activeToken(): string | null {
+  try {
+    return impersonationToken() || localStorage.getItem(TOKEN_KEY);
+  } catch {
+    return null;
+  }
+}
 
 /** Outcome of an email/password sign-in: either fully signed in, or a 2FA
  *  challenge that must be completed with {@link AuthValue.completeMfa}. */
@@ -21,6 +51,9 @@ export type LoginOutcome =
   | { status: "mfa"; mfaToken: string };
 
 function readCachedUser(): User | null {
+  // While impersonating, never read the admin's cached user — fetch the target
+  // fresh from /me instead (and never persist over the admin's cache below).
+  if (isImpersonatingNow()) return null;
   try {
     const raw = localStorage.getItem(USER_KEY);
     return raw ? (JSON.parse(raw) as User) : null;
@@ -29,6 +62,7 @@ function readCachedUser(): User | null {
   }
 }
 function writeCachedUser(u: User | null) {
+  if (isImpersonatingNow()) return; // preserve the admin's cached user
   try {
     if (u) localStorage.setItem(USER_KEY, JSON.stringify(u));
     else localStorage.removeItem(USER_KEY);
@@ -60,6 +94,14 @@ interface AuthValue {
   logout: () => void;
   /** Revoke every session for this user (all devices), then sign out here. */
   logoutEverywhere: () => Promise<void>;
+  /** True when this tab is viewing the app as another user (super-admin). */
+  isImpersonating: boolean;
+  /** The impersonated user's email, when {@link isImpersonating}. */
+  impersonatingEmail: string | null;
+  /** Enter impersonation in this tab with a target token, then open the app. */
+  impersonate: (token: string, email: string) => void;
+  /** Leave impersonation and return to the admin session. */
+  exitImpersonation: () => void;
 }
 
 const AuthContext = createContext<AuthValue | null>(null);
@@ -72,13 +114,10 @@ const AuthContext = createContext<AuthValue | null>(null);
  */
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUserState] = useState<User | null>(() => readCachedUser());
-  const [loading, setLoading] = useState<boolean>(() => {
-    try {
-      return Boolean(localStorage.getItem(TOKEN_KEY)) && !readCachedUser();
-    } catch {
-      return false;
-    }
-  });
+  const [loading, setLoading] = useState<boolean>(
+    () => Boolean(activeToken()) && !readCachedUser(),
+  );
+  const impersonating = isImpersonatingNow();
 
   const setUser = useCallback((u: User | null) => {
     setUserState(u);
@@ -86,7 +125,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setSentryUser(u ? { id: u.id, email: u.email } : null);
   }, []);
 
+  // Enter / leave impersonation. Both do a full reload so the whole app
+  // re-hydrates cleanly from the (new) active token — entering boots as the
+  // target, leaving boots back into the admin session from localStorage.
+  const exitImpersonation = useCallback(() => {
+    try {
+      sessionStorage.removeItem(IMP_TOKEN_KEY);
+      sessionStorage.removeItem(IMP_EMAIL_KEY);
+    } catch {
+      /* ignore */
+    }
+    window.location.href = "/admin/users";
+  }, []);
+
+  const impersonate = useCallback((token: string, email: string) => {
+    try {
+      sessionStorage.setItem(IMP_TOKEN_KEY, token);
+      sessionStorage.setItem(IMP_EMAIL_KEY, email);
+    } catch {
+      /* ignore */
+    }
+    window.location.href = "/app";
+  }, []);
+
   const logout = useCallback(() => {
+    // While impersonating, "sign out" just ends impersonation — it must never
+    // touch the admin's real token.
+    if (isImpersonatingNow()) {
+      exitImpersonation();
+      return;
+    }
     try {
       localStorage.removeItem(TOKEN_KEY);
     } catch {
@@ -96,12 +164,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Best-effort: never block sign-out on the network call.
     void api.auth.logout().catch(() => {});
     setUser(null);
-  }, [setUser]);
+  }, [setUser, exitImpersonation]);
 
   // Sign out on every device: ask the server to revoke all of this user's
   // tokens (bumps the token epoch), THEN clear the local session. The revoke
   // call needs the current token, so it must run before we drop it.
   const logoutEverywhere = useCallback(async () => {
+    // Don't let an impersonation session revoke the target's tokens — just exit.
+    if (isImpersonatingNow()) {
+      exitImpersonation();
+      return;
+    }
     await api.auth.logoutAll().catch(() => {
       /* best-effort — still clear locally so the user is signed out here */
     });
@@ -111,26 +184,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       /* ignore */
     }
     setUser(null);
-  }, [setUser]);
+  }, [setUser, exitImpersonation]);
 
   // On mount: wire the API client to our token, then refresh the cached session.
   useEffect(() => {
     const onUnauthorized = () => {
+      // An impersonation token expiring just drops back to the admin session.
+      if (isImpersonatingNow()) {
+        exitImpersonation();
+        return;
+      }
       // A previously-authenticated request 401'd — the session lapsed.
       if (localStorage.getItem(TOKEN_KEY)) {
         notify.error("Your session has expired. Please sign in again.", 6000);
       }
       logout();
     };
-    configureApi({ getToken: () => localStorage.getItem(TOKEN_KEY), onUnauthorized });
-    const token = (() => {
-      try {
-        return localStorage.getItem(TOKEN_KEY);
-      } catch {
-        return null;
-      }
-    })();
-    if (!token) {
+    configureApi({ getToken: activeToken, onUnauthorized });
+    if (!activeToken()) {
       setUser(null);
       setLoading(false);
       return;
@@ -138,9 +209,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     api.me
       .get()
       .then(setUser)
-      .catch(() => logout())
+      .catch(() => {
+        if (isImpersonatingNow()) exitImpersonation();
+        else logout();
+      })
       .finally(() => setLoading(false));
-  }, [logout, setUser]);
+  }, [logout, setUser, exitImpersonation]);
 
   // Single place that persists a fresh TokenPair → token + user. Every sign-in
   // path (email, register, Google, Apple, MFA) funnels through here.
@@ -232,6 +306,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       signInWithApple,
       logout,
       logoutEverywhere,
+      isImpersonating: impersonating,
+      impersonatingEmail: impersonating ? impersonatingEmail() : null,
+      impersonate,
+      exitImpersonation,
     }),
     [
       user,
@@ -244,6 +322,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       signInWithApple,
       logout,
       logoutEverywhere,
+      impersonating,
+      impersonate,
+      exitImpersonation,
     ],
   );
 

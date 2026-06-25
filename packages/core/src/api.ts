@@ -78,6 +78,7 @@ import type {
   CloudLogEntry,
   PriceOverrideInput,
   RefundResult,
+  ImpersonateResult,
   CloudStatus,
   DbGraph,
   DbOverview,
@@ -1199,6 +1200,15 @@ export const api = {
             json: { immediately },
           }),
         ),
+      /** Mint a short-lived token to view the app as this user (super-admin). */
+      impersonate: async (id: string): Promise<ImpersonateResult> => {
+        const r = await apiFetch<{
+          token: string;
+          email: string;
+          expires_in: number;
+        }>(ENDPOINTS.admin.userImpersonate(id), { method: "POST" });
+        return { token: r.token, email: r.email, expiresIn: r.expires_in };
+      },
       /** Refund a user's latest charge (super-admin, money-out). */
       refundLatest: async (id: string): Promise<RefundResult> => {
         const r = await apiFetch<{
