@@ -8,6 +8,7 @@ import {
   Infinity as InfinityIcon,
   LineChart,
   ScanLine,
+  ShieldCheck,
   Sparkles,
 } from "lucide-react";
 import { Button, SegmentedControl } from "@/components";
@@ -178,11 +179,19 @@ export function Pricing() {
               Loupe <span className={styles.proWord}>Pro</span>
             </span>
             <div className={styles.price}>
+              {/* Anchor the discount: show the full monthly rate struck through
+                  so the yearly /mo reads as the deal it is. */}
+              {isYearly && savingsPct > 0 && (
+                <span className={styles.was}>{formatMoney(PRO_PRICE_MONTHLY)}</span>
+              )}
               {/* key=interval re-mounts the number so it animates on toggle */}
               <span key={interval} className={styles.amount}>
                 {formatMoney(proPrice)}
               </span>
               <span className={styles.per}>/ month</span>
+              {isYearly && savingsPct > 0 && (
+                <span className={styles.save}>Save {savingsPct}%</span>
+              )}
             </div>
             <p className={styles.tagline}>
               {isYearly
@@ -214,6 +223,15 @@ export function Pricing() {
           <p className={styles.fine}>No charge today · cancel before day 7</p>
         </div>
       </div>
+
+      {/* Checkout assurances — quiet trust signals under the plans. */}
+      <ul className={styles.trust} aria-label="Checkout assurances">
+        <li className={styles.trustItem}>
+          <ShieldCheck size={14} /> Secure checkout
+        </li>
+        <li className={styles.trustItem}>Cancel anytime</li>
+        <li className={styles.trustItem}>Powered by Stripe</li>
+      </ul>
     </section>
   );
 }
