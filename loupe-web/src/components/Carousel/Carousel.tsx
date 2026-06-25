@@ -1,4 +1,11 @@
-import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
+import {
+  Children,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { cx } from "@/lib/cx";
 import { smoothScrollTo, cloneCarouselChildren } from "./carousel.utils";
@@ -50,6 +57,14 @@ export function Carousel({
   const scrollTimeoutRef = useRef<number | null>(null);
   const isScrollingRef = useRef(false);
 
+  // Parents (e.g. TrendingCarousels) rebuild the `children` array on every
+  // render, so depending on its identity re-fires the effects below every
+  // render — which, paired with their setState calls, is an infinite render
+  // loop ("Maximum update depth exceeded"). Key off the item count instead: a
+  // stable primitive that only changes when the actual content does
+  // (e.g. loading skeletons → loaded tiles), which is exactly when we re-measure.
+  const childCount = Children.count(children);
+
   const sync = useCallback(() => {
     const el = trackRef.current;
     if (!el) return;
@@ -98,7 +113,7 @@ export function Carousel({
         window.clearTimeout(scrollTimeoutRef.current);
       }
     };
-  }, [sync, children]);
+  }, [sync, childCount]);
 
   // Track pointer/touch events to pause continuous autoplay when user is interacting
   useEffect(() => {
@@ -142,10 +157,18 @@ export function Carousel({
       }
 
       // We need enough copies so that: (N - 3) * originalWidth >= clientWidth
-      // which simplifies to: N >= (clientWidth / originalWidth) + 3
-      const neededCount = Math.max(3, Math.ceil(clientWidth / originalWidth) + 3);
+      // which simplifies to: N >= (clientWidth / originalWidth) + 3.
+      // `originalWidth` is derived from scrollWidth/repetitionCount, which drifts
+      // slightly with the count (inter-item gaps don't scale linearly), so the
+      // computed need can flip by ±1 between two values. Grow-only (never shrink)
+      // makes the count monotonic so it can't oscillate, and the cap bounds it on
+      // ultra-wide/zoomed-out viewports. A couple of extra clones is harmless.
+      const neededCount = Math.min(
+        24,
+        Math.max(3, Math.ceil(clientWidth / originalWidth) + 3),
+      );
 
-      if (neededCount !== repetitionCount) {
+      if (neededCount > repetitionCount) {
         setRepetitionCount(neededCount);
       }
     };
@@ -159,7 +182,7 @@ export function Carousel({
       clearTimeout(t);
       window.removeEventListener("resize", measure);
     };
-  }, [animation, children, repetitionCount]);
+  }, [animation, childCount, repetitionCount]);
 
   const nudge = useCallback((dir: -1 | 1) => {
     const el = trackRef.current;
