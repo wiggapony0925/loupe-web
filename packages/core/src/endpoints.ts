@@ -197,6 +197,9 @@ export const ENDPOINTS = {
     // Catalog & product.
     catalog: `${V1}/admin/catalog`,
     scanner: `${V1}/admin/scanner`,
+    cards: `${V1}/admin/cards`,
+    card: (id: string) => `${V1}/admin/cards/${id}`,
+    cardPrice: (id: string) => `${V1}/admin/cards/${id}/price`,
     // User account actions.
     userRevokeSessions: (id: string) =>
       `${V1}/admin/users/${id}/revoke-sessions`,

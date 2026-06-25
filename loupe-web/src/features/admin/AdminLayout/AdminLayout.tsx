@@ -76,6 +76,7 @@ const NAV: NavGroup[] = [
     label: "Catalog & product",
     items: [
       { to: "/admin/catalog", label: "Catalog", icon: Library, hint: "Coverage by game" },
+      { to: "/admin/cards", label: "Card data", icon: Search, hint: "Explore & override" },
       { to: "/admin/scanner", label: "Scanner", icon: ScanLine, hint: "Identify funnel" },
     ],
   },

@@ -45,6 +45,9 @@ import {
   waitlistJoinToBody,
 } from "./portalAdapters";
 import {
+  toAdminCardDetail,
+  toAdminCardPage,
+  toAdminPriceSnapshot,
   toAuditPage,
   toCatalogCoverage,
   toCloudLogEntry,
@@ -61,11 +64,16 @@ import type {
   AdminUserDetail,
   AdminUserPage,
   AdminUsersParams,
+  AdminCardDetail,
+  AdminCardPage,
+  AdminCardsParams,
+  AdminPriceSnapshot,
   AuditFacets,
   AuditPage,
   AuditParams,
   CatalogCoverage,
   CloudLogEntry,
+  PriceOverrideInput,
   CloudStatus,
   DbGraph,
   DbOverview,
@@ -995,6 +1003,33 @@ export const api = {
       toScannerStats(
         await apiFetch(ENDPOINTS.admin.scanner, { query: { days } }),
       ),
+    /** Card explorer — search the local catalog, inspect, override a price. */
+    cards: {
+      search: async (params?: AdminCardsParams): Promise<AdminCardPage> =>
+        toAdminCardPage(
+          await apiFetch(ENDPOINTS.admin.cards, {
+            query: { q: params?.q, page: params?.page, page_size: params?.pageSize },
+          }),
+        ),
+      get: async (id: string): Promise<AdminCardDetail> =>
+        toAdminCardDetail(await apiFetch(ENDPOINTS.admin.card(id))),
+      /** Record a manual price override (super-admin). */
+      addPrice: async (
+        id: string,
+        input: PriceOverrideInput,
+      ): Promise<AdminPriceSnapshot> =>
+        toAdminPriceSnapshot(
+          await apiFetch(ENDPOINTS.admin.cardPrice(id), {
+            method: "POST",
+            json: {
+              house: input.house,
+              grade: input.grade,
+              price_usd: input.priceUsd,
+              sale_date: input.saleDate ?? undefined,
+            },
+          }),
+        ),
+    },
     /** Operations — read-only observability (health, DB, cloud, audit). */
     ops: {
       health: async (): Promise<HealthReport> =>

@@ -1,6 +1,10 @@
 /** Maps raw admin Operations payloads (snake_case) onto camelCase view models.
  *  Mirrors app/schemas/ops.py. */
 import type {
+  AdminCardDetail,
+  AdminCardPage,
+  AdminCardRow,
+  AdminPriceSnapshot,
   AuditEntry,
   AuditPage,
   CatalogCoverage,
@@ -270,6 +274,80 @@ interface RawScannerStats {
   scans_total: number;
   scans_by_status: Record<string, number>;
 }
+interface RawCardRow {
+  id: string;
+  name: string;
+  set_name: string | null;
+  number: string | null;
+  tcg: string;
+  rarity: string | null;
+  year: number | null;
+  image_url: string | null;
+}
+interface RawPriceSnapshot {
+  id: string;
+  house: string;
+  grade: number;
+  source: string;
+  price_usd: number;
+  sale_date: string | null;
+  created_at: string;
+}
+interface RawCardDetail extends RawCardRow {
+  set_id: string;
+  image_phash: string | null;
+  card_metadata: Record<string, unknown> | null;
+  external_refs: Array<{ source: string; external_id: string; confidence: number | null }>;
+  prices: RawPriceSnapshot[];
+}
+
+const toCardRow = (r: RawCardRow): AdminCardRow => ({
+  id: r.id,
+  name: r.name,
+  setName: r.set_name,
+  number: r.number,
+  tcg: r.tcg,
+  rarity: r.rarity,
+  year: r.year,
+  imageUrl: r.image_url,
+});
+export const toAdminPriceSnapshot = (p: RawPriceSnapshot): AdminPriceSnapshot => ({
+  id: p.id,
+  house: p.house,
+  grade: p.grade,
+  source: p.source,
+  priceUsd: p.price_usd,
+  saleDate: p.sale_date,
+  createdAt: p.created_at,
+});
+export function toAdminCardPage(r: {
+  results: RawCardRow[];
+  total: number;
+  page: number;
+  page_size: number;
+}): AdminCardPage {
+  return {
+    results: (r.results ?? []).map(toCardRow),
+    total: r.total,
+    page: r.page,
+    pageSize: r.page_size,
+  };
+}
+export function toAdminCardDetail(r: RawCardDetail): AdminCardDetail {
+  return {
+    ...toCardRow(r),
+    setId: r.set_id,
+    imagePhash: r.image_phash,
+    cardMetadata: r.card_metadata,
+    externalRefs: (r.external_refs ?? []).map((e) => ({
+      source: e.source,
+      externalId: e.external_id,
+      confidence: e.confidence,
+    })),
+    prices: (r.prices ?? []).map(toAdminPriceSnapshot),
+  };
+}
+
 export function toScannerStats(r: RawScannerStats): ScannerStats {
   return {
     windowDays: r.window_days,

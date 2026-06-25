@@ -200,6 +200,7 @@ export const router = createBrowserRouter([
       { path: "users", element: el(M.admin, "AdminUsers") },
       { path: "revenue", element: el(M.admin, "AdminRevenue") },
       { path: "catalog", element: el(M.admin, "AdminCatalog") },
+      { path: "cards", element: el(M.admin, "AdminCards") },
       { path: "scanner", element: el(M.admin, "AdminScanner") },
       { path: "pro", element: el(M.admin, "AdminPro") },
       { path: "announce", element: el(M.admin, "AdminAnnounce") },

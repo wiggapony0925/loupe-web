@@ -30,6 +30,11 @@ import type {
   RevenueSummary,
   CatalogCoverage,
   ScannerStats,
+  AdminCardPage,
+  AdminCardDetail,
+  AdminCardsParams,
+  AdminPriceSnapshot,
+  PriceOverrideInput,
   AnalyticsOverview,
   ApplicationStatusUpdateInput,
   ApplicationSubmitted,
@@ -1479,3 +1484,43 @@ export const useAdminScanner = (days = 30, enabled = true) =>
     () => api.admin.scanner(days),
     { enabled, staleTime: 30_000 },
   );
+
+/** Search the local card catalog (admin explorer). */
+export const useAdminCards = (params?: AdminCardsParams, enabled = true) =>
+  useApiQuery<AdminCardPage>(
+    ["admin-cards", params ?? {}],
+    () => api.admin.cards.search(params),
+    { enabled, staleTime: 15_000, placeholderData: (prev) => prev },
+  );
+
+/** A single card's full record (refs + price ladder). */
+export const useAdminCard = (id: string | null, enabled = true) =>
+  useApiQuery<AdminCardDetail>(
+    ["admin-card", id],
+    () => api.admin.cards.get(id as string),
+    { enabled: enabled && Boolean(id) },
+  );
+
+/** Record a manual price override (super-admin); refreshes the card detail. */
+export const useAddCardPriceOverride = (
+  options?: Omit<
+    UseMutationOptions<
+      AdminPriceSnapshot,
+      ApiError,
+      { id: string; input: PriceOverrideInput }
+    >,
+    "mutationFn"
+  >,
+) => {
+  const qc = useQueryClient();
+  return useApiMutation<
+    AdminPriceSnapshot,
+    { id: string; input: PriceOverrideInput }
+  >(({ id, input }) => api.admin.cards.addPrice(id, input), {
+    ...options,
+    onSuccess: (data, vars, ...rest) => {
+      void qc.invalidateQueries({ queryKey: ["admin-card", vars.id] });
+      options?.onSuccess?.(data, vars, ...rest);
+    },
+  });
+};
