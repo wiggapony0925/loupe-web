@@ -1,0 +1,101 @@
+.live {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  font-size: var(--text-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-muted);
+  background: var(--bg-sunken);
+  border-radius: var(--radius-pill);
+
+  &__dot {
+    width: 8px;
+    height: 8px;
+    border-radius: var(--radius-pill);
+    background: var(--up);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--up) 22%, transparent);
+  }
+  &[data-on] &__dot {
+    animation: pulse 1s ease-in-out infinite;
+  }
+}
+@keyframes pulse {
+  50% {
+    opacity: 0.35;
+  }
+}
+
+.feed {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.event {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-sm) var(--space-md);
+  @include surface;
+
+  &__icon {
+    display: grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-md);
+    flex-shrink: 0;
+
+    --tone: var(--accent-mint);
+    &[data-tone="blue"] { --tone: var(--accent-blue); }
+    &[data-tone="purple"] { --tone: var(--accent-violet, #a78bfa); }
+    &[data-tone="amber"] { --tone: var(--accent-amber); }
+    color: var(--tone);
+    background: color-mix(in srgb, var(--tone) 14%, transparent);
+  }
+
+  &__body {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-width: 0;
+    flex: 1;
+  }
+  &__title {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-sm);
+    font-weight: 600;
+    font-size: var(--text-sm);
+    color: var(--ink);
+    @include truncate;
+  }
+  &__detail {
+    font-size: var(--text-xs);
+    font-weight: 600;
+    color: var(--ink-dim);
+    flex-shrink: 0;
+  }
+  &__actor {
+    font-size: var(--text-xs);
+    color: var(--ink-muted);
+    @include truncate;
+  }
+  &__value {
+    font-size: var(--text-sm);
+    font-weight: 700;
+    color: var(--up);
+    @include tabular;
+    flex-shrink: 0;
+  }
+  &__time {
+    font-size: var(--text-xs);
+    color: var(--ink-dim);
+    flex-shrink: 0;
+    width: 64px;
+    text-align: right;
+  }
+}

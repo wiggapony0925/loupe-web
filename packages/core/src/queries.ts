@@ -35,6 +35,7 @@ import type {
   AdminCardsParams,
   AdminPriceSnapshot,
   PriceOverrideInput,
+  PulseFeed,
   AnalyticsOverview,
   ApplicationStatusUpdateInput,
   ApplicationSubmitted,
@@ -1484,6 +1485,14 @@ export const useAdminScanner = (days = 30, enabled = true) =>
     () => api.admin.scanner(days),
     { enabled, staleTime: 30_000 },
   );
+
+/** Live activity feed — polls so the stream stays current. */
+export const useAdminPulse = (limit = 40, enabled = true) =>
+  useApiQuery<PulseFeed>(["admin-pulse", limit], () => api.admin.pulse(limit), {
+    enabled,
+    staleTime: 5_000,
+    refetchInterval: 15_000,
+  });
 
 /** Search the local card catalog (admin explorer). */
 export const useAdminCards = (params?: AdminCardsParams, enabled = true) =>

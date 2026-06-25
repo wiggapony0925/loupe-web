@@ -200,6 +200,8 @@ export const ENDPOINTS = {
     cards: `${V1}/admin/cards`,
     card: (id: string) => `${V1}/admin/cards/${id}`,
     cardPrice: (id: string) => `${V1}/admin/cards/${id}/price`,
+    // Growth.
+    pulse: `${V1}/admin/pulse`,
     // User account actions.
     userRevokeSessions: (id: string) =>
       `${V1}/admin/users/${id}/revoke-sessions`,

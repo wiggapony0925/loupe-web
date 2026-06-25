@@ -56,6 +56,7 @@ import {
   toDbOverview,
   toDbTableDetail,
   toHealthReport,
+  toPulseFeed,
   toScannerStats,
 } from "./opsAdapters";
 import type {
@@ -79,6 +80,7 @@ import type {
   DbOverview,
   DbTableDetail,
   HealthReport,
+  PulseFeed,
   ScannerStats,
   AnalyticsOverview,
   ApplicationStatusUpdateInput,
@@ -998,6 +1000,9 @@ export const api = {
     /** Catalog coverage by game (cards/sets, pHash %, price sources). */
     catalog: async (): Promise<CatalogCoverage> =>
       toCatalogCoverage(await apiFetch(ENDPOINTS.admin.catalog)),
+    /** Live activity feed — recent signups, scans, acquisitions, admin actions. */
+    pulse: async (limit = 40): Promise<PulseFeed> =>
+      toPulseFeed(await apiFetch(ENDPOINTS.admin.pulse, { query: { limit } })),
     /** Scan + identify funnel metrics over the last `days` days. */
     scanner: async (days = 30): Promise<ScannerStats> =>
       toScannerStats(

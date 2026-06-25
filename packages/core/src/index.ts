@@ -135,4 +135,5 @@ export {
   useAdminCards,
   useAdminCard,
   useAddCardPriceOverride,
+  useAdminPulse,
 } from "./queries";

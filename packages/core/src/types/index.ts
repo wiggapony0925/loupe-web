@@ -14,6 +14,7 @@ export * from "./flags.types";
 export * from "./money.types";
 export * from "./ops.types";
 export * from "./portfolio.types";
+export * from "./pulse.types";
 export * from "./recents.types";
 export * from "./report.types";
 export * from "./revenue.types";

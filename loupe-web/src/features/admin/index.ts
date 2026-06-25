@@ -9,6 +9,7 @@ export { AdminRevenue } from "./AdminRevenue/AdminRevenue";
 export { AdminCatalog } from "./AdminCatalog/AdminCatalog";
 export { AdminScanner } from "./AdminScanner/AdminScanner";
 export { AdminCards } from "./AdminCards/AdminCards";
+export { AdminPulse } from "./AdminPulse/AdminPulse";
 export { AdminUsers } from "./AdminUsers/AdminUsers";
 export { AdminFlags } from "./AdminFlags/AdminFlags";
 export { AdminPro } from "./AdminPro/AdminPro";

@@ -22,6 +22,7 @@ import {
   ScrollText,
   LineChart,
   Library,
+  Radio,
   type LucideIcon,
 } from "lucide-react";
 import { Logo } from "@/assets";
@@ -78,6 +79,12 @@ const NAV: NavGroup[] = [
       { to: "/admin/catalog", label: "Catalog", icon: Library, hint: "Coverage by game" },
       { to: "/admin/cards", label: "Card data", icon: Search, hint: "Explore & override" },
       { to: "/admin/scanner", label: "Scanner", icon: ScanLine, hint: "Identify funnel" },
+    ],
+  },
+  {
+    label: "Growth",
+    items: [
+      { to: "/admin/pulse", label: "Live pulse", icon: Radio, hint: "Activity feed" },
     ],
   },
   {

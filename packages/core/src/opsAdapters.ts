@@ -22,6 +22,7 @@ import type {
   GameCoverage,
   HealthCheck,
   HealthReport,
+  PulseFeed,
   ScannerStats,
 } from "./types";
 
@@ -345,6 +346,29 @@ export function toAdminCardDetail(r: RawCardDetail): AdminCardDetail {
       confidence: e.confidence,
     })),
     prices: (r.prices ?? []).map(toAdminPriceSnapshot),
+  };
+}
+
+interface RawPulseEvent {
+  id: string;
+  type: PulseFeed["events"][number]["type"];
+  at: string;
+  actor: string | null;
+  title: string;
+  detail: string | null;
+  value_usd: number | null;
+}
+export function toPulseFeed(r: { events: RawPulseEvent[] }): PulseFeed {
+  return {
+    events: (r.events ?? []).map((e) => ({
+      id: e.id,
+      type: e.type,
+      at: e.at,
+      actor: e.actor,
+      title: e.title,
+      detail: e.detail,
+      valueUsd: e.value_usd,
+    })),
   };
 }
 
