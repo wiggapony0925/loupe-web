@@ -57,6 +57,7 @@ import type {
   Announcement,
   AnnouncementUpdate,
   AppleSignInRequest,
+  ChangePasswordRequest,
   BillingConfig,
   BlogPost,
   BlogPostInput,
@@ -596,6 +597,10 @@ export const api = {
      *  Requires the current token, so call it before clearing local session. */
     logoutAll: () =>
       apiFetch<null>(ENDPOINTS.auth.logoutAll, { method: "POST" }),
+    /** Change password: verifies the current one, sets the new one, and revokes
+     *  every OTHER session. Returns a fresh TokenPair for the current device. */
+    changePassword: (body: ChangePasswordRequest) =>
+      apiFetch<TokenPair>(ENDPOINTS.auth.changePassword, { method: "POST", json: body }),
     /** Complete a 2FA sign-in: exchange the login challenge + a code for tokens. */
     mfaVerify: (body: MfaVerifyRequest) =>
       apiFetch<TokenPair>(ENDPOINTS.auth.mfaVerify, {

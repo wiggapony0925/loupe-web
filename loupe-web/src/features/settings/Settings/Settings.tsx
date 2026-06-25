@@ -6,6 +6,7 @@ import { notify } from "@/stores/noticeStore";
 import { useUiStore } from "@/stores/uiStore";
 import { useAuth } from "@/auth/AuthProvider";
 import { MfaCard } from "../MfaCard/MfaCard";
+import { ChangePasswordCard } from "../ChangePasswordCard/ChangePasswordCard";
 import { usePro } from "@/pro";
 import { cx } from "@/lib/cx";
 import styles from "./Settings.module.scss";
@@ -123,6 +124,8 @@ export function Settings() {
         <Divider />
         <Row title="Account ID" desc={user?.id ?? "—"} mono />
       </Panel>
+
+      <ChangePasswordCard />
 
       <MfaCard />
 

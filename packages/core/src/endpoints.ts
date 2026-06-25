@@ -12,6 +12,7 @@ export const ENDPOINTS = {
     refresh: `${V1}/auth/refresh`,
     logout: `${V1}/auth/logout`,
     logoutAll: `${V1}/auth/logout-all`,
+    changePassword: `${V1}/auth/change-password`,
     mfaVerify: `${V1}/auth/mfa/verify`,
     mfaSetup: `${V1}/auth/mfa/setup`,
     mfaEnable: `${V1}/auth/mfa/enable`,

@@ -29,6 +29,12 @@ export interface SignUpRequest {
   display_name?: string;
 }
 
+/** Body for `POST /v1/auth/change-password` (signed-in users). */
+export interface ChangePasswordRequest {
+  current_password: string;
+  new_password: string;
+}
+
 /** Body for `POST /v1/auth/google` — an ID token from the Google Identity SDK. */
 export interface GoogleSignInRequest {
   id_token: string;
