@@ -13,8 +13,9 @@ import {
   ArrowRight,
   Megaphone,
   Sparkles,
+  Activity,
 } from "lucide-react";
-import { useAdminMetrics } from "@loupe/core";
+import { useAdminMetrics, useAdminHealth } from "@loupe/core";
 import {
   Skeleton,
   NoteCard,
@@ -28,6 +29,7 @@ import { useAuth } from "@/auth/AuthProvider";
 import styles from "./AdminOverview.module.scss";
 
 const QUICK_ACTIONS = [
+  { to: "/admin/health", icon: Activity, label: "System health", desc: "Live status & drift" },
   { to: "/admin/announce", icon: Megaphone, label: "Send announcement", desc: "Banner to every user" },
   { to: "/admin/pro", icon: Sparkles, label: "Tune Loupe Pro", desc: "Limits & feature gates" },
   { to: "/admin/users", icon: Users, label: "Manage users", desc: "Search, roles, bans" },
@@ -43,6 +45,7 @@ export function AdminOverview() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { data: m, isLoading, isError } = useAdminMetrics();
+  const { data: health } = useAdminHealth();
   const name = user?.display_name?.split(" ")[0] || user?.email?.split("@")[0] || "there";
   const fmt = (n: number) => n.toLocaleString();
 
@@ -63,6 +66,16 @@ export function AdminOverview() {
           </p>
         </div>
         <div className={styles.hero__actions}>
+          {health && (
+            <Link to="/admin/health" className={styles.statusPill} data-status={health.status}>
+              <span className={styles.statusPill__dot} />
+              {health.status === "ok"
+                ? "All systems healthy"
+                : health.status === "warn"
+                  ? "Attention needed"
+                  : "Outage"}
+            </Link>
+          )}
           <Button
             variant="secondary"
             leadingIcon={<Users size={16} />}

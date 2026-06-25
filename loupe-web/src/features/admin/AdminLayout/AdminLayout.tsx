@@ -16,6 +16,12 @@ import {
   Menu,
   X,
   KeyRound,
+  Activity,
+  Database,
+  Cloud,
+  ScrollText,
+  LineChart,
+  Library,
   type LucideIcon,
 } from "lucide-react";
 import { Logo } from "@/assets";
@@ -44,12 +50,19 @@ interface NavGroup {
  */
 const NAV: NavGroup[] = [
   {
-    label: "General",
-    items: [{ to: "/admin/overview", label: "Overview", icon: LayoutDashboard, hint: "Dashboard" }],
+    label: "Operations",
+    items: [
+      { to: "/admin/overview", label: "Overview", icon: LayoutDashboard, hint: "Dashboard" },
+      { to: "/admin/health", label: "System health", icon: Activity, hint: "Live status" },
+      { to: "/admin/database", label: "Database", icon: Database, hint: "Schema & rows" },
+      { to: "/admin/cloud", label: "Google Cloud", icon: Cloud, hint: "Run & SQL" },
+      { to: "/admin/audit", label: "Audit log", icon: ScrollText, hint: "Activity trail" },
+    ],
   },
   {
     label: "Monetization",
     items: [
+      { to: "/admin/revenue", label: "Revenue", icon: LineChart, hint: "MRR & churn" },
       { to: "/admin/pro", label: "Loupe Pro", icon: Sparkles, hint: "Plans & gates" },
       { to: "/admin/announce", label: "Announcements", icon: Megaphone, hint: "Banner to all users" },
       { to: "/admin/flags", label: "Feature flags", icon: ToggleRight, hint: "Toggle micro-apps" },
@@ -58,6 +71,13 @@ const NAV: NavGroup[] = [
   {
     label: "People",
     items: [{ to: "/admin/users", label: "Users", icon: Users, hint: "Search, roles, bans" }],
+  },
+  {
+    label: "Catalog & product",
+    items: [
+      { to: "/admin/catalog", label: "Catalog", icon: Library, hint: "Coverage by game" },
+      { to: "/admin/scanner", label: "Scanner", icon: ScanLine, hint: "Identify funnel" },
+    ],
   },
   {
     label: "Content & hiring",

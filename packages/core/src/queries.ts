@@ -18,6 +18,18 @@ import type {
   AdminUserDetail,
   AdminUserPage,
   AdminUsersParams,
+  AuditFacets,
+  AuditPage,
+  AuditParams,
+  CloudLogEntry,
+  CloudStatus,
+  DbGraph,
+  DbOverview,
+  DbTableDetail,
+  HealthReport,
+  RevenueSummary,
+  CatalogCoverage,
+  ScannerStats,
   AnalyticsOverview,
   ApplicationStatusUpdateInput,
   ApplicationSubmitted,
@@ -1340,3 +1352,130 @@ export const useUpsertFlag = (
     },
   });
 };
+
+// ── Admin: operations (read-only observability) ──
+
+/** System-health report. Polls so the overview stays live without a refresh. */
+export const useAdminHealth = (enabled = true) =>
+  useApiQuery<HealthReport>(["admin-health"], api.admin.ops.health, {
+    enabled,
+    staleTime: 15_000,
+    refetchInterval: 30_000,
+  });
+
+/** Every table with column/FK counts and live row estimates. */
+export const useAdminDbTables = (enabled = true) =>
+  useApiQuery<DbOverview>(["admin-db-tables"], api.admin.ops.database.tables, {
+    enabled,
+    staleTime: 30_000,
+  });
+
+/** Full structure for one table (disabled until a table is selected). */
+export const useAdminDbTable = (name: string | null, enabled = true) =>
+  useApiQuery<DbTableDetail>(
+    ["admin-db-table", name],
+    () => api.admin.ops.database.table(name as string),
+    { enabled: enabled && !!name, staleTime: 30_000 },
+  );
+
+/** Foreign-key relationship graph for the schema map. */
+export const useAdminDbGraph = (enabled = true) =>
+  useApiQuery<DbGraph>(["admin-db-graph"], api.admin.ops.database.graph, {
+    enabled,
+    staleTime: 60_000,
+  });
+
+/** Cloud Run + Cloud SQL status (graceful when GCP isn't configured). */
+export const useAdminCloud = (enabled = true) =>
+  useApiQuery<CloudStatus>(["admin-cloud"], api.admin.ops.cloud.status, {
+    enabled,
+    staleTime: 30_000,
+  });
+
+/** Recent Cloud Run log tail. */
+export const useAdminCloudLogs = (limit = 25, enabled = true) =>
+  useApiQuery<CloudLogEntry[]>(
+    ["admin-cloud-logs", limit],
+    () => api.admin.ops.cloud.logs(limit),
+    { enabled, staleTime: 15_000 },
+  );
+
+/** Paginated, filterable audit log. */
+export const useAdminAudit = (params?: AuditParams, enabled = true) =>
+  useApiQuery<AuditPage>(
+    ["admin-audit", params ?? {}],
+    () => api.admin.ops.audit.list(params),
+    { enabled, staleTime: 10_000, placeholderData: (prev) => prev },
+  );
+
+/** Distinct actions + tables for the audit filter dropdowns. */
+export const useAdminAuditFacets = (enabled = true) =>
+  useApiQuery<AuditFacets>(["admin-audit-facets"], api.admin.ops.audit.facets, {
+    enabled,
+    staleTime: 60_000,
+  });
+
+// ── Admin: revenue + account actions ──
+
+/** Subscription revenue summary (counts, est. MRR/ARR, churn, trend). */
+export const useAdminRevenue = (enabled = true) =>
+  useApiQuery<RevenueSummary>(["admin-revenue"], api.admin.revenue, {
+    enabled,
+    staleTime: 30_000,
+  });
+
+/** Sign a user out everywhere (revoke all tokens). Refreshes their detail. */
+export const useRevokeUserSessions = (
+  options?: Omit<UseMutationOptions<AdminUserDetail, ApiError, string>, "mutationFn">,
+) => {
+  const qc = useQueryClient();
+  return useApiMutation<AdminUserDetail, string>(
+    (id) => api.admin.users.revokeSessions(id),
+    {
+      ...options,
+      onSuccess: (data, ...rest) => {
+        void qc.invalidateQueries({ queryKey: ["admin-user", data.id] });
+        options?.onSuccess?.(data, ...rest);
+      },
+    },
+  );
+};
+
+/** Cancel a user's Stripe subscription (super-admin). Refreshes detail + revenue. */
+export const useCancelUserSubscription = (
+  options?: Omit<
+    UseMutationOptions<AdminUserDetail, ApiError, { id: string; immediately?: boolean }>,
+    "mutationFn"
+  >,
+) => {
+  const qc = useQueryClient();
+  return useApiMutation<AdminUserDetail, { id: string; immediately?: boolean }>(
+    ({ id, immediately }) => api.admin.users.cancelSubscription(id, immediately),
+    {
+      ...options,
+      onSuccess: (data, ...rest) => {
+        void qc.invalidateQueries({ queryKey: ["admin-user", data.id] });
+        void qc.invalidateQueries({ queryKey: ["admin-users"] });
+        void qc.invalidateQueries({ queryKey: ["admin-revenue"] });
+        options?.onSuccess?.(data, ...rest);
+      },
+    },
+  );
+};
+
+// ── Admin: catalog + scanner analytics ──
+
+/** Catalog coverage by game (cards/sets, pHash %, price sources). */
+export const useAdminCatalog = (enabled = true) =>
+  useApiQuery<CatalogCoverage>(["admin-catalog"], api.admin.catalog, {
+    enabled,
+    staleTime: 60_000,
+  });
+
+/** Scan + identify funnel metrics over a rolling window. */
+export const useAdminScanner = (days = 30, enabled = true) =>
+  useApiQuery<ScannerStats>(
+    ["admin-scanner", days],
+    () => api.admin.scanner(days),
+    { enabled, staleTime: 30_000 },
+  );

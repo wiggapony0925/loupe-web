@@ -35,6 +35,10 @@ export interface AdminUser {
   /** Loupe Pro plan — "free" | "pro". Comp from the user drawer. */
   plan: string;
   proExpiresAt?: string | null;
+  /** In a Stripe free trial. */
+  proTrialing: boolean;
+  /** Backed by a real Stripe subscription (vs. an admin comp). */
+  hasSubscription: boolean;
 }
 
 export interface AdminUserPage {

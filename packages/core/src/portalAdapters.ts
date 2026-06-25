@@ -319,6 +319,8 @@ interface RawAdminUser {
   deleted: boolean;
   plan?: string;
   pro_expires_at?: string | null;
+  pro_trialing?: boolean;
+  has_subscription?: boolean;
 }
 
 export function toAdminUser(r: RawAdminUser): AdminUser {
@@ -336,6 +338,8 @@ export function toAdminUser(r: RawAdminUser): AdminUser {
     deleted: Boolean(r.deleted),
     plan: r.plan ?? "free",
     proExpiresAt: r.pro_expires_at ?? null,
+    proTrialing: Boolean(r.pro_trialing),
+    hasSubscription: Boolean(r.has_subscription),
   };
 }
 

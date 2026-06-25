@@ -1,6 +1,13 @@
-// Admin developer portal — overview, users, flags, simulator, jobs, applications, blog, waitlist.
+// Admin developer portal — operations, overview, users, flags, simulator, jobs, applications, blog, waitlist.
 export { AdminLayout } from "./AdminLayout/AdminLayout";
 export { AdminOverview } from "./AdminOverview/AdminOverview";
+export { AdminHealth } from "./AdminHealth/AdminHealth";
+export { AdminDatabase } from "./AdminDatabase/AdminDatabase";
+export { AdminCloud } from "./AdminCloud/AdminCloud";
+export { AdminAudit } from "./AdminAudit/AdminAudit";
+export { AdminRevenue } from "./AdminRevenue/AdminRevenue";
+export { AdminCatalog } from "./AdminCatalog/AdminCatalog";
+export { AdminScanner } from "./AdminScanner/AdminScanner";
 export { AdminUsers } from "./AdminUsers/AdminUsers";
 export { AdminFlags } from "./AdminFlags/AdminFlags";
 export { AdminPro } from "./AdminPro/AdminPro";

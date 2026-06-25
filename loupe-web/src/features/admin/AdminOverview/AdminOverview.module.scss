@@ -57,6 +57,42 @@
   }
 }
 
+// Live system-status pill — links straight to the health page.
+.statusPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--ink-muted);
+  text-decoration: none;
+  background: var(--bg-elevated);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-pill);
+  transition: border-color var(--dur-fast) var(--ease-out);
+
+  --tone: var(--up);
+  &[data-status="warn"] {
+    --tone: var(--accent-amber);
+  }
+  &[data-status="down"] {
+    --tone: var(--down);
+  }
+
+  &:hover {
+    border-color: var(--line-strong);
+  }
+
+  &__dot {
+    width: 9px;
+    height: 9px;
+    border-radius: var(--radius-pill);
+    background: var(--tone);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--tone) 20%, transparent);
+  }
+}
+
 /* Two-up chart row: a wide bar panel + a narrower donut panel. */
 .charts {
   display: grid;

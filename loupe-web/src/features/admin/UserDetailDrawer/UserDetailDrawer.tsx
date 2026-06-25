@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ShieldCheck, ShieldOff, Ban, RotateCcw, Trash2, Wallet, Star, ScanLine, DollarSign, Sparkles } from "lucide-react";
+import { ShieldCheck, ShieldOff, Ban, RotateCcw, Trash2, Wallet, Star, ScanLine, DollarSign, Sparkles, LogOut, CreditCard } from "lucide-react";
 import {
   useAdminUserDetail,
   useSetUserRole,
@@ -7,6 +7,8 @@ import {
   useBanUser,
   useUnbanUser,
   useDeleteUser,
+  useRevokeUserSessions,
+  useCancelUserSubscription,
 } from "@loupe/core";
 import { Button, Modal, Skeleton, TextField, useConfirm } from "@/components";
 import { useAuth } from "@/auth/AuthProvider";
@@ -33,10 +35,64 @@ export function UserDetailDrawer({ userId, open, onOpenChange }: UserDetailDrawe
   const ban = useBanUser();
   const unban = useUnbanUser();
   const del = useDeleteUser();
+  const revokeSessions = useRevokeUserSessions();
+  const cancelSub = useCancelUserSubscription();
   const busy =
-    setRole.isPending || setPlan.isPending || ban.isPending || unban.isPending || del.isPending;
+    setRole.isPending ||
+    setPlan.isPending ||
+    ban.isPending ||
+    unban.isPending ||
+    del.isPending ||
+    revokeSessions.isPending ||
+    cancelSub.isPending;
   const isPro = u?.plan === "pro";
   const askConfirm = useConfirm();
+
+  async function doRevokeSessions() {
+    if (!u) return;
+    const ok = await askConfirm({
+      title: "Sign out everywhere?",
+      tone: "danger",
+      confirmLabel: "Revoke sessions",
+      message: (
+        <>
+          <strong>{u.email}</strong> is signed out of every device immediately
+          (revokes all tokens). They can sign back in with their credentials.
+        </>
+      ),
+    });
+    if (!ok) return;
+    revokeSessions.mutate(u.id, {
+      onSuccess: () => notify.success(`Signed ${u.email} out of all devices.`),
+      onError: () => notify.error("Couldn't revoke sessions — please try again."),
+    });
+  }
+
+  async function doCancelSubscription() {
+    if (!u) return;
+    const ok = await askConfirm({
+      title: "Cancel this subscription?",
+      tone: "danger",
+      confirmLabel: "Cancel at period end",
+      message: (
+        <>
+          <strong>{u.email}</strong>&rsquo;s Loupe Pro won&rsquo;t renew — they
+          keep Pro until the current period ends, then drop to free. This cancels
+          the subscription in Stripe.
+        </>
+      ),
+    });
+    if (!ok) return;
+    cancelSub.mutate(
+      { id: u.id },
+      {
+        onSuccess: () =>
+          notify.success(`${u.email}'s subscription will cancel at period end.`),
+        onError: (e) =>
+          notify.error(e?.message || "Couldn't cancel — please try again."),
+      },
+    );
+  }
 
   async function togglePro() {
     if (!u) return;
@@ -140,7 +196,11 @@ export function UserDetailDrawer({ userId, open, onOpenChange }: UserDetailDrawe
             <span className={styles.badge} data-tone={u.deleted ? "neutral" : u.banned ? "rose" : "neutral"}>
               {u.deleted ? "Deleted" : u.banned ? "Banned" : "Active"}
             </span>
-            {isPro && <span className={styles.badge} data-tone="mint">Pro</span>}
+            {u.hasSubscription ? (
+              <span className={styles.badge} data-tone="mint">{u.proTrialing ? "Trial" : "Paying"}</span>
+            ) : isPro ? (
+              <span className={styles.badge} data-tone="mint">Comped</span>
+            ) : null}
             {isSelf && <span className={styles.badge} data-tone="neutral">You</span>}
           </div>
 
@@ -180,6 +240,33 @@ export function UserDetailDrawer({ userId, open, onOpenChange }: UserDetailDrawe
               >
                 {isPro ? "Revoke Pro" : "Comp to Pro"}
               </Button>
+            </div>
+          )}
+
+          {/* Security & billing — sign out everywhere, cancel a paid plan. */}
+          {!u.deleted && (
+            <div className={styles.actions}>
+              <Button
+                variant="secondary"
+                size="sm"
+                disabled={busy}
+                leadingIcon={<LogOut size={15} />}
+                onClick={doRevokeSessions}
+              >
+                Revoke sessions
+              </Button>
+              {u.hasSubscription && (
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  className={styles.danger}
+                  disabled={busy}
+                  leadingIcon={<CreditCard size={15} />}
+                  onClick={doCancelSubscription}
+                >
+                  Cancel subscription
+                </Button>
+              )}
             </div>
           )}
 

@@ -182,6 +182,26 @@ export const ENDPOINTS = {
   /** Admin developer-portal surface (requires an admin user). */
   admin: {
     metrics: `${V1}/admin/metrics`,
+    // Operations — read-only observability.
+    health: `${V1}/admin/health`,
+    dbTables: `${V1}/admin/database/tables`,
+    dbTable: (name: string) =>
+      `${V1}/admin/database/tables/${encodeURIComponent(name)}`,
+    dbGraph: `${V1}/admin/database/graph`,
+    cloud: `${V1}/admin/cloud`,
+    cloudLogs: `${V1}/admin/cloud/logs`,
+    audit: `${V1}/admin/audit`,
+    auditFacets: `${V1}/admin/audit/facets`,
+    // Monetization.
+    revenue: `${V1}/admin/revenue`,
+    // Catalog & product.
+    catalog: `${V1}/admin/catalog`,
+    scanner: `${V1}/admin/scanner`,
+    // User account actions.
+    userRevokeSessions: (id: string) =>
+      `${V1}/admin/users/${id}/revoke-sessions`,
+    userCancelSubscription: (id: string) =>
+      `${V1}/admin/users/${id}/subscription/cancel`,
     jobs: `${V1}/admin/jobs`,
     job: (id: string) => `${V1}/admin/jobs/${id}`,
     applications: `${V1}/admin/applications`,

@@ -1,0 +1,121 @@
+// Status → colour. Mirrors the tone language used across the portal.
+@mixin status-tone {
+  &[data-status="ok"] {
+    --tone: var(--up);
+  }
+  &[data-status="warn"] {
+    --tone: var(--accent-amber);
+  }
+  &[data-status="down"] {
+    --tone: var(--down);
+  }
+  &[data-status="unconfigured"] {
+    --tone: var(--ink-dim);
+  }
+}
+
+.spin {
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.banner {
+  @include surface;
+  @include status-tone;
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-md) var(--space-lg);
+  border-left: 3px solid var(--tone);
+
+  &__dot {
+    width: 12px;
+    height: 12px;
+    border-radius: var(--radius-pill);
+    background: var(--tone);
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--tone) 18%, transparent);
+    flex-shrink: 0;
+  }
+
+  &__title {
+    display: block;
+    font-weight: 700;
+    font-size: var(--text-md);
+    color: var(--ink);
+  }
+
+  &__sub {
+    display: block;
+    font-size: var(--text-sm);
+    color: var(--ink-muted);
+  }
+
+  &__time {
+    margin-left: auto;
+    font-size: var(--text-xs);
+    color: var(--ink-dim);
+    @include tabular;
+  }
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+
+  &__label {
+    font-size: var(--text-xs);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--ink-dim);
+  }
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--space-sm);
+}
+
+.check {
+  @include surface;
+  @include status-tone;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-sm);
+  padding: var(--space-md);
+
+  &__icon {
+    display: grid;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    border-radius: var(--radius-md);
+    color: var(--tone);
+    background: color-mix(in srgb, var(--tone) 14%, transparent);
+    flex-shrink: 0;
+  }
+
+  &__body {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+
+  &__label {
+    font-weight: 600;
+    font-size: var(--text-sm);
+    color: var(--ink);
+  }
+
+  &__detail {
+    font-size: var(--text-xs);
+    color: var(--ink-muted);
+  }
+}

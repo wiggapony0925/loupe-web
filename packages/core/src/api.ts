@@ -44,12 +44,34 @@ import {
   toWaitlistStats,
   waitlistJoinToBody,
 } from "./portalAdapters";
+import {
+  toAuditPage,
+  toCatalogCoverage,
+  toCloudLogEntry,
+  toCloudStatus,
+  toDbGraph,
+  toDbOverview,
+  toDbTableDetail,
+  toHealthReport,
+  toScannerStats,
+} from "./opsAdapters";
 import type {
   AdminMetrics,
   AdminUser,
   AdminUserDetail,
   AdminUserPage,
   AdminUsersParams,
+  AuditFacets,
+  AuditPage,
+  AuditParams,
+  CatalogCoverage,
+  CloudLogEntry,
+  CloudStatus,
+  DbGraph,
+  DbOverview,
+  DbTableDetail,
+  HealthReport,
+  ScannerStats,
   AnalyticsOverview,
   ApplicationStatusUpdateInput,
   ApplicationSubmitted,
@@ -68,6 +90,7 @@ import type {
   Entitlements,
   PortalSession,
   Recents,
+  RevenueSummary,
   SubscribeResult,
   GoogleSignInRequest,
   CardAttributes,
@@ -194,6 +217,47 @@ function toUpcoming(w: UpcomingWire): UpcomingReport {
     periodEnd: w.period_end,
     closesAt: w.closes_at,
     label: w.label,
+  };
+}
+
+/** Wire shape for the admin revenue summary (snake_case). */
+interface RevenueWire {
+  billing_configured: boolean;
+  currency: string;
+  paying: number;
+  trialing: number;
+  comped: number;
+  free: number;
+  total_users: number;
+  price_monthly_usd: number;
+  price_yearly_usd: number;
+  est_mrr_usd: number;
+  est_arr_usd: number;
+  new_pro_30d: number;
+  churned_30d: number;
+  churn_rate_30d: number;
+  pro_by_month: Array<{ month: string; new_pro: number }>;
+}
+function toRevenueSummary(w: RevenueWire): RevenueSummary {
+  return {
+    billingConfigured: w.billing_configured,
+    currency: w.currency,
+    paying: w.paying,
+    trialing: w.trialing,
+    comped: w.comped,
+    free: w.free,
+    totalUsers: w.total_users,
+    priceMonthlyUsd: w.price_monthly_usd,
+    priceYearlyUsd: w.price_yearly_usd,
+    estMrrUsd: w.est_mrr_usd,
+    estArrUsd: w.est_arr_usd,
+    newPro30d: w.new_pro_30d,
+    churned30d: w.churned_30d,
+    churnRate30d: w.churn_rate_30d,
+    proByMonth: (w.pro_by_month ?? []).map((p) => ({
+      month: p.month,
+      newPro: p.new_pro,
+    })),
   };
 }
 
@@ -920,6 +984,57 @@ export const api = {
     /** At-a-glance portal metrics. */
     metrics: async (): Promise<AdminMetrics> =>
       toAdminMetrics(await apiFetch(ENDPOINTS.admin.metrics)),
+    /** Subscription revenue analytics (counts, est. MRR/ARR, churn, trend). */
+    revenue: async (): Promise<RevenueSummary> =>
+      toRevenueSummary(await apiFetch(ENDPOINTS.admin.revenue)),
+    /** Catalog coverage by game (cards/sets, pHash %, price sources). */
+    catalog: async (): Promise<CatalogCoverage> =>
+      toCatalogCoverage(await apiFetch(ENDPOINTS.admin.catalog)),
+    /** Scan + identify funnel metrics over the last `days` days. */
+    scanner: async (days = 30): Promise<ScannerStats> =>
+      toScannerStats(
+        await apiFetch(ENDPOINTS.admin.scanner, { query: { days } }),
+      ),
+    /** Operations — read-only observability (health, DB, cloud, audit). */
+    ops: {
+      health: async (): Promise<HealthReport> =>
+        toHealthReport(await apiFetch(ENDPOINTS.admin.health)),
+      database: {
+        tables: async (): Promise<DbOverview> =>
+          toDbOverview(await apiFetch(ENDPOINTS.admin.dbTables)),
+        table: async (name: string): Promise<DbTableDetail> =>
+          toDbTableDetail(await apiFetch(ENDPOINTS.admin.dbTable(name))),
+        graph: async (): Promise<DbGraph> =>
+          toDbGraph(await apiFetch(ENDPOINTS.admin.dbGraph)),
+      },
+      cloud: {
+        status: async (): Promise<CloudStatus> =>
+          toCloudStatus(await apiFetch(ENDPOINTS.admin.cloud)),
+        logs: async (limit?: number): Promise<CloudLogEntry[]> => {
+          const rows = await apiFetch<Parameters<typeof toCloudLogEntry>[0][]>(
+            ENDPOINTS.admin.cloudLogs,
+            { query: { limit } },
+          );
+          return (rows ?? []).map(toCloudLogEntry);
+        },
+      },
+      audit: {
+        list: async (params?: AuditParams): Promise<AuditPage> =>
+          toAuditPage(
+            await apiFetch(ENDPOINTS.admin.audit, {
+              query: {
+                action: params?.action,
+                target_table: params?.targetTable,
+                actor: params?.actor,
+                page: params?.page,
+                page_size: params?.pageSize,
+              },
+            }),
+          ),
+        facets: (): Promise<AuditFacets> =>
+          apiFetch<AuditFacets>(ENDPOINTS.admin.auditFacets),
+      },
+    },
     /** Live site config — the Pro plan shape + announcement banner. */
     config: {
       get: (): Promise<SiteConfig> => apiFetch<SiteConfig>(ENDPOINTS.admin.config),
@@ -977,6 +1092,25 @@ export const api = {
         ),
       remove: (id: string) =>
         apiFetch<void>(ENDPOINTS.admin.user(id), { method: "DELETE" }),
+      /** Sign a user out of every device (revoke all outstanding tokens). */
+      revokeSessions: async (id: string): Promise<AdminUserDetail> =>
+        toAdminUserDetail(
+          await apiFetch(ENDPOINTS.admin.userRevokeSessions(id), {
+            method: "POST",
+          }),
+        ),
+      /** Cancel a user's Stripe subscription (super-admin). Default = end of
+       *  period (keeps Pro until it lapses); `immediately` ends it now. */
+      cancelSubscription: async (
+        id: string,
+        immediately = false,
+      ): Promise<AdminUserDetail> =>
+        toAdminUserDetail(
+          await apiFetch(ENDPOINTS.admin.userCancelSubscription(id), {
+            method: "POST",
+            json: { immediately },
+          }),
+        ),
     },
     flags: {
       list: async (): Promise<FeatureFlag[]> => {
