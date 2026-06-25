@@ -132,6 +132,7 @@ export {
   useCancelUserSubscription,
   useAdminCatalog,
   useAdminScanner,
+  useAdminGrades,
   useAdminCards,
   useAdminCard,
   useAddCardPriceOverride,

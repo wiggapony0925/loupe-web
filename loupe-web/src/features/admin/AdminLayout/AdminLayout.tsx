@@ -23,6 +23,7 @@ import {
   LineChart,
   Library,
   Radio,
+  ShieldCheck,
   type LucideIcon,
 } from "lucide-react";
 import { Logo } from "@/assets";
@@ -78,6 +79,7 @@ const NAV: NavGroup[] = [
     items: [
       { to: "/admin/catalog", label: "Catalog", icon: Library, hint: "Coverage by game" },
       { to: "/admin/cards", label: "Card data", icon: Search, hint: "Explore & override" },
+      { to: "/admin/grades", label: "Grade review", icon: ShieldCheck, hint: "QA graded cards" },
       { to: "/admin/scanner", label: "Scanner", icon: ScanLine, hint: "Identify funnel" },
     ],
   },

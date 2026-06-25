@@ -30,6 +30,8 @@ import type {
   RevenueSummary,
   CatalogCoverage,
   ScannerStats,
+  GradeReviewPage,
+  GradeReviewParams,
   AdminCardPage,
   AdminCardDetail,
   AdminCardsParams,
@@ -1479,6 +1481,14 @@ export const useAdminCatalog = (enabled = true) =>
     enabled,
     staleTime: 60_000,
   });
+
+/** Grade-review queue — QA of graded cards (Loupe first-party by default). */
+export const useAdminGrades = (params?: GradeReviewParams, enabled = true) =>
+  useApiQuery<GradeReviewPage>(
+    ["admin-grades", params ?? {}],
+    () => api.admin.gradeReview(params),
+    { enabled, staleTime: 30_000, placeholderData: (prev) => prev },
+  );
 
 /** Scan + identify funnel metrics over a rolling window. */
 export const useAdminScanner = (days = 30, enabled = true) =>

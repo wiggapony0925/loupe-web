@@ -56,6 +56,7 @@ import {
   toDbOverview,
   toDbTableDetail,
   toEngagementSummary,
+  toGradeReviewPage,
   toHealthReport,
   toPulseFeed,
   toScannerStats,
@@ -81,6 +82,8 @@ import type {
   DbOverview,
   DbTableDetail,
   EngagementSummary,
+  GradeReviewPage,
+  GradeReviewParams,
   HealthReport,
   InsightsAnswer,
   PulseFeed,
@@ -1003,6 +1006,17 @@ export const api = {
     /** Catalog coverage by game (cards/sets, pHash %, price sources). */
     catalog: async (): Promise<CatalogCoverage> =>
       toCatalogCoverage(await apiFetch(ENDPOINTS.admin.catalog)),
+    /** Grade-review queue — QA of graded cards (Loupe first-party by default). */
+    gradeReview: async (params?: GradeReviewParams): Promise<GradeReviewPage> =>
+      toGradeReviewPage(
+        await apiFetch(ENDPOINTS.admin.gradeReview, {
+          query: {
+            house: params?.house,
+            page: params?.page,
+            page_size: params?.pageSize,
+          },
+        }),
+      ),
     /** Live activity feed — recent signups, scans, acquisitions, admin actions. */
     pulse: async (limit = 40): Promise<PulseFeed> =>
       toPulseFeed(await apiFetch(ENDPOINTS.admin.pulse, { query: { limit } })),

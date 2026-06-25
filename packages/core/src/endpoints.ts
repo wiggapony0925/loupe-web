@@ -200,6 +200,7 @@ export const ENDPOINTS = {
     cards: `${V1}/admin/cards`,
     card: (id: string) => `${V1}/admin/cards/${id}`,
     cardPrice: (id: string) => `${V1}/admin/cards/${id}/price`,
+    gradeReview: `${V1}/admin/grades`,
     // Growth.
     pulse: `${V1}/admin/pulse`,
     engagement: `${V1}/admin/engagement`,

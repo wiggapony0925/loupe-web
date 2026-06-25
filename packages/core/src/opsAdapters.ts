@@ -21,6 +21,8 @@ import type {
   DbTableSummary,
   EngagementSummary,
   GameCoverage,
+  GradeReviewPage,
+  GradeReviewRow,
   HealthCheck,
   HealthReport,
   PulseFeed,
@@ -400,6 +402,50 @@ export function toEngagementSummary(r: RawEngagement): EngagementSummary {
       newUsers: w.new_users,
     })),
     funnel: (r.funnel ?? []).map((f) => ({ label: f.label, count: f.count })),
+  };
+}
+
+interface RawGradeRow {
+  id: string;
+  user_email: string | null;
+  card_name: string | null;
+  card_image_url: string | null;
+  set_name: string | null;
+  house: string;
+  grade: number;
+  subgrades: Record<string, unknown> | null;
+  condition: string | null;
+  estimated_value_usd: number | null;
+  acquired_via: string | null;
+  graded_at: string;
+}
+const toGradeRow = (r: RawGradeRow): GradeReviewRow => ({
+  id: r.id,
+  userEmail: r.user_email,
+  cardName: r.card_name,
+  cardImageUrl: r.card_image_url,
+  setName: r.set_name,
+  house: r.house,
+  grade: r.grade,
+  subgrades: r.subgrades,
+  condition: r.condition,
+  estimatedValueUsd: r.estimated_value_usd,
+  acquiredVia: r.acquired_via,
+  gradedAt: r.graded_at,
+});
+export function toGradeReviewPage(r: {
+  results: RawGradeRow[];
+  total: number;
+  page: number;
+  page_size: number;
+  houses: string[];
+}): GradeReviewPage {
+  return {
+    results: (r.results ?? []).map(toGradeRow),
+    total: r.total,
+    page: r.page,
+    pageSize: r.page_size,
+    houses: r.houses ?? [],
   };
 }
 

@@ -12,6 +12,7 @@ export * from "./config.types";
 export * from "./engagement.types";
 export * from "./entitlements.types";
 export * from "./flags.types";
+export * from "./gradeReview.types";
 export * from "./insights.types";
 export * from "./money.types";
 export * from "./ops.types";
