@@ -4,8 +4,10 @@ import type {
   CardAbility,
   CardTypeModifier,
   CardAttributes,
+  CardHolding,
   CardListing,
   CardMarket,
+  CardOwnership,
   CardSummary,
   CardValuation,
   GradePrice,
@@ -700,5 +702,70 @@ export function toSealedHolding(r: RawSealedHolding): SealedHolding {
     productType: r.product_type ?? null,
     productTcg: r.product_tcg ?? null,
     productSetName: r.product_set_name ?? null,
+  };
+}
+
+// ─── Per-card ownership (compose + derive) ──────────────────────────────
+
+interface RawCardHolding {
+  holding_id?: string;
+  grade?: string | number | null;
+  house?: string;
+  is_graded?: boolean;
+  condition?: string | null;
+  subgrades?: Record<string, unknown> | null;
+  estimated_value_usd?: string | number | null;
+  purchase_price_usd?: string | number | null;
+  purchase_date?: string | null;
+  acquired_via?: "scan" | "manual" | "import" | null;
+  scan_job_id?: string | null;
+  notes?: string | null;
+  graded_at?: string;
+  days_held?: number | null;
+  unrealized_pl_usd?: string | number | null;
+  unrealized_pl_pct?: number | null;
+}
+
+interface RawCardOwnership {
+  owned?: boolean;
+  copies?: number;
+  holdings?: RawCardHolding[];
+  cost_basis_usd?: string | number | null;
+  holding_value_usd?: string | number | null;
+  unrealized_pl_usd?: string | number | null;
+  unrealized_pl_pct?: number | null;
+}
+
+function toHolding(r: RawCardHolding): CardHolding {
+  return {
+    holdingId: r.holding_id ?? "",
+    grade: toNum(r.grade) ?? 0,
+    house: r.house ?? "loupe",
+    isGraded: r.is_graded ?? false,
+    condition: r.condition ?? null,
+    subgrades: r.subgrades ?? null,
+    estimatedValueUsd: toNum(r.estimated_value_usd),
+    purchasePriceUsd: toNum(r.purchase_price_usd),
+    purchaseDate: r.purchase_date ?? null,
+    acquiredVia: r.acquired_via ?? null,
+    scanJobId: r.scan_job_id ?? null,
+    notes: r.notes ?? null,
+    gradedAt: r.graded_at ?? "",
+    daysHeld: r.days_held ?? null,
+    unrealizedPlUsd: toNum(r.unrealized_pl_usd),
+    unrealizedPlPct: r.unrealized_pl_pct ?? null,
+  };
+}
+
+/** `/cards/:id/ownership` → the signed-in user's ownership view model. */
+export function toCardOwnership(r: RawCardOwnership): CardOwnership {
+  return {
+    owned: r.owned ?? false,
+    copies: r.copies ?? 0,
+    holdings: (r.holdings ?? []).map(toHolding),
+    costBasisUsd: toNum(r.cost_basis_usd),
+    holdingValueUsd: toNum(r.holding_value_usd),
+    unrealizedPlUsd: toNum(r.unrealized_pl_usd),
+    unrealizedPlPct: r.unrealized_pl_pct ?? null,
   };
 }

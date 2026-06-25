@@ -5,7 +5,9 @@ import {
   configureApi,
   usePublicTrending,
   usePublicSearch,
+  useCardHoldings,
   type CardSummary,
+  type CardOwnership,
   type SearchPage,
 } from "@loupe/core";
 import { server } from "./msw/server";
@@ -84,6 +86,73 @@ describe("@loupe/core query hooks · TanStack Query + MSW", () => {
     expect(page?.total).toBe(1);
     expect(page?.results[0]?.name).toBe("Charizard");
     expect(page?.facets.rarities).toContain("Rare");
+  });
+
+  it("useCardHoldings maps the ownership envelope to a typed CardOwnership", async () => {
+    server.use(
+      http.get("*/v1/cards/:id/ownership", () =>
+        HttpResponse.json({
+          owned: true,
+          copies: 2,
+          cost_basis_usd: "160.00",
+          holding_value_usd: "300.00",
+          unrealized_pl_usd: "140.00",
+          unrealized_pl_pct: 87.5,
+          holdings: [
+            {
+              holding_id: "h1",
+              grade: "9.0",
+              house: "psa",
+              is_graded: true,
+              acquired_via: "scan",
+              estimated_value_usd: "250.00",
+              purchase_price_usd: "100.00",
+              days_held: 30,
+              unrealized_pl_usd: "150.00",
+              unrealized_pl_pct: 150,
+              graded_at: "2026-01-01T00:00:00Z",
+            },
+            {
+              holding_id: "h2",
+              grade: "8.0",
+              house: "loupe",
+              is_graded: false,
+              estimated_value_usd: "50.00",
+              purchase_price_usd: "60.00",
+              graded_at: "2026-01-02T00:00:00Z",
+            },
+          ],
+        }),
+      ),
+    );
+
+    const { Wrapper } = createQueryWrapper();
+    const { result } = renderHook(() => useCardHoldings("pkmn:1"), {
+      wrapper: Wrapper,
+    });
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+    const own: CardOwnership | undefined = result.current.data;
+    expect(own?.owned).toBe(true);
+    expect(own?.copies).toBe(2);
+    // Decimal strings are coerced to numbers; snake_case → camelCase.
+    expect(own?.costBasisUsd).toBe(160);
+    expect(own?.holdingValueUsd).toBe(300);
+    expect(own?.unrealizedPlUsd).toBe(140);
+    expect(own?.holdings[0]).toMatchObject({
+      holdingId: "h1",
+      grade: 9,
+      house: "psa",
+      isGraded: true,
+      acquiredVia: "scan",
+      purchasePriceUsd: 100,
+      estimatedValueUsd: 250,
+      daysHeld: 30,
+    });
+    // Raw copy keeps is_graded=false and no acquisition source.
+    expect(own?.holdings[1]?.isGraded).toBe(false);
+    expect(own?.holdings[1]?.acquiredVia).toBeNull();
   });
 
   it("surfaces backend errors as an error state", async () => {

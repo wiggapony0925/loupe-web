@@ -1,0 +1,152 @@
+// "Your copies" — the signed-in user's owned holdings of a card, with
+// per-copy grade/acquisition/P-L and a rolled-up summary.
+
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+}
+
+.title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: var(--text-lg);
+  font-weight: 800;
+  color: var(--ink);
+}
+
+.count {
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: var(--ink-muted);
+  @include tabular;
+}
+
+/* ── Rolled-up summary ── */
+.summary {
+  display: flex;
+  gap: var(--space-md);
+}
+.summary__cell {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  text-align: right;
+}
+.summary__label {
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+.summary__value {
+  font-size: var(--text-md);
+  font-weight: 800;
+  color: var(--ink);
+  @include tabular;
+}
+
+/* ── Holdings list ── */
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  padding-bottom: var(--space-sm);
+  border-bottom: 1px solid var(--line);
+
+  &:last-child {
+    padding-bottom: 0;
+    border-bottom: none;
+  }
+}
+
+.row__id {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.row__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 7px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line);
+  background: var(--bg-elevated);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--ink-muted);
+}
+.tag--graded {
+  color: var(--accent-mint);
+  border-color: color-mix(in srgb, var(--accent-mint) 35%, transparent);
+}
+
+.row__figs {
+  display: flex;
+  gap: var(--space-md);
+}
+.fig {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  text-align: right;
+  min-width: 56px;
+}
+.fig__label {
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+.fig__value {
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: var(--ink);
+  @include tabular;
+}
+
+/* ── Signed P/L figure ── */
+.pnl {
+  @include tabular;
+  font-weight: 800;
+  white-space: nowrap;
+}
+.pnl__pct {
+  font-weight: 700;
+  opacity: 0.85;
+}
+.up {
+  color: var(--accent-mint);
+}
+.down {
+  color: var(--accent-rose);
+}

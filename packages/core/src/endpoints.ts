@@ -80,6 +80,8 @@ export const ENDPOINTS = {
       return `${V1}/cards/${id}/comps${qs ? `?${qs}` : ""}`;
     },
     gradeSummary: (id: string) => `${V1}/cards/${id}/grade-summary`,
+    /** The signed-in user's ownership of this card (copies + cost/value/P-L). */
+    ownership: (id: string) => `${V1}/cards/${id}/ownership`,
     identify: `${V1}/cards/identify`,
   },
   /** Card sets — public catalog list + user-scoped completion progress. */
