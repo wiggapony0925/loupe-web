@@ -48,6 +48,8 @@ interface AuthValue {
   /** Finish a 2FA sign-in with the challenge token + a TOTP/backup code. */
   completeMfa: (mfaToken: string, code: string) => Promise<User>;
   register: (email: string, password: string, displayName?: string) => Promise<User>;
+  /** Change password (verifies current, revokes other sessions, keeps this one). */
+  changePassword: (currentPassword: string, newPassword: string) => Promise<void>;
   /** Sign in with a Google ID token (from the Google Identity SDK). */
   signInWithGoogle: (idToken: string) => Promise<User>;
   /** Sign in with an Apple identity token (from the Apple JS SDK). */
@@ -181,6 +183,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [setSession],
   );
 
+  // Change password: the server verifies the current one, revokes every OTHER
+  // session, and returns a fresh pair stamped with the new token epoch. Adopt it
+  // so this device stays signed in while all others are signed out.
+  const changePassword = useCallback(
+    async (currentPassword: string, newPassword: string) => {
+      setSession(
+        await api.auth.changePassword({
+          current_password: currentPassword,
+          new_password: newPassword,
+        }),
+      );
+    },
+    [setSession],
+  );
+
   const signInWithGoogle = useCallback(
     async (idToken: string) =>
       setSession(await api.auth.google({ id_token: idToken })),
@@ -210,6 +227,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       login,
       completeMfa,
       register,
+      changePassword,
       signInWithGoogle,
       signInWithApple,
       logout,
@@ -221,6 +239,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       login,
       completeMfa,
       register,
+      changePassword,
       signInWithGoogle,
       signInWithApple,
       logout,
