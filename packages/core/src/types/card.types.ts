@@ -214,6 +214,29 @@ export interface SetProgressRow {
 }
 
 /** Per-game attributes from the canonical card (Pokédex / MTG / YGO). */
+/** A Pokémon attack: energy cost (type symbols), damage, and effect text. */
+export interface CardAttack {
+  name: string;
+  /** Energy types making up the cost, e.g. ["Fire","Fire","Colorless"]. */
+  cost?: string[] | null;
+  damage?: string | null;
+  text?: string | null;
+}
+
+/** A Pokémon ability / Poké-Body / Poké-Power. */
+export interface CardAbility {
+  name: string;
+  text?: string | null;
+  /** "Ability" | "Poké-Body" | "Poké-Power" | … */
+  type?: string | null;
+}
+
+/** A typed modifier — weakness or resistance (e.g. type "Water", value "+40"). */
+export interface CardTypeModifier {
+  type: string;
+  value?: string | null;
+}
+
 export interface CardAttributes {
   tcg: string;
   name: string;
@@ -222,6 +245,18 @@ export interface CardAttributes {
   manaCost?: string | null;
   typeLine?: string | null;
   oracleText?: string | null;
+  // ── Structured combat / flavor block (Pokémon today; null when absent) ──
+  supertype?: string | null;
+  subtypes?: string[] | null;
+  evolvesFrom?: string | null;
+  abilities?: CardAbility[] | null;
+  attacks?: CardAttack[] | null;
+  weaknesses?: CardTypeModifier[] | null;
+  resistances?: CardTypeModifier[] | null;
+  /** Energy types of the retreat cost (length = converted retreat cost). */
+  retreatCost?: string[] | null;
+  artist?: string | null;
+  flavorText?: string | null;
   /** Any extra primitive provider fields, for a generic fallback table. */
   extra: Record<string, string>;
 }
