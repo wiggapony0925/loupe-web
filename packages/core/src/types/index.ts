@@ -9,6 +9,7 @@ export * from "./cardAdmin.types";
 export * from "./careers.types";
 export * from "./catalog.types";
 export * from "./config.types";
+export * from "./engagement.types";
 export * from "./entitlements.types";
 export * from "./flags.types";
 export * from "./money.types";

@@ -36,6 +36,7 @@ import type {
   AdminPriceSnapshot,
   PriceOverrideInput,
   PulseFeed,
+  EngagementSummary,
   AnalyticsOverview,
   ApplicationStatusUpdateInput,
   ApplicationSubmitted,
@@ -1492,6 +1493,13 @@ export const useAdminPulse = (limit = 40, enabled = true) =>
     enabled,
     staleTime: 5_000,
     refetchInterval: 15_000,
+  });
+
+/** Engagement & retention summary (active collectors, activation, funnel). */
+export const useAdminEngagement = (enabled = true) =>
+  useApiQuery<EngagementSummary>(["admin-engagement"], api.admin.engagement, {
+    enabled,
+    staleTime: 60_000,
   });
 
 /** Search the local card catalog (admin explorer). */

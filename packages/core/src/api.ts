@@ -55,6 +55,7 @@ import {
   toDbGraph,
   toDbOverview,
   toDbTableDetail,
+  toEngagementSummary,
   toHealthReport,
   toPulseFeed,
   toScannerStats,
@@ -79,6 +80,7 @@ import type {
   DbGraph,
   DbOverview,
   DbTableDetail,
+  EngagementSummary,
   HealthReport,
   PulseFeed,
   ScannerStats,
@@ -1003,6 +1005,9 @@ export const api = {
     /** Live activity feed — recent signups, scans, acquisitions, admin actions. */
     pulse: async (limit = 40): Promise<PulseFeed> =>
       toPulseFeed(await apiFetch(ENDPOINTS.admin.pulse, { query: { limit } })),
+    /** Engagement & retention — active collectors, activation, Pro funnel. */
+    engagement: async (): Promise<EngagementSummary> =>
+      toEngagementSummary(await apiFetch(ENDPOINTS.admin.engagement)),
     /** Scan + identify funnel metrics over the last `days` days. */
     scanner: async (days = 30): Promise<ScannerStats> =>
       toScannerStats(

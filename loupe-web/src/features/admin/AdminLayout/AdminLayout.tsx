@@ -85,6 +85,7 @@ const NAV: NavGroup[] = [
     label: "Growth",
     items: [
       { to: "/admin/pulse", label: "Live pulse", icon: Radio, hint: "Activity feed" },
+      { to: "/admin/engagement", label: "Engagement", icon: LineChart, hint: "Retention & funnel" },
     ],
   },
   {

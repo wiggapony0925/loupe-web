@@ -19,6 +19,7 @@ import type {
   DbOverview,
   DbTableDetail,
   DbTableSummary,
+  EngagementSummary,
   GameCoverage,
   HealthCheck,
   HealthReport,
@@ -369,6 +370,36 @@ export function toPulseFeed(r: { events: RawPulseEvent[] }): PulseFeed {
       detail: e.detail,
       valueUsd: e.value_usd,
     })),
+  };
+}
+
+interface RawEngagement {
+  total_users: number;
+  active_7d: number;
+  active_30d: number;
+  active_90d: number;
+  activated_users: number;
+  activation_rate: number;
+  pro_users: number;
+  pro_rate: number;
+  new_users_by_week: Array<{ week: string; new_users: number }>;
+  funnel: Array<{ label: string; count: number }>;
+}
+export function toEngagementSummary(r: RawEngagement): EngagementSummary {
+  return {
+    totalUsers: r.total_users,
+    active7d: r.active_7d,
+    active30d: r.active_30d,
+    active90d: r.active_90d,
+    activatedUsers: r.activated_users,
+    activationRate: r.activation_rate,
+    proUsers: r.pro_users,
+    proRate: r.pro_rate,
+    newUsersByWeek: (r.new_users_by_week ?? []).map((w) => ({
+      week: w.week,
+      newUsers: w.new_users,
+    })),
+    funnel: (r.funnel ?? []).map((f) => ({ label: f.label, count: f.count })),
   };
 }
 
