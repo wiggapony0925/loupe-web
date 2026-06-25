@@ -360,10 +360,12 @@ export const api = {
       );
       return toNearbyListings(d);
     },
-    /** Per-game canonical attributes (Pokédex / MTG oracle / YGO stats). */
+    /** Per-game attributes (Pokédex stats + attacks/abilities / MTG oracle / YGO).
+     *  Sourced from the basic card endpoint, whose `attributes` block is fully
+     *  populated (the `/canonical` composition is not). */
     attributes: async (id: string): Promise<CardAttributes | null> => {
       const d = await apiFetch<Parameters<typeof toCardAttributes>[0]>(
-        ENDPOINTS.cards.canonical(id),
+        ENDPOINTS.cards.item(id),
         { skipAuth: true },
       );
       return toCardAttributes(d);

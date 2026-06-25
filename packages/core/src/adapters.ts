@@ -1,5 +1,8 @@
 /** Maps raw backend card payloads onto the web/mobile view models. */
 import type {
+  CardAttack,
+  CardAbility,
+  CardTypeModifier,
   CardAttributes,
   CardListing,
   CardMarket,
@@ -449,11 +452,82 @@ export function toSetProgress(rows: RawSetProgress[]): SetProgressRow[] {
 
 interface RawCanonicalAttrs {
   types?: string[] | null;
-  hp?: number | null;
+  hp?: number | string | null;
   mana_cost?: string | null;
   type_line?: string | null;
   oracle_text?: string | null;
+  supertype?: string | null;
+  subtypes?: string[] | null;
+  evolvesFrom?: string | null;
+  abilities?: unknown;
+  attacks?: unknown;
+  weaknesses?: unknown;
+  resistances?: unknown;
+  retreatCost?: unknown;
+  artist?: string | null;
+  flavorText?: string | null;
   [extra: string]: unknown;
+}
+
+/** Coerce a string|number hp ("130" or 130) to a number, else null. */
+function toNum(v: unknown): number | null {
+  if (typeof v === "number" && Number.isFinite(v)) return v;
+  if (typeof v === "string") {
+    const n = Number(v.replace(/[^\d.]/g, ""));
+    return Number.isFinite(n) ? n : null;
+  }
+  return null;
+}
+
+function toStrList(v: unknown): string[] | null {
+  if (!Array.isArray(v)) return null;
+  const out = v.filter((x): x is string => typeof x === "string");
+  return out.length ? out : null;
+}
+
+function get(o: unknown, k: string): unknown {
+  return o && typeof o === "object" ? (o as Record<string, unknown>)[k] : undefined;
+}
+function str(v: unknown): string | null {
+  return typeof v === "string" && v.trim() ? v.trim() : null;
+}
+
+function toAttacks(v: unknown): CardAttack[] | null {
+  if (!Array.isArray(v)) return null;
+  const out: CardAttack[] = [];
+  for (const a of v) {
+    const name = str(get(a, "name"));
+    if (!name) continue;
+    out.push({
+      name,
+      cost: toStrList(get(a, "cost")),
+      damage: str(get(a, "damage")),
+      text: str(get(a, "text")),
+    });
+  }
+  return out.length ? out : null;
+}
+
+function toAbilities(v: unknown): CardAbility[] | null {
+  if (!Array.isArray(v)) return null;
+  const out: CardAbility[] = [];
+  for (const a of v) {
+    const name = str(get(a, "name"));
+    if (!name) continue;
+    out.push({ name, text: str(get(a, "text")), type: str(get(a, "type")) });
+  }
+  return out.length ? out : null;
+}
+
+function toModifiers(v: unknown): CardTypeModifier[] | null {
+  if (!Array.isArray(v)) return null;
+  const out: CardTypeModifier[] = [];
+  for (const m of v) {
+    const type = str(get(m, "type"));
+    if (!type) continue;
+    out.push({ type, value: str(get(m, "value")) });
+  }
+  return out.length ? out : null;
 }
 
 /** Render a primitive attribute value (string/number/bool/array) → string. */
@@ -471,6 +545,7 @@ function attrPrimitive(v: unknown): string | null {
   return null;
 }
 
+// Keys mapped into typed fields (or deliberately skipped) → kept out of `extra`.
 const ATTR_HANDLED = new Set([
   "types",
   "hp",
@@ -479,15 +554,34 @@ const ATTR_HANDLED = new Set([
   "oracle_text",
   "abilities",
   "attacks",
+  "weaknesses",
+  "resistances",
+  "retreatCost",
+  "convertedRetreatCost",
+  "supertype",
+  "subtypes",
+  "evolvesFrom",
+  "artist",
+  "flavorText",
   "rules",
   "rulings",
   "desc",
   "card_text",
   "flavor_text",
+  "legalities",
+  "nationalPokedexNumbers",
 ]);
 
-/** `/cards/{id}/canonical` → per-game attributes (or null when none). */
+/**
+ * Map a card's `attributes` block → the typed {@link CardAttributes}. Accepts
+ * both the basic card shape (`{ tcg, name, attributes }`) and the canonical
+ * envelope (`{ identity: { tcg, name }, attributes }`). Structured Pokémon data
+ * (attacks, abilities, weaknesses, resistances, retreat) is now carried through
+ * instead of being dropped; remaining short primitives fall into `extra`.
+ */
 export function toCardAttributes(data: {
+  tcg?: string;
+  name?: string;
   identity?: { name?: string; tcg?: string };
   attributes?: RawCanonicalAttrs | null;
 }): CardAttributes | null {
@@ -503,13 +597,23 @@ export function toCardAttributes(data: {
     extra[k] = f;
   }
   const result: CardAttributes = {
-    tcg: data.identity?.tcg ?? "",
-    name: data.identity?.name ?? "",
+    tcg: data.tcg ?? data.identity?.tcg ?? "",
+    name: data.name ?? data.identity?.name ?? "",
     types: a.types ?? null,
-    hp: a.hp ?? null,
+    hp: toNum(a.hp),
     manaCost: a.mana_cost ?? null,
     typeLine: a.type_line ?? null,
     oracleText: a.oracle_text ?? null,
+    supertype: str(a.supertype),
+    subtypes: toStrList(a.subtypes),
+    evolvesFrom: str(a.evolvesFrom),
+    abilities: toAbilities(a.abilities),
+    attacks: toAttacks(a.attacks),
+    weaknesses: toModifiers(a.weaknesses),
+    resistances: toModifiers(a.resistances),
+    retreatCost: toStrList(a.retreatCost),
+    artist: str(a.artist),
+    flavorText: str(a.flavorText),
     extra,
   };
   // Nothing useful to show?
@@ -519,6 +623,9 @@ export function toCardAttributes(data: {
     result.manaCost ||
     result.typeLine ||
     result.oracleText ||
+    (result.attacks?.length ?? 0) > 0 ||
+    (result.abilities?.length ?? 0) > 0 ||
+    result.flavorText ||
     Object.keys(extra).length > 0;
   return hasContent ? result : null;
 }
