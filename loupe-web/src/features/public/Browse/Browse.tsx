@@ -172,7 +172,9 @@ export function Browse() {
       )}
 
       {isLanding ? (
-        <SealedRail />
+        <section className={styles.browse__discover}>
+          <SealedRail />
+        </section>
       ) : (
         <>
       <div className={styles.browse__catalogHead}>
