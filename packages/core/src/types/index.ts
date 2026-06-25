@@ -20,6 +20,7 @@ export * from "./portfolio.types";
 export * from "./pulse.types";
 export * from "./recents.types";
 export * from "./report.types";
+export * from "./retention.types";
 export * from "./revenue.types";
 export * from "./scanner.types";
 export * from "./sealed.types";

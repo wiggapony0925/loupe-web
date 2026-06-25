@@ -21,6 +21,7 @@ import {
   Cloud,
   ScrollText,
   LineChart,
+  Grid3x3,
   Library,
   Radio,
   ShieldCheck,
@@ -89,6 +90,7 @@ const NAV: NavGroup[] = [
     items: [
       { to: "/admin/pulse", label: "Live pulse", icon: Radio, hint: "Activity feed" },
       { to: "/admin/engagement", label: "Engagement", icon: LineChart, hint: "Retention & funnel" },
+      { to: "/admin/retention", label: "Retention", icon: Grid3x3, hint: "Cohort triangle" },
     ],
   },
   {

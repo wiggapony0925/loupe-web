@@ -204,6 +204,7 @@ export const ENDPOINTS = {
     // Growth.
     pulse: `${V1}/admin/pulse`,
     engagement: `${V1}/admin/engagement`,
+    retention: `${V1}/admin/retention`,
     // Tools.
     insightsStatus: `${V1}/admin/insights/status`,
     insightsAsk: `${V1}/admin/insights/ask`,

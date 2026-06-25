@@ -89,6 +89,7 @@ import type {
   HealthReport,
   InsightsAnswer,
   PulseFeed,
+  RetentionReport,
   ScannerStats,
   AnalyticsOverview,
   ApplicationStatusUpdateInput,
@@ -1025,6 +1026,9 @@ export const api = {
     /** Engagement & retention — active collectors, activation, Pro funnel. */
     engagement: async (): Promise<EngagementSummary> =>
       toEngagementSummary(await apiFetch(ENDPOINTS.admin.engagement)),
+    /** Cohort-retention triangle (field names already match — no adapter). */
+    retention: (): Promise<RetentionReport> =>
+      apiFetch<RetentionReport>(ENDPOINTS.admin.retention),
     /** "Ask your data" — natural-language → read-only SQL (super-admin). */
     insights: {
       status: (): Promise<{ configured: boolean }> =>

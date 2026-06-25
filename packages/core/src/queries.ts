@@ -42,6 +42,7 @@ import type {
   PulseFeed,
   EngagementSummary,
   InsightsAnswer,
+  RetentionReport,
   AnalyticsOverview,
   ApplicationStatusUpdateInput,
   ApplicationSubmitted,
@@ -1533,6 +1534,13 @@ export const useAdminPulse = (limit = 40, enabled = true) =>
 /** Engagement & retention summary (active collectors, activation, funnel). */
 export const useAdminEngagement = (enabled = true) =>
   useApiQuery<EngagementSummary>(["admin-engagement"], api.admin.engagement, {
+    enabled,
+    staleTime: 60_000,
+  });
+
+/** Cohort-retention triangle (signup-week cohorts × weeks active). */
+export const useAdminRetention = (enabled = true) =>
+  useApiQuery<RetentionReport>(["admin-retention"], api.admin.retention, {
     enabled,
     staleTime: 60_000,
   });
