@@ -214,6 +214,37 @@ export interface SetProgressRow {
 }
 
 /** Per-game attributes from the canonical card (Pokédex / MTG / YGO). */
+/** One owned copy of a card (a graded-card row), with derived figures. */
+export interface CardHolding {
+  holdingId: string;
+  grade: number;
+  house: string;
+  isGraded: boolean;
+  condition?: string | null;
+  subgrades?: Record<string, unknown> | null;
+  estimatedValueUsd?: number | null;
+  purchasePriceUsd?: number | null;
+  purchaseDate?: string | null;
+  acquiredVia?: "scan" | "manual" | "import" | null;
+  scanJobId?: string | null;
+  notes?: string | null;
+  gradedAt: string;
+  daysHeld?: number | null;
+  unrealizedPlUsd?: number | null;
+  unrealizedPlPct?: number | null;
+}
+
+/** The signed-in user's ownership of one card (rolled up across copies). */
+export interface CardOwnership {
+  owned: boolean;
+  copies: number;
+  holdings: CardHolding[];
+  costBasisUsd?: number | null;
+  holdingValueUsd?: number | null;
+  unrealizedPlUsd?: number | null;
+  unrealizedPlPct?: number | null;
+}
+
 /** A Pokémon attack: energy cost (type symbols), damage, and effect text. */
 export interface CardAttack {
   name: string;

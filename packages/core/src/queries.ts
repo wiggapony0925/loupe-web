@@ -36,6 +36,7 @@ import type {
   BlogPost,
   BlogPostInput,
   CardAttributes,
+  CardOwnership,
   CardListing,
   CardMarket,
   CardSet,
@@ -257,6 +258,15 @@ export const useCardAttributes = (id: string) =>
     ["card-attributes", id],
     () => api.cards.attributes(id),
     { enabled: Boolean(id), staleTime: 300_000 },
+  );
+
+/** The signed-in user's ownership of one card (copies + cost/value/P-L).
+ *  Pass `enabled=false` when signed out — the endpoint requires auth. */
+export const useCardHoldings = (id: string, enabled = true) =>
+  useApiQuery<CardOwnership>(
+    ["card-ownership", id],
+    () => api.cards.ownership(id),
+    { enabled: Boolean(id) && enabled, staleTime: 60_000 },
   );
 
 /** Per-set completion progress for the signed-in user. */

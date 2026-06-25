@@ -9,6 +9,7 @@ import {
   toCardAttributes,
   toCardListings,
   toCardMarket,
+  toCardOwnership,
   toCardSet,
   toCardSummary,
   toCardValuation,
@@ -70,6 +71,7 @@ import type {
   SubscribeResult,
   GoogleSignInRequest,
   CardAttributes,
+  CardOwnership,
   CardListing,
   CardMarket,
   CardSet,
@@ -369,6 +371,13 @@ export const api = {
         { skipAuth: true },
       );
       return toCardAttributes(d);
+    },
+    /** The signed-in user's ownership of this card (copies + cost/value/P-L). */
+    ownership: async (id: string): Promise<CardOwnership> => {
+      const d = await apiFetch<Parameters<typeof toCardOwnership>[0]>(
+        ENDPOINTS.cards.ownership(id),
+      );
+      return toCardOwnership(d);
     },
     /** Live lowest price per marketplace + buy/search links. */
     marketplacePrices: async (id: string): Promise<MarketplaceQuote[]> => {

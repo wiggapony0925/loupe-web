@@ -34,6 +34,7 @@ import { Card3DModal } from "./Card3DModal/Card3DModal";
 import { CompareBar } from "./CompareBar/CompareBar";
 import { RelatedPrints } from "./RelatedPrints/RelatedPrints";
 import { MarketSignals, QuickStats, CostBasisStrip } from "./CardInsights/CardInsights";
+import { OwnershipPanel } from "./OwnershipPanel/OwnershipPanel";
 import { GradedPrices } from "./GradedPrices/GradedPrices";
 import { RecentSold } from "./RecentSold/RecentSold";
 import { ActiveAlerts, SetProgressForCard } from "./CardContext/CardContext";
@@ -292,6 +293,10 @@ export function ProductDetail() {
           </p>
         </Panel>
       </div>
+
+      {/* The signed-in owner's own copies (grade · graded? · cost/value/P-L).
+          Renders nothing for guests, non-owners, or until /ownership ships. */}
+      <OwnershipPanel cardId={card.id} />
 
       {valuation && (valuation.fairValue || valuation.grades.length > 0) && (
         <section className={styles.valuation}>
