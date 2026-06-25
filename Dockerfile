@@ -9,6 +9,7 @@ COPY packages/core/package.json ./packages/core/package.json
 COPY packages/chart/package.json ./packages/chart/package.json
 COPY packages/tokens/package.json ./packages/tokens/package.json
 COPY packages/grade/package.json ./packages/grade/package.json
+COPY packages/theme/package.json ./packages/theme/package.json
 COPY loupe-web/package.json ./loupe-web/package.json
 RUN npm ci
 
