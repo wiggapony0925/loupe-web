@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { LayoutGrid, List } from "lucide-react";
+import { LayoutGrid, List, Table2 } from "lucide-react";
 import {
   usePublicBrowse,
   usePublicSearch,
@@ -23,6 +23,7 @@ import {
 import { EmptyResultsArt } from "@/assets";
 import { cx } from "@/lib/cx";
 import { SealedRail } from "./SealedRail/SealedRail";
+import { CardTable } from "./CardTable/CardTable";
 import styles from "./Browse.module.scss";
 
 const PAGE_SIZE = 24;
@@ -84,7 +85,7 @@ export function Browse() {
   // full catalog.
   const isLanding = !isSearch && !gameParam && !setId;
 
-  const [view, setView] = useState<"grid" | "list">("grid");
+  const [view, setView] = useState<"grid" | "list" | "table">("grid");
   const [sort, setSort] = useState<SortKey>("best");
   const [browseSort, setBrowseSort] = useState<BrowseSort>("name");
   const [rarity, setRarity] = useState<string | null>(null);
@@ -262,6 +263,16 @@ export function Browse() {
           >
             <List size={18} />
           </button>
+          <button
+            className={cx(
+              styles.browse__viewBtn,
+              view === "table" && styles["browse__viewBtn--active"],
+            )}
+            onClick={() => setView("table")}
+            aria-label="Table view (price guide)"
+          >
+            <Table2 size={18} />
+          </button>
         </div>
       </div>
 
@@ -306,6 +317,18 @@ export function Browse() {
             }
           />
         )
+      ) : view === "table" ? (
+        <>
+          <div style={{ opacity: active.isFetching ? 0.6 : 1, transition: "opacity .15s" }}>
+            <CardTable
+              cards={results}
+              onOpen={(id) => navigate(`/cards/${encodeURIComponent(id)}`)}
+            />
+          </div>
+          <div className={styles.browse__pager}>
+            <Pagination page={page} pageCount={pageCount} onChange={setPage} />
+          </div>
+        </>
       ) : (
         <>
           <div
