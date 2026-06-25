@@ -6,12 +6,17 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import {
+  THEME_ATTRIBUTE,
+  THEME_MODE,
+  type ThemeMode as ResolvedThemeMode,
+} from "@loupe/theme";
 import { useActiveTheme } from "./useActiveTheme";
 
 /** Theme preference the user can pick. `system` follows the OS. */
-export type ThemeMode = "light" | "dark" | "system";
-/** The concrete scheme actually painted (never `system`). */
-export type ResolvedTheme = "light" | "dark";
+export type ThemeMode = ResolvedTheme | "system";
+/** The concrete scheme actually painted (never `system`) — the shared core type. */
+export type ResolvedTheme = ResolvedThemeMode;
 
 interface ThemeContextValue {
   mode: ThemeMode;
@@ -27,7 +32,9 @@ export const ThemeContext = createContext<ThemeContextValue | null>(null);
 
 /** Read the current OS color-scheme preference. */
 function systemScheme(): ResolvedTheme {
-  return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  return window.matchMedia("(prefers-color-scheme: dark)").matches
+    ? THEME_MODE.DARK
+    : THEME_MODE.LIGHT;
 }
 
 /** Collapse a `ThemeMode` to the scheme that should actually render. */
@@ -52,7 +59,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   // Stamp the resolved scheme onto <html> whenever the preference changes.
   useEffect(() => {
-    document.documentElement.setAttribute("data-theme", resolve(mode));
+    document.documentElement.setAttribute(THEME_ATTRIBUTE, resolve(mode));
   }, [mode]);
 
   // In system mode, mirror live OS theme changes onto <html>; the observer above
@@ -61,7 +68,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     if (mode !== "system") return;
     const mq = window.matchMedia("(prefers-color-scheme: dark)");
     const onChange = () =>
-      document.documentElement.setAttribute("data-theme", systemScheme());
+      document.documentElement.setAttribute(THEME_ATTRIBUTE, systemScheme());
     mq.addEventListener("change", onChange);
     return () => mq.removeEventListener("change", onChange);
   }, [mode]);
@@ -73,7 +80,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   // Toggle flips to the opposite of what's currently painted.
   const toggle = useCallback(() => {
-    setMode(resolve(mode) === "dark" ? "light" : "dark");
+    setMode(resolve(mode) === THEME_MODE.DARK ? THEME_MODE.LIGHT : THEME_MODE.DARK);
   }, [mode, setMode]);
 
   const value = useMemo<ThemeContextValue>(
