@@ -11,6 +11,7 @@ export { AdminScanner } from "./AdminScanner/AdminScanner";
 export { AdminCards } from "./AdminCards/AdminCards";
 export { AdminPulse } from "./AdminPulse/AdminPulse";
 export { AdminEngagement } from "./AdminEngagement/AdminEngagement";
+export { AdminInsights } from "./AdminInsights/AdminInsights";
 export { AdminUsers } from "./AdminUsers/AdminUsers";
 export { AdminFlags } from "./AdminFlags/AdminFlags";
 export { AdminPro } from "./AdminPro/AdminPro";

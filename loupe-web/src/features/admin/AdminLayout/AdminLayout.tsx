@@ -100,6 +100,7 @@ const NAV: NavGroup[] = [
   {
     label: "Tools",
     items: [
+      { to: "/admin/insights", label: "Ask your data", icon: Sparkles, hint: "NL → SQL" },
       { to: "/admin/simulator", label: "Device simulator", icon: Smartphone, hint: "Preview" },
       { to: "/admin/navkeys", label: "Nav keys", icon: KeyRound, hint: "Sign-in deep links" },
     ],

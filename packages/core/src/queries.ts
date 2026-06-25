@@ -37,6 +37,7 @@ import type {
   PriceOverrideInput,
   PulseFeed,
   EngagementSummary,
+  InsightsAnswer,
   AnalyticsOverview,
   ApplicationStatusUpdateInput,
   ApplicationSubmitted,
@@ -1501,6 +1502,19 @@ export const useAdminEngagement = (enabled = true) =>
     enabled,
     staleTime: 60_000,
   });
+
+/** Whether the "Ask your data" tool is configured (ANTHROPIC_API_KEY set). */
+export const useAdminInsightsStatus = (enabled = true) =>
+  useApiQuery<{ configured: boolean }>(
+    ["admin-insights-status"],
+    api.admin.insights.status,
+    { enabled, staleTime: 300_000 },
+  );
+
+/** Ask a natural-language question of the database (read-only, super-admin). */
+export const useAskInsights = (
+  options?: Omit<UseMutationOptions<InsightsAnswer, ApiError, string>, "mutationFn">,
+) => useApiMutation<InsightsAnswer, string>((q) => api.admin.insights.ask(q), options);
 
 /** Search the local card catalog (admin explorer). */
 export const useAdminCards = (params?: AdminCardsParams, enabled = true) =>

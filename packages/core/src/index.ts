@@ -137,4 +137,6 @@ export {
   useAddCardPriceOverride,
   useAdminPulse,
   useAdminEngagement,
+  useAdminInsightsStatus,
+  useAskInsights,
 } from "./queries";

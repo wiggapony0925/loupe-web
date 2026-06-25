@@ -82,6 +82,7 @@ import type {
   DbTableDetail,
   EngagementSummary,
   HealthReport,
+  InsightsAnswer,
   PulseFeed,
   ScannerStats,
   AnalyticsOverview,
@@ -1008,6 +1009,33 @@ export const api = {
     /** Engagement & retention — active collectors, activation, Pro funnel. */
     engagement: async (): Promise<EngagementSummary> =>
       toEngagementSummary(await apiFetch(ENDPOINTS.admin.engagement)),
+    /** "Ask your data" — natural-language → read-only SQL (super-admin). */
+    insights: {
+      status: (): Promise<{ configured: boolean }> =>
+        apiFetch<{ configured: boolean }>(ENDPOINTS.admin.insightsStatus),
+      ask: async (question: string): Promise<InsightsAnswer> => {
+        const r = await apiFetch<{
+          configured: boolean;
+          question: string;
+          sql: string | null;
+          columns: string[];
+          rows: Record<string, unknown>[];
+          row_count: number;
+          truncated: boolean;
+          error: string | null;
+        }>(ENDPOINTS.admin.insightsAsk, { method: "POST", json: { question } });
+        return {
+          configured: r.configured,
+          question: r.question,
+          sql: r.sql,
+          columns: r.columns ?? [],
+          rows: r.rows ?? [],
+          rowCount: r.row_count,
+          truncated: r.truncated,
+          error: r.error,
+        };
+      },
+    },
     /** Scan + identify funnel metrics over the last `days` days. */
     scanner: async (days = 30): Promise<ScannerStats> =>
       toScannerStats(

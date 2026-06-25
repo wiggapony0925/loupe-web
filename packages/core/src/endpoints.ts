@@ -203,6 +203,9 @@ export const ENDPOINTS = {
     // Growth.
     pulse: `${V1}/admin/pulse`,
     engagement: `${V1}/admin/engagement`,
+    // Tools.
+    insightsStatus: `${V1}/admin/insights/status`,
+    insightsAsk: `${V1}/admin/insights/ask`,
     // User account actions.
     userRevokeSessions: (id: string) =>
       `${V1}/admin/users/${id}/revoke-sessions`,
