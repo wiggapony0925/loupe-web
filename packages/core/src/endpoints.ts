@@ -212,6 +212,7 @@ export const ENDPOINTS = {
       `${V1}/admin/users/${id}/revoke-sessions`,
     userCancelSubscription: (id: string) =>
       `${V1}/admin/users/${id}/subscription/cancel`,
+    userRefund: (id: string) => `${V1}/admin/users/${id}/refund`,
     jobs: `${V1}/admin/jobs`,
     job: (id: string) => `${V1}/admin/jobs/${id}`,
     applications: `${V1}/admin/applications`,

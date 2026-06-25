@@ -18,6 +18,7 @@ import type {
   AdminUserDetail,
   AdminUserPage,
   AdminUsersParams,
+  RefundResult,
   AuditFacets,
   AuditPage,
   AuditParams,
@@ -1446,6 +1447,23 @@ export const useRevokeUserSessions = (
       onSuccess: (data, ...rest) => {
         void qc.invalidateQueries({ queryKey: ["admin-user", data.id] });
         options?.onSuccess?.(data, ...rest);
+      },
+    },
+  );
+};
+
+/** Refund a user's latest charge (super-admin, money-out). */
+export const useRefundUser = (
+  options?: Omit<UseMutationOptions<RefundResult, ApiError, string>, "mutationFn">,
+) => {
+  const qc = useQueryClient();
+  return useApiMutation<RefundResult, string>(
+    (id) => api.admin.users.refundLatest(id),
+    {
+      ...options,
+      onSuccess: (data, id, ...rest) => {
+        void qc.invalidateQueries({ queryKey: ["admin-user", id] });
+        options?.onSuccess?.(data, id, ...rest);
       },
     },
   );

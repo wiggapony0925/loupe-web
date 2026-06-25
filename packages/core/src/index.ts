@@ -130,6 +130,7 @@ export {
   useAdminRevenue,
   useRevokeUserSessions,
   useCancelUserSubscription,
+  useRefundUser,
   useAdminCatalog,
   useAdminScanner,
   useAdminGrades,

@@ -77,6 +77,7 @@ import type {
   CatalogCoverage,
   CloudLogEntry,
   PriceOverrideInput,
+  RefundResult,
   CloudStatus,
   DbGraph,
   DbOverview,
@@ -1198,6 +1199,23 @@ export const api = {
             json: { immediately },
           }),
         ),
+      /** Refund a user's latest charge (super-admin, money-out). */
+      refundLatest: async (id: string): Promise<RefundResult> => {
+        const r = await apiFetch<{
+          refund_id: string;
+          charge_id: string;
+          amount_usd: number;
+          currency: string;
+          status: string;
+        }>(ENDPOINTS.admin.userRefund(id), { method: "POST" });
+        return {
+          refundId: r.refund_id,
+          chargeId: r.charge_id,
+          amountUsd: r.amount_usd,
+          currency: r.currency,
+          status: r.status,
+        };
+      },
     },
     flags: {
       list: async (): Promise<FeatureFlag[]> => {

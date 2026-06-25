@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ShieldCheck, ShieldOff, Ban, RotateCcw, Trash2, Wallet, Star, ScanLine, DollarSign, Sparkles, LogOut, CreditCard } from "lucide-react";
+import { ShieldCheck, ShieldOff, Ban, RotateCcw, Trash2, Wallet, Star, ScanLine, DollarSign, Sparkles, LogOut, CreditCard, Receipt } from "lucide-react";
 import {
   useAdminUserDetail,
   useSetUserRole,
@@ -9,6 +9,7 @@ import {
   useDeleteUser,
   useRevokeUserSessions,
   useCancelUserSubscription,
+  useRefundUser,
 } from "@loupe/core";
 import { Button, Modal, Skeleton, TextField, useConfirm } from "@/components";
 import { useAuth } from "@/auth/AuthProvider";
@@ -37,6 +38,7 @@ export function UserDetailDrawer({ userId, open, onOpenChange }: UserDetailDrawe
   const del = useDeleteUser();
   const revokeSessions = useRevokeUserSessions();
   const cancelSub = useCancelUserSubscription();
+  const refund = useRefundUser();
   const busy =
     setRole.isPending ||
     setPlan.isPending ||
@@ -44,7 +46,8 @@ export function UserDetailDrawer({ userId, open, onOpenChange }: UserDetailDrawe
     unban.isPending ||
     del.isPending ||
     revokeSessions.isPending ||
-    cancelSub.isPending;
+    cancelSub.isPending ||
+    refund.isPending;
   const isPro = u?.plan === "pro";
   const askConfirm = useConfirm();
 
@@ -92,6 +95,27 @@ export function UserDetailDrawer({ userId, open, onOpenChange }: UserDetailDrawe
           notify.error(e?.message || "Couldn't cancel — please try again."),
       },
     );
+  }
+
+  async function doRefund() {
+    if (!u) return;
+    const ok = await askConfirm({
+      title: "Refund the latest payment?",
+      tone: "danger",
+      confirmLabel: "Issue refund",
+      message: (
+        <>
+          Issues a full refund of <strong>{u.email}</strong>&rsquo;s most recent
+          Stripe charge. This moves money and can&rsquo;t be undone.
+        </>
+      ),
+    });
+    if (!ok) return;
+    refund.mutate(u.id, {
+      onSuccess: (r) =>
+        notify.success(`Refunded ${r.currency} ${r.amountUsd.toFixed(2)} to ${u.email}.`),
+      onError: (e) => notify.error(e?.message || "Couldn't refund — super-admin only."),
+    });
   }
 
   async function togglePro() {
@@ -265,6 +289,18 @@ export function UserDetailDrawer({ userId, open, onOpenChange }: UserDetailDrawe
                   onClick={doCancelSubscription}
                 >
                   Cancel subscription
+                </Button>
+              )}
+              {u.hasSubscription && (
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  className={styles.danger}
+                  disabled={busy}
+                  leadingIcon={<Receipt size={15} />}
+                  onClick={doRefund}
+                >
+                  Refund last payment
                 </Button>
               )}
             </div>

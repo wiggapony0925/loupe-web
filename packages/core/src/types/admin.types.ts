@@ -41,6 +41,15 @@ export interface AdminUser {
   hasSubscription: boolean;
 }
 
+/** Result of refunding a user's latest charge. */
+export interface RefundResult {
+  refundId: string;
+  chargeId: string;
+  amountUsd: number;
+  currency: string;
+  status: string;
+}
+
 export interface AdminUserPage {
   results: AdminUser[];
   total: number;
