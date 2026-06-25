@@ -1,6 +1,6 @@
 import { RouterProvider } from "react-router-dom";
 import { AppProviders } from "@/providers/AppProviders";
-import { AnnouncementHost, Banner, ErrorBoundary, InspectOverlay } from "@/components";
+import { AnnouncementHost, ErrorBoundary, InspectOverlay } from "@/components";
 import { router } from "@/routes/router";
 import { useRecentsSync } from "@/hooks/useRecentsSync";
 
@@ -19,7 +19,9 @@ export default function App() {
     <ErrorBoundary>
       <AppProviders>
         <RecentsSync />
-        <Banner />
+        {/* The poller pushes the admin announcement into the notice store; the
+            visible <Banner /> now lives under each layout's navbar (AppShell,
+            PublicLayout, MarketingLanding). */}
         <AnnouncementHost />
         <RouterProvider router={router} />
         <InspectOverlay />

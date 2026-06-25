@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, Outlet, useNavigate } from "react-router-dom";
 import { LayoutDashboard, ScanLine, ShoppingCart, User } from "lucide-react";
-import { SearchCombobox, ThemeToggle, Footer, Modal, Button, FeatureGate, ScrollToTop } from "@/components";
+import { SearchCombobox, ThemeToggle, Footer, Modal, Button, FeatureGate, ScrollToTop, Banner } from "@/components";
 import { AuroraField, Logo } from "@/assets";
 import { useAuth } from "@/auth/AuthProvider";
 import styles from "./PublicLayout.module.scss";
@@ -67,6 +67,9 @@ export function PublicLayout() {
           </button>
         </div>
       </header>
+
+      {/* Notices directly under the storefront nav. */}
+      <Banner />
 
       <Modal
         open={cartOpen}

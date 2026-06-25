@@ -2,7 +2,7 @@ import { Outlet } from "react-router-dom";
 import { Sidebar } from "../Sidebar/Sidebar";
 import { BottomTabBar } from "../BottomTabBar/BottomTabBar";
 import { TopBar } from "../TopBar/TopBar";
-import { ScrollToTop } from "@/components";
+import { Banner, ScrollToTop } from "@/components";
 import { useUiStore } from "@/stores/uiStore";
 import { cx } from "@/lib/cx";
 import styles from "./AppShell.module.scss";
@@ -18,6 +18,9 @@ export function AppShell() {
       <Sidebar />
       <div className={styles.main}>
         <TopBar />
+        {/* Global notices (errors, offline, announcements) sit directly under
+            the navbar — in-flow, full main-column width. */}
+        <Banner />
         <main className={styles.content} data-scroll-root>
           <div className={styles.container}>
             <Outlet />

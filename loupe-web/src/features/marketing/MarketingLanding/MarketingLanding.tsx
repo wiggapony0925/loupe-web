@@ -22,6 +22,7 @@ import {
   CardPriceChart,
   ScrollToTop,
   NavDrawer,
+  Banner,
 } from "@/components";
 import { AuroraField, Logo } from "@/assets";
 import { DeviceReveal } from "../DeviceReveal/DeviceReveal";
@@ -55,6 +56,7 @@ export function MarketingLanding() {
     <div className={styles.page}>
       <ScrollToTop />
       <MarketingNav />
+      <Banner />
 
       <header className={styles.hero}>
         <div className={styles.heroAurora}>
