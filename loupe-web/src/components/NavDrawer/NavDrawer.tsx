@@ -12,6 +12,10 @@ export interface NavDrawerProps {
   side?: "left" | "right";
   /** Extra class on the hamburger trigger (e.g. to control when it shows). */
   triggerClassName?: string;
+  /** Hide the trigger at/above this breakpoint. `"lg"` (default) suits a layout
+   *  with no rail until desktop; `"md"` suits one that keeps an icon rail on
+   *  tablet portrait and only needs the hamburger on phones. */
+  triggerBreakpoint?: "md" | "lg";
 }
 
 /**
@@ -20,14 +24,27 @@ export interface NavDrawerProps {
  * `lg` so desktop keeps its inline nav; consumers move their links into the
  * drawer body for the small-screen layout.
  */
-export function NavDrawer({ children, side = "right", triggerClassName }: NavDrawerProps) {
+export function NavDrawer({
+  children,
+  side = "right",
+  triggerClassName,
+  triggerBreakpoint = "lg",
+}: NavDrawerProps) {
   const [open, setOpen] = useState(false);
   const close = () => setOpen(false);
 
   return (
     <Dialog.Root open={open} onOpenChange={setOpen}>
       <Dialog.Trigger asChild>
-        <button type="button" className={cx(styles.trigger, triggerClassName)} aria-label="Open menu">
+        <button
+          type="button"
+          className={cx(
+            styles.trigger,
+            triggerBreakpoint === "md" && styles["trigger--md"],
+            triggerClassName,
+          )}
+          aria-label="Open menu"
+        >
           <Menu size={22} />
         </button>
       </Dialog.Trigger>

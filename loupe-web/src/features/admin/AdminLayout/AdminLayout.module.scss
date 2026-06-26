@@ -352,6 +352,41 @@
   }
 }
 
+// ── Sidebar pinned right (honours the global "Sidebar position" setting) ──
+.shell--right {
+  @include bp-up("lg") {
+    flex-direction: row-reverse;
+  }
+
+  .sidebar {
+    @include bp-up("lg") {
+      border-right: none;
+      @include hairline(left);
+    }
+  }
+}
+
+.sidebar--right {
+  @include bp-down("lg") {
+    inset: 0 0 0 auto;
+    transform: translateX(100%);
+    border-right: none;
+    @include hairline(left);
+  }
+}
+
+// The open state must beat the side transform — bump specificity to win.
+.sidebar--right.sidebar--open {
+  @include bp-down("lg") {
+    transform: translateX(0);
+  }
+}
+
+// Move the hamburger to the right of the mobile top bar.
+.topbar--right .topbar__menu {
+  order: 3;
+}
+
 // ── Main content ──
 .main {
   flex: 1 1 auto;

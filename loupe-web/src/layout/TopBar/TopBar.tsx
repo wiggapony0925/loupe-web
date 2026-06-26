@@ -9,16 +9,21 @@ import { SearchCombobox } from "@/components";
 import { ScanButton } from "@/features/scan";
 import { ProPill } from "@/pro";
 import { useAuth } from "@/auth/AuthProvider";
+import { useUiStore } from "@/stores/uiStore";
+import { AppNavDrawer } from "../AppNavDrawer/AppNavDrawer";
 import styles from "./TopBar.module.scss";
 
-/** Sticky top bar — live search (shared with the storefront), theme, and account menu. */
+/** Sticky top bar — live search (shared with the storefront), theme, and account menu.
+ *  On phones it also hosts the nav hamburger, pinned to the user's chosen side. */
 export function TopBar() {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
+  const side = useUiStore((s) => s.sidebarSide);
   const name = user?.display_name || user?.email || "Account";
 
   return (
     <header className={styles.topbar}>
+      {side === "left" && <AppNavDrawer triggerClassName={styles.menuBtn} />}
       <SearchCombobox
         className={styles.search}
         onSearch={(query, tcg) => {
@@ -70,6 +75,8 @@ export function TopBar() {
             </DropdownMenu.Content>
           </DropdownMenu.Portal>
         </DropdownMenu.Root>
+
+        {side === "right" && <AppNavDrawer triggerClassName={styles.menuBtn} />}
       </div>
     </header>
   );

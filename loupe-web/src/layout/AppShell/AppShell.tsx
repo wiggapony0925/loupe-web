@@ -1,6 +1,5 @@
 import { Outlet } from "react-router-dom";
 import { Sidebar } from "../Sidebar/Sidebar";
-import { BottomTabBar } from "../BottomTabBar/BottomTabBar";
 import { TopBar } from "../TopBar/TopBar";
 import { Banner, ScrollToTop } from "@/components";
 import { useUiStore } from "@/stores/uiStore";
@@ -9,7 +8,8 @@ import styles from "./AppShell.module.scss";
 
 /** Responsive application frame:
  *  • desktop (≥lg) → full left rail   • tablet (md–lg) → icon rail
- *  • phone (<md)   → bottom tab bar (the rail hides itself via CSS). */
+ *  • phone (<md)   → the rail hides; the TopBar hosts a hamburger that opens
+ *    the nav as a slide-in drawer (from the user's chosen side). */
 export function AppShell() {
   const side = useUiStore((s) => s.sidebarSide);
   return (
@@ -27,7 +27,6 @@ export function AppShell() {
           </div>
         </main>
       </div>
-      <BottomTabBar />
     </div>
   );
 }

@@ -32,6 +32,7 @@ import { Logo } from "@/assets";
 import { ThemeToggle, ScrollToTop, Avatar } from "@/components";
 import { NotFound } from "@/features/misc/NotFound/NotFound";
 import { useAuth } from "@/auth/AuthProvider";
+import { useUiStore } from "@/stores/uiStore";
 import { isEmbedded } from "@/lib/embedded";
 import { cx } from "@/lib/cx";
 import styles from "./AdminLayout.module.scss";
@@ -122,6 +123,7 @@ const NAV: NavGroup[] = [
 export function AdminLayout() {
   const { user, loading } = useAuth();
   const location = useLocation();
+  const side = useUiStore((s) => s.sidebarSide);
   const [query, setQuery] = useState("");
   const [drawer, setDrawer] = useState(false); // mobile off-canvas
 
@@ -143,11 +145,11 @@ export function AdminLayout() {
   const name = user.display_name || user.email.split("@")[0] || "Admin";
 
   return (
-    <div className={styles.shell}>
+    <div className={cx(styles.shell, side === "right" && styles["shell--right"])}>
       <ScrollToTop />
 
       {/* Mobile top bar — the sidebar collapses behind a menu button. */}
-      <header className={styles.topbar}>
+      <header className={cx(styles.topbar, side === "right" && styles["topbar--right"])}>
         <button
           type="button"
           className={styles.topbar__menu}
@@ -168,7 +170,13 @@ export function AdminLayout() {
       {/* Scrim behind the mobile drawer. */}
       {drawer && <div className={styles.scrim} onClick={() => setDrawer(false)} aria-hidden />}
 
-      <aside className={cx(styles.sidebar, drawer && styles["sidebar--open"])}>
+      <aside
+        className={cx(
+          styles.sidebar,
+          side === "right" && styles["sidebar--right"],
+          drawer && styles["sidebar--open"],
+        )}
+      >
         <div className={styles.sidebar__head}>
           <Link to="/admin/overview" className={styles.brand} onClick={() => setDrawer(false)}>
             <span className={styles.brand__mark}>
