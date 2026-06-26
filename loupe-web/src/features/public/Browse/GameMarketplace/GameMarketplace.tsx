@@ -1,8 +1,17 @@
-import { usePublicTrending, type CardSummary } from "@loupe/core";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { Layers } from "lucide-react";
+import {
+  usePublicTrending,
+  usePublicSets,
+  type CardSummary,
+  type CardSet,
+} from "@loupe/core";
 import { Carousel } from "@/components/Carousel/Carousel";
 import { ShopCard } from "@/components/ShopCard/ShopCard";
 import { Skeleton } from "@/components/Skeleton/Skeleton";
 import { SealedRail } from "../SealedRail/SealedRail";
+import styles from "./GameMarketplace.module.scss";
 
 const GAME_LABELS: Record<string, string> = {
   pokemon: "Pokémon",
@@ -42,6 +51,7 @@ export function GameMarketplace({
         sort="value"
         onCard={onCard}
       />
+      <SetRail game={game} label={label} />
       <CardRail
         title="Steals under $5"
         subtitle={`Affordable ${label} pickups, priced live.`}
@@ -95,5 +105,72 @@ function CardRail({
             />
           ))}
     </Carousel>
+  );
+}
+
+/** "Shop <game> sets" — newest-first set tiles that drill into a set's cards. */
+function SetRail({ game, label }: { game: string; label: string }) {
+  const navigate = useNavigate();
+  const { data: sets, isLoading } = usePublicSets(game);
+  // Newest sets first (collectors care most about recent releases), capped to a
+  // rail-sized slice — the full list lives in the Sets explorer via "See all".
+  const ordered = [...(sets ?? [])]
+    .sort((a, b) => (b.releaseDate ?? "").localeCompare(a.releaseDate ?? ""))
+    .slice(0, 20);
+  if (!isLoading && ordered.length === 0) return null;
+  return (
+    <Carousel
+      title={`Shop ${label} sets`}
+      subtitle={`Browse ${label} by set — every release, with live card counts.`}
+      itemWidth="200px"
+      action={
+        <Link to="/sets" className={styles.setSeeAll}>
+          See all
+        </Link>
+      }
+    >
+      {isLoading
+        ? Array.from({ length: 8 }).map((_, i) => (
+            <Skeleton key={i} height={172} radius={14} />
+          ))
+        : ordered.map((s) => (
+            <SetTile
+              key={s.id}
+              set={s}
+              onClick={() =>
+                navigate(
+                  `/cards?game=${encodeURIComponent(game)}&set=${encodeURIComponent(s.id)}`,
+                )
+              }
+            />
+          ))}
+    </Carousel>
+  );
+}
+
+function SetTile({ set, onClick }: { set: CardSet; onClick: () => void }) {
+  const [imgOk, setImgOk] = useState(Boolean(set.imageUrl));
+  const yr = /(\d{4})/.exec(set.releaseDate ?? "")?.[1] ?? null;
+  return (
+    <button type="button" className={styles.setTile} onClick={onClick}>
+      <span className={styles.setLogo}>
+        {set.imageUrl && imgOk ? (
+          <img
+            src={set.imageUrl}
+            alt={set.name}
+            loading="lazy"
+            onError={() => setImgOk(false)}
+          />
+        ) : (
+          <Layers size={28} className={styles.setLogoFallback} />
+        )}
+      </span>
+      <span className={styles.setName}>{set.name}</span>
+      <span className={styles.setMeta}>
+        {[set.totalCards ? `${set.totalCards} cards` : null, yr]
+          .filter(Boolean)
+          .join(" · ") || "Set"}
+      </span>
+    </button>
   );
 }

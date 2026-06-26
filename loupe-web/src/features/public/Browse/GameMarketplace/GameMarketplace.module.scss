@@ -1,0 +1,65 @@
+// Compact set tile for the "Shop <game> sets" carousel — mirrors the Sets
+// explorer card, sized to sit in a horizontal rail next to the card tiles.
+.setTile {
+  // Width comes from the Carousel track (`--carousel-item`); don't override it.
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-lg);
+  text-align: center;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--line);
+  background: var(--bg-elevated);
+  transition:
+    transform var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out),
+    box-shadow var(--dur-fast) var(--ease-out);
+  @include focus-ring;
+
+  &:hover {
+    transform: translateY(-3px);
+    border-color: var(--line-strong);
+    box-shadow: var(--shadow-card);
+  }
+}
+
+.setLogo {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 88px;
+
+  img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+  }
+}
+
+.setLogoFallback {
+  color: var(--ink-dim);
+}
+
+.setName {
+  font-size: var(--text-md);
+  font-weight: 700;
+  color: var(--ink);
+  @include line-clamp(2);
+}
+
+.setMeta {
+  font-size: var(--text-sm);
+  color: var(--ink-dim);
+  @include tabular;
+}
+
+.setSeeAll {
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: var(--accent-mint);
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
