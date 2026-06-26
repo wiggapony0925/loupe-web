@@ -6,14 +6,21 @@ import { SealedCard } from "../../Sealed/SealedCard/SealedCard";
 import styles from "./SealedRail.module.scss";
 
 /**
- * Sealed-products discovery rail for the browse landing — booster boxes, ETBs,
- * and bundles in a horizontal carousel, consistent with the per-game GameRails
- * above it. Replaces the flaky full Pokémon catalog that used to render here.
- * Self-hides if the sealed catalog returns nothing.
+ * Sealed-products discovery rail — booster boxes, ETBs, and bundles in a
+ * horizontal carousel, consistent with the per-game GameRails above it. Used
+ * both on the browse landing (all games) and inside a per-game marketplace
+ * (pass `tcg` to scope it to one game). Self-hides if the sealed catalog
+ * returns nothing for the slice — e.g. games with thin sealed coverage.
  */
-export function SealedRail() {
+export function SealedRail({
+  tcg,
+  label,
+}: {
+  tcg?: string;
+  label?: string;
+} = {}) {
   const { user } = useAuth();
-  const { data: products, isLoading } = usePublicSealedSearch({ limit: 16 });
+  const { data: products, isLoading } = usePublicSealedSearch({ limit: 16, tcg });
   const { data: holdings } = useSealedHoldings({}, Boolean(user));
   const ownedIds = new Set((holdings ?? []).map((h) => h.productId));
   const items = products ?? [];
@@ -22,7 +29,7 @@ export function SealedRail() {
 
   return (
     <Carousel
-      title="Sealed products"
+      title={tcg && label ? `Sealed ${label} products` : "Sealed products"}
       subtitle="Booster boxes, Elite Trainer Boxes, and bundles — tracked like singles."
       itemWidth="210px"
       action={

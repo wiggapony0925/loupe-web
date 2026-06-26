@@ -23,6 +23,7 @@ import {
 import { EmptyResultsArt } from "@/assets";
 import { cx } from "@/lib/cx";
 import { SealedRail } from "./SealedRail/SealedRail";
+import { GameMarketplace } from "./GameMarketplace/GameMarketplace";
 import { CardTable } from "./CardTable/CardTable";
 import styles from "./Browse.module.scss";
 
@@ -161,21 +162,30 @@ export function Browse() {
 
   return (
     <div className={styles.browse}>
-      {/* Full-width discovery rails — browse landing only (hidden while searching
-          or when drilling into a single set). */}
-      {!isSearch && !setId && (
+      {/* Landing (/cards) — cross-game discovery: a "Best from <game>" rail per
+          TCG plus an all-games sealed rail. */}
+      {isLanding && (
         <section className={styles.browse__discover}>
           <GameRails
+            onCard={(id) => navigate(`/cards/${encodeURIComponent(id)}`)}
+          />
+          <SealedRail />
+        </section>
+      )}
+
+      {/* Per-game marketplace (/cards?game=…) — game-scoped carousels (trending,
+          most valuable, steals, sealed) above the full catalog, so each game
+          reads like its own storefront. Hidden while searching or set-drilling. */}
+      {!isLanding && !isSearch && !setId && SUPPORTED.has(game) && (
+        <section className={styles.browse__discover}>
+          <GameMarketplace
+            game={game}
             onCard={(id) => navigate(`/cards/${encodeURIComponent(id)}`)}
           />
         </section>
       )}
 
-      {isLanding ? (
-        <section className={styles.browse__discover}>
-          <SealedRail />
-        </section>
-      ) : (
+      {isLanding ? null : (
         <>
       <div className={styles.browse__catalogHead}>
         <h1 className={styles.browse__heading}>{heading}</h1>
