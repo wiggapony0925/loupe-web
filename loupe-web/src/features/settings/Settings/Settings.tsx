@@ -136,7 +136,10 @@ export function Settings() {
       </Panel>
 
       <Panel padding="lg">
-        <Row title="Sidebar position" desc="Pin the navigation rail to the left or right of the screen.">
+        <Row
+          title="Sidebar position"
+          desc="Pin the navigation rail to the left or right — on phones it sets which side the menu drawer slides in from."
+        >
           <SegmentedControl
             aria-label="Sidebar position"
             options={[
@@ -148,7 +151,10 @@ export function Settings() {
           />
         </Row>
         <Divider />
-        <Row title="Collapse sidebar" desc="Use a compact, icon-only rail to give content more room.">
+        <Row
+          title="Collapse sidebar"
+          desc="Use a compact, icon-only rail to give content more room (desktop & tablet)."
+        >
           <Button variant="secondary" size="sm" onClick={() => setCollapsed(!collapsed)}>
             {collapsed ? "Expand" : "Collapse"}
           </Button>

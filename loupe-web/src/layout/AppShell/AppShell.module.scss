@@ -19,17 +19,21 @@
 .content {
   flex: 1;
   overflow-y: auto;
+  // Stop any single wide child (table, code block, long token) from making the
+  // whole page scroll sideways. Wide content gets its own scroll container.
+  overflow-x: hidden;
 }
 
 .container {
   width: 100%;
   max-width: var(--content-max);
+  min-width: 0;
   margin: 0 auto;
   padding: var(--space-2xl);
 
   @include bp-down("md") {
-    // Leave room for the fixed bottom tab bar (56px + safe-area).
+    // No bottom tab bar anymore — just the iOS home-indicator safe area.
     padding: var(--space-lg) var(--space-lg)
-      calc(var(--space-lg) + 56px + env(safe-area-inset-bottom, 0px));
+      calc(var(--space-lg) + env(safe-area-inset-bottom, 0px));
   }
 }

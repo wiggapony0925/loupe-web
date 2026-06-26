@@ -23,10 +23,18 @@
   }
 }
 
+/* Phone nav hamburger — pinned to the user's chosen side, never shrinks. */
+.menuBtn {
+  flex-shrink: 0;
+}
+
 /* Width wrapper — the SearchCombobox brings its own bar styling. */
 .search {
   width: 100%;
   max-width: 460px;
+  // Allow the search to shrink so the hamburger + actions always fit a phone row.
+  min-width: 0;
+  flex-shrink: 1;
 }
 .searchIcon {
   width: 18px;

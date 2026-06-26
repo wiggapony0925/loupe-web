@@ -22,6 +22,14 @@
   }
 }
 
+/* Variant: only show below `md` (phones). The app shell keeps its compact icon
+   rail on tablet portrait, so the hamburger there would be redundant. */
+.trigger--md {
+  @include bp-up("md") {
+    display: none;
+  }
+}
+
 .overlay {
   position: fixed;
   inset: 0;
