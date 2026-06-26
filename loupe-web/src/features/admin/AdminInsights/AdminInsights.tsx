@@ -14,8 +14,10 @@ const EXAMPLES = [
 
 function cell(v: unknown): string {
   if (v === null || v === undefined) return "—";
-  if (typeof v === "object") return JSON.stringify(v);
-  return String(v);
+  if (typeof v === "string") return v;
+  if (typeof v === "number" || typeof v === "boolean" || typeof v === "bigint")
+    return String(v);
+  return JSON.stringify(v);
 }
 
 /** Admin: "Ask your data" — a natural-language question becomes a read-only SQL

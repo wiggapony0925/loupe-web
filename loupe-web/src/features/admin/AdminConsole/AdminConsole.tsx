@@ -117,7 +117,7 @@ export function AdminConsole() {
             className={styles.chip}
             onClick={() => {
               setPath(s);
-              send(s);
+              void send(s);
             }}
           >
             {s.replace("/v1", "")}
