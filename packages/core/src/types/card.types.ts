@@ -245,6 +245,36 @@ export interface CardOwnership {
   unrealizedPlPct?: number | null;
 }
 
+/** Derived market analytics for a card (public) — figures composed server-side
+ *  from the market snapshot + comps so every client shows the same numbers. */
+export interface CardAnalytics {
+  cardId: string;
+  // Valuation
+  marketPriceUsd?: number | null;
+  gradedAvgUsd?: number | null;
+  population: number;
+  /** Value of the whole graded population (graded avg × population). */
+  marketCapUsd?: number | null;
+  // Momentum — signed % change over each trailing window
+  momentum7d?: number | null;
+  momentum30d?: number | null;
+  momentum90d?: number | null;
+  momentum1y?: number | null;
+  // Risk & quality
+  /** 90-day coefficient of variation (stdev ÷ mean, as %). */
+  volatilityPct?: number | null;
+  /** Top-grade ÷ raw price (e.g. 8.2 = top slab worth 8.2× the raw card). */
+  gradePremium?: number | null;
+  // Extremes (all-time within available history)
+  allTimeHighUsd?: number | null;
+  allTimeLowUsd?: number | null;
+  /** Current vs ATH, signed % (≤ 0 = below the peak). */
+  pctOffAth?: number | null;
+  // Liquidity
+  /** Count of sold comps in the trailing 30 days. */
+  liquidity30d: number;
+}
+
 /** A Pokémon attack: energy cost (type symbols), damage, and effect text. */
 export interface CardAttack {
   name: string;

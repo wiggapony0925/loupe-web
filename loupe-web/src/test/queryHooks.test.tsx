@@ -6,8 +6,10 @@ import {
   usePublicTrending,
   usePublicSearch,
   useCardHoldings,
+  useCardAnalytics,
   type CardSummary,
   type CardOwnership,
+  type CardAnalytics,
   type SearchPage,
 } from "@loupe/core";
 import { server } from "./msw/server";
@@ -153,6 +155,48 @@ describe("@loupe/core query hooks · TanStack Query + MSW", () => {
     // Raw copy keeps is_graded=false and no acquisition source.
     expect(own?.holdings[1]?.isGraded).toBe(false);
     expect(own?.holdings[1]?.acquiredVia).toBeNull();
+  });
+
+  it("useCardAnalytics maps derived metrics to a typed CardAnalytics", async () => {
+    server.use(
+      http.get("*/v1/cards/:id/analytics", () =>
+        HttpResponse.json({
+          card_id: "pkmn:1",
+          market_price_usd: "1000.00",
+          graded_avg_usd: "2500.00",
+          population: 1200,
+          market_cap_usd: "3000000.00",
+          momentum_7d: 1.2,
+          momentum_30d: -3.4,
+          momentum_90d: 5.6,
+          momentum_1y: 12.3,
+          volatility_pct: 18.5,
+          grade_premium: 8.2,
+          all_time_high_usd: "1800.00",
+          all_time_low_usd: "400.00",
+          pct_off_ath: -12.5,
+          liquidity_30d: 7,
+        }),
+      ),
+    );
+
+    const { Wrapper } = createQueryWrapper();
+    const { result } = renderHook(() => useCardAnalytics("pkmn:1"), {
+      wrapper: Wrapper,
+    });
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+    const a: CardAnalytics | undefined = result.current.data;
+    // Decimal strings → numbers; snake_case → camelCase.
+    expect(a?.marketPriceUsd).toBe(1000);
+    expect(a?.marketCapUsd).toBe(3_000_000);
+    expect(a?.population).toBe(1200);
+    expect(a?.momentum30d).toBe(-3.4);
+    expect(a?.gradePremium).toBe(8.2);
+    expect(a?.allTimeHighUsd).toBe(1800);
+    expect(a?.pctOffAth).toBe(-12.5);
+    expect(a?.liquidity30d).toBe(7);
   });
 
   it("surfaces backend errors as an error state", async () => {

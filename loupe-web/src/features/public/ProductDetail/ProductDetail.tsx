@@ -35,6 +35,7 @@ import { CompareBar } from "./CompareBar/CompareBar";
 import { RelatedPrints } from "./RelatedPrints/RelatedPrints";
 import { MarketSignals, QuickStats, CostBasisStrip } from "./CardInsights/CardInsights";
 import { OwnershipPanel } from "./OwnershipPanel/OwnershipPanel";
+import { CardAnalyticsPanel } from "./CardAnalyticsPanel/CardAnalyticsPanel";
 import { GradedPrices } from "./GradedPrices/GradedPrices";
 import { RecentSold } from "./RecentSold/RecentSold";
 import { ActiveAlerts, SetProgressForCard } from "./CardContext/CardContext";
@@ -370,6 +371,10 @@ export function ProductDetail() {
           )}
         </section>
       )}
+
+      {/* Derived market analytics — market cap, momentum, volatility, grade
+          premium, ATH/ATL, liquidity. Server-composed; hidden until it loads. */}
+      <CardAnalyticsPanel cardId={card.id} />
 
       <section className={styles.product__section}>
         <div className={styles.product__chart}>

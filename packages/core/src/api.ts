@@ -6,6 +6,7 @@ import { apiFetch } from "./client";
 import { ENDPOINTS } from "./endpoints";
 import {
   canonicalToSummary,
+  toCardAnalytics,
   toCardAttributes,
   toCardListings,
   toCardMarket,
@@ -112,6 +113,7 @@ import type {
   RevenueSummary,
   SubscribeResult,
   GoogleSignInRequest,
+  CardAnalytics,
   CardAttributes,
   CardOwnership,
   CardListing,
@@ -461,6 +463,14 @@ export const api = {
         ENDPOINTS.cards.ownership(id),
       );
       return toCardOwnership(d);
+    },
+    /** Derived market analytics (market cap, momentum, volatility, …). Public. */
+    analytics: async (id: string): Promise<CardAnalytics> => {
+      const d = await apiFetch<Parameters<typeof toCardAnalytics>[0]>(
+        ENDPOINTS.cards.analytics(id),
+        { skipAuth: true },
+      );
+      return toCardAnalytics(d);
     },
     /** Live lowest price per marketplace + buy/search links. */
     marketplacePrices: async (id: string): Promise<MarketplaceQuote[]> => {
