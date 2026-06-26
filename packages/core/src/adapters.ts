@@ -4,6 +4,7 @@ import type {
   CardAbility,
   CardTypeModifier,
   CardAttributes,
+  CardAnalytics,
   CardHolding,
   CardListing,
   CardMarket,
@@ -767,5 +768,44 @@ export function toCardOwnership(r: RawCardOwnership): CardOwnership {
     holdingValueUsd: toNum(r.holding_value_usd),
     unrealizedPlUsd: toNum(r.unrealized_pl_usd),
     unrealizedPlPct: r.unrealized_pl_pct ?? null,
+  };
+}
+
+interface RawCardAnalytics {
+  card_id?: string;
+  market_price_usd?: string | number | null;
+  graded_avg_usd?: string | number | null;
+  population?: number;
+  market_cap_usd?: string | number | null;
+  momentum_7d?: number | null;
+  momentum_30d?: number | null;
+  momentum_90d?: number | null;
+  momentum_1y?: number | null;
+  volatility_pct?: number | null;
+  grade_premium?: number | null;
+  all_time_high_usd?: string | number | null;
+  all_time_low_usd?: string | number | null;
+  pct_off_ath?: number | null;
+  liquidity_30d?: number;
+}
+
+/** `/cards/:id/analytics` → derived market analytics view model. */
+export function toCardAnalytics(r: RawCardAnalytics): CardAnalytics {
+  return {
+    cardId: r.card_id ?? "",
+    marketPriceUsd: toNum(r.market_price_usd),
+    gradedAvgUsd: toNum(r.graded_avg_usd),
+    population: r.population ?? 0,
+    marketCapUsd: toNum(r.market_cap_usd),
+    momentum7d: r.momentum_7d ?? null,
+    momentum30d: r.momentum_30d ?? null,
+    momentum90d: r.momentum_90d ?? null,
+    momentum1y: r.momentum_1y ?? null,
+    volatilityPct: r.volatility_pct ?? null,
+    gradePremium: r.grade_premium ?? null,
+    allTimeHighUsd: toNum(r.all_time_high_usd),
+    allTimeLowUsd: toNum(r.all_time_low_usd),
+    pctOffAth: r.pct_off_ath ?? null,
+    liquidity30d: r.liquidity_30d ?? 0,
   };
 }

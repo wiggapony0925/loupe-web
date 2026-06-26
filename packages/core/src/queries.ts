@@ -60,6 +60,7 @@ import type {
   ApplyInput,
   BlogPost,
   BlogPostInput,
+  CardAnalytics,
   CardAttributes,
   CardOwnership,
   CardListing,
@@ -292,6 +293,15 @@ export const useCardHoldings = (id: string, enabled = true) =>
     ["card-ownership", id],
     () => api.cards.ownership(id),
     { enabled: Boolean(id) && enabled, staleTime: 60_000 },
+  );
+
+/** Derived market analytics for a card (public) — market cap, momentum,
+ *  volatility, grade premium, ATH/%-off, liquidity. */
+export const useCardAnalytics = (id: string) =>
+  useApiQuery<CardAnalytics>(
+    ["card-analytics", id],
+    () => api.cards.analytics(id),
+    { enabled: Boolean(id), staleTime: 300_000 },
   );
 
 /** Per-set completion progress for the signed-in user. */

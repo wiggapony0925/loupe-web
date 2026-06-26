@@ -40,6 +40,7 @@ export {
   useNearbyListings,
   useCardAttributes,
   useCardHoldings,
+  useCardAnalytics,
   useSetProgress,
   usePublicSets,
   usePublicSealedSearch,
