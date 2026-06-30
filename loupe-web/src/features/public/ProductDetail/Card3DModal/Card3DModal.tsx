@@ -7,6 +7,7 @@ import {
 } from "react";
 import { Dialog } from "radix-ui";
 import { Minus, Plus, RotateCcw, X } from "lucide-react";
+import { cardImageSrc } from "@/lib/cardImage";
 import styles from "./Card3DModal.module.scss";
 
 interface Card3DModalProps {
@@ -176,7 +177,7 @@ export function Card3DModal({
           >
             <div className={styles.viewer__card}>
               <img
-                src={src}
+                src={cardImageSrc(src)}
                 alt={alt}
                 className={styles.viewer__img}
                 draggable={false}

@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { ArrowRight, Database, DollarSign, KeyRound, Tag } from "lucide-react";
 import { useAdminCardTree } from "@loupe/core";
 import { Skeleton, NoteCard, Panel, Badge } from "@/components";
+import { CardTreeDiagram } from "./CardTreeDiagram";
 import admin from "../admin.module.scss";
 import styles from "./AdminCardTree.module.scss";
 
@@ -125,6 +126,13 @@ export function AdminCardTree() {
                 </a>
               ))}
             </div>
+          </Section>
+
+          <Section
+            title="Interactive lineage map"
+            subtitle="Hover or click any node to trace a card's full lineage — game → catalog provider → the unified trunk → the ordered price fallback. Click again to clear."
+          >
+            <CardTreeDiagram tree={t} />
           </Section>
         </>
       )}

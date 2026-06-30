@@ -125,6 +125,17 @@ export interface CardTreePriceStep {
   configured: boolean;
 }
 
+/** Live monthly request budget for a metered catalog provider (e.g. apitcg). */
+export interface CardTreeBudget {
+  integration: string;
+  period: string;
+  used: number;
+  limit: number;
+  remaining: number;
+  soft_ceiling: number;
+  exhausted: boolean;
+}
+
 /** The full card/set data-lineage tree. */
 export interface CardTree {
   card_model: { name: string; fields: CardTreeField[] };
@@ -132,4 +143,5 @@ export interface CardTree {
   catalog_sources: CardTreeSource[];
   games: CardTreeGame[];
   price_chain: CardTreePriceStep[];
+  budgets?: CardTreeBudget[];
 }

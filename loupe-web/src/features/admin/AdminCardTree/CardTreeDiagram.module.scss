@@ -1,0 +1,142 @@
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.columns {
+  display: grid;
+  grid-template-columns: 200px 242px 250px 1fr;
+  font-size: var(--text-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--ink-dim);
+
+  @media (max-width: 760px) {
+    display: none;
+  }
+}
+
+.canvas {
+  width: 100%;
+  height: auto;
+  overflow: visible;
+  user-select: none;
+}
+
+// ── edges ──
+.edge {
+  stroke-width: 1.5;
+  transition:
+    opacity var(--dur-fast) var(--ease-out),
+    stroke-width var(--dur-fast) var(--ease-out);
+}
+.edge--game {
+  stroke: var(--accent-blue);
+}
+.edge--source {
+  stroke: var(--accent-mint);
+}
+.edge--card {
+  stroke: var(--accent-purple);
+}
+.edge--price {
+  stroke: var(--accent-amber);
+}
+.edgeOn {
+  opacity: 0.85;
+  stroke-width: 2.25;
+}
+.edgeOff {
+  opacity: 0.12;
+}
+
+// ── nodes ──
+.node {
+  cursor: pointer;
+  outline: none;
+  transition: opacity var(--dur-fast) var(--ease-out);
+
+  .nodeBox {
+    fill: var(--bg-elevated);
+    stroke: var(--line);
+    stroke-width: 1.5;
+    transition:
+      stroke var(--dur-fast) var(--ease-out),
+      filter var(--dur-fast) var(--ease-out);
+  }
+  &:hover .nodeBox,
+  &:focus-visible .nodeBox {
+    stroke: var(--line-strong);
+  }
+}
+.nodeOn {
+  opacity: 1;
+}
+.nodeOff {
+  opacity: 0.28;
+}
+
+// accent stripe per kind via left border colour on the box
+.node--game .nodeBox {
+  stroke: var(--accent-blue);
+}
+.node--source .nodeBox {
+  stroke: var(--accent-mint);
+}
+.node--card .nodeBox {
+  stroke: var(--accent-purple);
+  fill: var(--bg-sunken);
+}
+.node--price .nodeBox {
+  stroke: var(--accent-amber);
+}
+
+.nodeSelected .nodeBox {
+  stroke-width: 2.5;
+  filter: drop-shadow(0 0 6px rgba(0, 0, 0, 0.35));
+}
+
+.nodeLabel {
+  fill: var(--ink);
+  font-size: 13px;
+  font-weight: 600;
+  dominant-baseline: middle;
+}
+.nodeSub {
+  fill: var(--ink-dim);
+  font-size: 10px;
+  dominant-baseline: middle;
+}
+.nodeOrder {
+  fill: var(--ink-muted);
+  font-size: 11px;
+  font-weight: 700;
+  dominant-baseline: middle;
+  @include tabular;
+}
+.nodeMeter {
+  fill: var(--accent-amber);
+  font-size: 10px;
+  font-weight: 600;
+  text-anchor: end;
+  @include tabular;
+}
+
+.dotOn {
+  fill: var(--accent-mint);
+}
+.dotOff {
+  fill: var(--ink-dim);
+}
+
+.caption {
+  font-size: var(--text-sm);
+  color: var(--ink-muted);
+  max-width: 80ch;
+  min-height: 2.6em;
+
+  strong {
+    color: var(--ink);
+  }
+}
