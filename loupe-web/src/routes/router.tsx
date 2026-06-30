@@ -6,6 +6,7 @@ import { FeatureGate } from "@/components";
 import { NotFound } from "@/features/misc/NotFound/NotFound";
 import { RouteError } from "@/routes/RouteError";
 import { EmbeddedGuard } from "@/routes/EmbeddedGuard";
+import { ADMIN_PAGES, ADMIN_INDEX_PATH } from "@/features/admin/adminPages";
 
 /**
  * Routes are code-split: each page (and the admin/site/blog bundles) loads on
@@ -14,9 +15,7 @@ import { EmbeddedGuard } from "@/routes/EmbeddedGuard";
  * since they gate routing itself.
  */
 function RouteFallback() {
-  return (
-    <div className="route-fallback" aria-busy="true" aria-label="Loading" />
-  );
+  return <div className="route-fallback" aria-busy="true" aria-label="Loading" />;
 }
 
 /** sessionStorage flag so a stale-chunk reload happens at most once per tab. */
@@ -83,8 +82,7 @@ function el(loader: () => Promise<unknown>, name: string): ReactElement {
 }
 
 const M = {
-  landing: () =>
-    import("@/features/marketing/MarketingLanding/MarketingLanding"),
+  landing: () => import("@/features/marketing/MarketingLanding/MarketingLanding"),
   scanner: () => import("@/features/marketing/Scanner/Scanner"),
   cardScanner: () => import("@/features/scan/CardScanner/CardScanner"),
   login: () => import("@/features/auth/Login/Login"),
@@ -92,14 +90,12 @@ const M = {
   publicLayout: () => import("@/features/public/PublicLayout/PublicLayout"),
   browse: () => import("@/features/public/Browse/Browse"),
   sealed: () => import("@/features/public/Sealed/Sealed"),
-  sealedDetail: () =>
-    import("@/features/public/SealedDetail/SealedDetail"),
+  sealedDetail: () => import("@/features/public/SealedDetail/SealedDetail"),
   loupeGrade: () => import("@/features/public/LoupeGrade/LoupeGrade"),
   setsExplorer: () => import("@/features/public/Sets/Sets"),
   product: () => import("@/features/public/ProductDetail/ProductDetail"),
   appShell: () => import("@/layout/AppShell/AppShell"),
-  commandCenter: () =>
-    import("@/features/commandCenter/CommandCenter/CommandCenter"),
+  commandCenter: () => import("@/features/commandCenter/CommandCenter/CommandCenter"),
   vault: () => import("@/features/vault/Vault/Vault"),
   markets: () => import("@/features/markets/Markets/Markets"),
   analytics: () => import("@/features/analytics/Analytics/Analytics"),
@@ -121,109 +117,93 @@ export const router = createBrowserRouter([
     element: <EmbeddedGuard />,
     errorElement: <RouteError />,
     children: [
-  { path: "/", element: el(M.landing, "MarketingLanding") },
-  { path: "/login", element: el(M.login, "Login") },
-  { path: "/signup", element: el(M.signup, "Signup") },
-  // Full-screen workspace — deliberately outside PublicLayout (no nav/footer
-  // chrome), edge-to-edge like a Figma canvas.
-  { path: "/grade", element: el(M.loupeGrade, "LoupeGrade") },
-  // Full-screen in-browser card scanner (camera + photo upload).
-  { path: "/scan", element: el(M.cardScanner, "CardScanner") },
-  {
-    element: el(M.publicLayout, "PublicLayout"),
-    children: [
-      { path: "cards", element: el(M.browse, "Browse") },
-      { path: "cards/:id", element: el(M.product, "ProductDetail") },
-      { path: "sealed", element: el(M.sealed, "Sealed") },
-      { path: "sealed/:id", element: el(M.sealedDetail, "SealedDetail") },
-      { path: "sets", element: el(M.setsExplorer, "Sets") },
-      { path: "scanner", element: el(M.scanner, "Scanner") },
-      { path: "about", element: el(M.site, "About") },
-      { path: "careers", element: el(M.site, "Careers") },
-      { path: "careers/track", element: el(M.site, "ApplicationTrack") },
-      { path: "press", element: el(M.site, "Press") },
-      { path: "blog", element: el(M.blog, "Blog") },
-      { path: "blog/:slug", element: el(M.blog, "BlogPost") },
-      { path: "help", element: el(M.site, "Help") },
-      { path: "status", element: el(M.site, "Status") },
-      { path: "contact", element: el(M.site, "Contact") },
-      { path: "legal/:doc", element: el(M.site, "Legal") },
-    ],
-  },
-  {
-    path: "/app",
-    element: <RequireAuth>{el(M.appShell, "AppShell")}</RequireAuth>,
-    children: [
-      { index: true, element: el(M.commandCenter, "CommandCenter") },
-      { path: "vault", element: el(M.vault, "Vault") },
-      { path: "discover", element: <Navigate to="/app/markets" replace /> },
+      { path: "/", element: el(M.landing, "MarketingLanding") },
+      { path: "/login", element: el(M.login, "Login") },
+      { path: "/signup", element: el(M.signup, "Signup") },
+      // Full-screen workspace — deliberately outside PublicLayout (no nav/footer
+      // chrome), edge-to-edge like a Figma canvas.
+      { path: "/grade", element: el(M.loupeGrade, "LoupeGrade") },
+      // Full-screen in-browser card scanner (camera + photo upload).
+      { path: "/scan", element: el(M.cardScanner, "CardScanner") },
       {
-        path: "markets",
-        element: (
-          <FeatureGate flag="web_markets" fallback={<NotFound />}>
-            {el(M.markets, "Markets")}
-          </FeatureGate>
-        ),
+        element: el(M.publicLayout, "PublicLayout"),
+        children: [
+          { path: "cards", element: el(M.browse, "Browse") },
+          { path: "cards/:id", element: el(M.product, "ProductDetail") },
+          { path: "sealed", element: el(M.sealed, "Sealed") },
+          { path: "sealed/:id", element: el(M.sealedDetail, "SealedDetail") },
+          { path: "sets", element: el(M.setsExplorer, "Sets") },
+          { path: "scanner", element: el(M.scanner, "Scanner") },
+          { path: "about", element: el(M.site, "About") },
+          { path: "careers", element: el(M.site, "Careers") },
+          { path: "careers/track", element: el(M.site, "ApplicationTrack") },
+          { path: "press", element: el(M.site, "Press") },
+          { path: "blog", element: el(M.blog, "Blog") },
+          { path: "blog/:slug", element: el(M.blog, "BlogPost") },
+          { path: "help", element: el(M.site, "Help") },
+          { path: "status", element: el(M.site, "Status") },
+          { path: "contact", element: el(M.site, "Contact") },
+          { path: "legal/:doc", element: el(M.site, "Legal") },
+        ],
       },
       {
-        path: "analytics",
-        element: (
-          <FeatureGate flag="web_analytics" fallback={<NotFound />}>
-            {el(M.analytics, "Analytics")}
-          </FeatureGate>
-        ),
+        path: "/app",
+        element: <RequireAuth>{el(M.appShell, "AppShell")}</RequireAuth>,
+        children: [
+          { index: true, element: el(M.commandCenter, "CommandCenter") },
+          { path: "vault", element: el(M.vault, "Vault") },
+          { path: "discover", element: <Navigate to="/app/markets" replace /> },
+          {
+            path: "markets",
+            element: (
+              <FeatureGate flag="web_markets" fallback={<NotFound />}>
+                {el(M.markets, "Markets")}
+              </FeatureGate>
+            ),
+          },
+          {
+            path: "analytics",
+            element: (
+              <FeatureGate flag="web_analytics" fallback={<NotFound />}>
+                {el(M.analytics, "Analytics")}
+              </FeatureGate>
+            ),
+          },
+          {
+            path: "watchlist",
+            element: (
+              <FeatureGate flag="web_watchlist" fallback={<NotFound />}>
+                {el(M.watchlist, "Watchlist")}
+              </FeatureGate>
+            ),
+          },
+          { path: "statements", element: el(M.statements, "Statements") },
+          { path: "settings", element: el(M.settings, "Settings") },
+        ],
       },
       {
-        path: "watchlist",
-        element: (
-          <FeatureGate flag="web_watchlist" fallback={<NotFound />}>
-            {el(M.watchlist, "Watchlist")}
-          </FeatureGate>
-        ),
+        // No RequireAuth: AdminLayout 404s guests + non-admins so the portal's
+        // existence isn't leaked (a login redirect would reveal the route).
+        path: "/admin",
+        element: el(M.admin, "AdminLayout"),
+        // Every page (route + nav) is generated from the ADMIN_PAGES registry, so
+        // the two can't drift. Flagged pages are wrapped in a FeatureGate so a
+        // disabled flag 404s direct URL access too — not just the nav link.
+        children: [
+          { index: true, element: <Navigate to={`/admin/${ADMIN_INDEX_PATH}`} replace /> },
+          ...ADMIN_PAGES.map((page) => ({
+            path: page.path,
+            element: page.flag ? (
+              <FeatureGate flag={page.flag} fallback={<NotFound />}>
+                {el(M.admin, page.component)}
+              </FeatureGate>
+            ) : (
+              el(M.admin, page.component)
+            ),
+          })),
+        ],
       },
-      { path: "statements", element: el(M.statements, "Statements") },
-      { path: "settings", element: el(M.settings, "Settings") },
-    ],
-  },
-  {
-    // No RequireAuth: AdminLayout 404s guests + non-admins so the portal's
-    // existence isn't leaked (a login redirect would reveal the route).
-    path: "/admin",
-    element: el(M.admin, "AdminLayout"),
-    children: [
-      { index: true, element: <Navigate to="/admin/overview" replace /> },
-      { path: "overview", element: el(M.admin, "AdminOverview") },
-      { path: "health", element: el(M.admin, "AdminHealth") },
-      { path: "database", element: el(M.admin, "AdminDatabase") },
-      { path: "cloud", element: el(M.admin, "AdminCloud") },
-      { path: "env", element: el(M.admin, "AdminEnv") },
-      { path: "integrations", element: el(M.admin, "AdminIntegrations") },
-      { path: "audit", element: el(M.admin, "AdminAudit") },
-      { path: "users", element: el(M.admin, "AdminUsers") },
-      { path: "revenue", element: el(M.admin, "AdminRevenue") },
-      { path: "catalog", element: el(M.admin, "AdminCatalog") },
-      { path: "cards", element: el(M.admin, "AdminCards") },
-      { path: "card-tree", element: el(M.admin, "AdminCardTree") },
-      { path: "grades", element: el(M.admin, "AdminGrades") },
-      { path: "scanner", element: el(M.admin, "AdminScanner") },
-      { path: "pulse", element: el(M.admin, "AdminPulse") },
-      { path: "engagement", element: el(M.admin, "AdminEngagement") },
-      { path: "retention", element: el(M.admin, "AdminRetention") },
-      { path: "pro", element: el(M.admin, "AdminPro") },
-      { path: "announce", element: el(M.admin, "AdminAnnounce") },
-      { path: "flags", element: el(M.admin, "AdminFlags") },
-      { path: "insights", element: el(M.admin, "AdminInsights") },
-      { path: "console", element: el(M.admin, "AdminConsole") },
-      { path: "api", element: el(M.admin, "AdminApiInspector") },
-      { path: "simulator", element: el(M.admin, "AdminSimulator") },
-      { path: "navkeys", element: el(M.admin, "AdminNavKeys") },
-      { path: "jobs", element: el(M.admin, "AdminJobs") },
-      { path: "applications", element: el(M.admin, "AdminApplications") },
-      { path: "blog", element: el(M.admin, "AdminBlog") },
-      { path: "waitlist", element: el(M.admin, "AdminWaitlist") },
-    ],
-  },
-  { path: "*", element: <NotFound /> },
+      { path: "*", element: <NotFound /> },
     ],
   },
 ]);

@@ -30,6 +30,7 @@ import {
   Plug,
   type LucideIcon,
 } from "lucide-react";
+import { usePublicFlags } from "@loupe/core";
 import { Logo } from "@/assets";
 import { ThemeToggle, ScrollToTop, Avatar } from "@/components";
 import { NotFound } from "@/features/misc/NotFound/NotFound";
@@ -37,6 +38,7 @@ import { useAuth } from "@/auth/AuthProvider";
 import { useUiStore } from "@/stores/uiStore";
 import { isEmbedded } from "@/lib/embedded";
 import { cx } from "@/lib/cx";
+import { ADMIN_PAGES, ADMIN_GROUP_ORDER } from "@/features/admin/adminPages";
 import styles from "./AdminLayout.module.scss";
 
 interface NavItem {
@@ -52,73 +54,42 @@ interface NavGroup {
 }
 
 /**
- * Grouped sidebar nav. Every destination is visible at a glance under a labelled
- * section — no more hunting through an overflowing tab bar for "Announce".
+ * Per-page icons, keyed by the page's path in the {@link ADMIN_PAGES} registry.
+ * The registry (shared with the router) owns labels/groups/flags; icons live
+ * here next to the nav that renders them.
  */
-const NAV: NavGroup[] = [
-  {
-    label: "Operations",
-    items: [
-      { to: "/admin/overview", label: "Overview", icon: LayoutDashboard, hint: "Dashboard" },
-      { to: "/admin/health", label: "System health", icon: Activity, hint: "Live status" },
-      { to: "/admin/database", label: "Database", icon: Database, hint: "Schema & rows" },
-      { to: "/admin/cloud", label: "Google Cloud", icon: Cloud, hint: "Run & SQL" },
-      { to: "/admin/env", label: "Environment", icon: KeyRound, hint: "Config & secrets" },
-      { to: "/admin/integrations", label: "Integrations", icon: Plug, hint: "External services" },
-      { to: "/admin/audit", label: "Audit log", icon: ScrollText, hint: "Activity trail" },
-    ],
-  },
-  {
-    label: "Monetization",
-    items: [
-      { to: "/admin/revenue", label: "Revenue", icon: LineChart, hint: "MRR & churn" },
-      { to: "/admin/pro", label: "Loupe Pro", icon: Sparkles, hint: "Plans & gates" },
-      { to: "/admin/announce", label: "Announcements", icon: Megaphone, hint: "Banner to all users" },
-      { to: "/admin/flags", label: "Feature flags", icon: ToggleRight, hint: "Toggle micro-apps" },
-    ],
-  },
-  {
-    label: "People",
-    items: [{ to: "/admin/users", label: "Users", icon: Users, hint: "Search, roles, bans" }],
-  },
-  {
-    label: "Catalog & product",
-    items: [
-      { to: "/admin/catalog", label: "Catalog", icon: Library, hint: "Coverage by game" },
-      { to: "/admin/cards", label: "Card data", icon: Search, hint: "Explore & override" },
-      { to: "/admin/card-tree", label: "Card tree", icon: Network, hint: "Data lineage" },
-      { to: "/admin/grades", label: "Grade review", icon: ShieldCheck, hint: "QA graded cards" },
-      { to: "/admin/scanner", label: "Scanner", icon: ScanLine, hint: "Identify funnel" },
-    ],
-  },
-  {
-    label: "Growth",
-    items: [
-      { to: "/admin/pulse", label: "Live pulse", icon: Radio, hint: "Activity feed" },
-      { to: "/admin/engagement", label: "Engagement", icon: LineChart, hint: "Retention & funnel" },
-      { to: "/admin/retention", label: "Retention", icon: Grid3x3, hint: "Cohort triangle" },
-    ],
-  },
-  {
-    label: "Content & hiring",
-    items: [
-      { to: "/admin/jobs", label: "Jobs", icon: Briefcase, hint: "Open roles" },
-      { to: "/admin/applications", label: "Applications", icon: Inbox, hint: "Inbound" },
-      { to: "/admin/blog", label: "Blog", icon: FileText, hint: "Posts" },
-      { to: "/admin/waitlist", label: "Scanner waitlist", icon: ScanLine, hint: "Hardware" },
-    ],
-  },
-  {
-    label: "Tools",
-    items: [
-      { to: "/admin/insights", label: "Ask your data", icon: Sparkles, hint: "NL → SQL" },
-      { to: "/admin/api", label: "API inspector", icon: Network, hint: "Live API traffic" },
-      { to: "/admin/console", label: "API console", icon: TerminalSquare, hint: "Run GET requests" },
-      { to: "/admin/simulator", label: "Device simulator", icon: Smartphone, hint: "Preview" },
-      { to: "/admin/navkeys", label: "Nav keys", icon: KeyRound, hint: "Sign-in deep links" },
-    ],
-  },
-];
+const ICONS: Record<string, LucideIcon> = {
+  overview: LayoutDashboard,
+  health: Activity,
+  database: Database,
+  cloud: Cloud,
+  env: KeyRound,
+  integrations: Plug,
+  audit: ScrollText,
+  revenue: LineChart,
+  pro: Sparkles,
+  announce: Megaphone,
+  flags: ToggleRight,
+  users: Users,
+  catalog: Library,
+  cards: Search,
+  "card-tree": Network,
+  grades: ShieldCheck,
+  scanner: ScanLine,
+  pulse: Radio,
+  engagement: LineChart,
+  retention: Grid3x3,
+  jobs: Briefcase,
+  applications: Inbox,
+  blog: FileText,
+  waitlist: ScanLine,
+  insights: Sparkles,
+  api: Network,
+  console: TerminalSquare,
+  simulator: Smartphone,
+  navkeys: KeyRound,
+};
+const FALLBACK_ICON = ToggleRight;
 
 /**
  * Developer-portal shell. Access is admin-only and deliberately invisible:
@@ -130,20 +101,32 @@ export function AdminLayout() {
   const { user, loading } = useAuth();
   const location = useLocation();
   const side = useUiStore((s) => s.sidebarSide);
+  const { data: flagMap } = usePublicFlags();
   const [query, setQuery] = useState("");
   const [drawer, setDrawer] = useState(false); // mobile off-canvas
 
-  // Filter nav by the search box; drop groups that end up empty.
-  const groups = useMemo(() => {
+  // Build the grouped nav from the shared ADMIN_PAGES registry: hide any page
+  // whose flag is explicitly disabled, then apply the search filter, then drop
+  // empty groups. Core pages (no flag) are always shown.
+  const groups: NavGroup[] = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return NAV;
-    return NAV.map((g) => ({
-      ...g,
-      items: g.items.filter(
-        (i) => i.label.toLowerCase().includes(q) || i.hint?.toLowerCase().includes(q),
-      ),
+    const visible = ADMIN_PAGES.filter((p) => {
+      if (p.flag && flagMap?.[p.flag] === false) return false;
+      if (!q) return true;
+      return p.label.toLowerCase().includes(q) || p.hint.toLowerCase().includes(q);
+    });
+    return ADMIN_GROUP_ORDER.map((label) => ({
+      label,
+      items: visible
+        .filter((p) => p.group === label)
+        .map((p) => ({
+          to: `/admin/${p.path}`,
+          label: p.label,
+          hint: p.hint,
+          icon: ICONS[p.path] ?? FALLBACK_ICON,
+        })),
     })).filter((g) => g.items.length > 0);
-  }, [query]);
+  }, [query, flagMap]);
 
   if (loading) return null; // hydrating — avoid a 404 flash for a real admin
   if (!user || !user.is_admin) return <NotFound />;
