@@ -7,13 +7,12 @@ import {
   type CardSummary,
 } from "@loupe/core";
 import {
-  ProductCard,
   Pagination,
   FilterPill,
-  Skeleton,
   ComingSoon,
   Carousel,
   ShopCard,
+  ShopCardSkeleton,
   GameRails,
   type FilterOption,
 } from "@/components";
@@ -62,9 +61,7 @@ export function Markets() {
 
   const tiles = (rows: CardSummary[] | undefined, loading: boolean) =>
     loading
-      ? Array.from({ length: 8 }).map((_, i) => (
-          <Skeleton key={i} height={300} radius={14} />
-        ))
+      ? Array.from({ length: 8 }).map((_, i) => <ShopCardSkeleton key={i} />)
       : (rows ?? []).map((c) => (
           <ShopCard
             key={c.id}
@@ -133,7 +130,7 @@ export function Markets() {
         {isLoading ? (
           <div className={styles.grid}>
             {Array.from({ length: 12 }).map((_, i) => (
-              <Skeleton key={i} height={150} radius={10} />
+              <ShopCardSkeleton key={i} />
             ))}
           </div>
         ) : results.length === 0 ? (
@@ -151,7 +148,15 @@ export function Markets() {
               }}
             >
               {results.map((c) => (
-                <ProductCard key={c.id} card={c} onClick={() => go(c.id)} />
+                <ShopCard
+                  key={c.id}
+                  imageUrl={c.imageUrl}
+                  title={c.name}
+                  subtitle={c.setName}
+                  price={c.price ?? c.low}
+                  tag={c.rarity}
+                  onClick={() => go(c.id)}
+                />
               ))}
             </div>
             <div className={styles.pager}>

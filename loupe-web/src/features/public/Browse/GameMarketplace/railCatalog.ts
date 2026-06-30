@@ -37,6 +37,17 @@ export type RailSpec =
       minItems?: number;
     }
   | {
+      kind: "catalog";
+      id: string;
+      title: string;
+      subtitle: string;
+      /** Browse sort for the slice (newest works for priced games; catalog-only
+       *  games fall back to their natural order). */
+      sort?: "name" | "newest" | "price_desc";
+      limit?: number;
+      minItems?: number;
+    }
+  | {
       kind: "sets";
       id: string;
       title: string;
@@ -112,6 +123,19 @@ export function buildGameRails(label: string): RailSpec[] {
       title: "Steals under $5",
       subtitle: `Affordable ${label} pickups.`,
       fetch: { sort: "value", maxPrice: 5, limit: 24 },
+      minItems: 4,
+    },
+    {
+      // Catalog-sourced card carousel. Unlike the price rails above (which draw
+      // from the trending/value feeds and self-hide for catalog-only games like
+      // One Piece / Digimon), this pulls straight from the browse catalog, so
+      // every game leads with a real card carousel — not just a sets rail.
+      kind: "catalog",
+      id: "explore",
+      title: `Explore ${label}`,
+      subtitle: `A look across the ${label} catalog — open any card for details.`,
+      sort: "newest",
+      limit: 20,
       minItems: 4,
     },
     {

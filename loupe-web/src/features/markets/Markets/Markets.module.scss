@@ -81,12 +81,15 @@
 }
 
 .grid {
+  // Matches the Browse marketplace grid: denser columns sized to the shared
+  // ShopCard tile, two columns on phones.
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
   gap: var(--space-lg);
 
   @include bp-down("sm") {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-md);
   }
 }
 

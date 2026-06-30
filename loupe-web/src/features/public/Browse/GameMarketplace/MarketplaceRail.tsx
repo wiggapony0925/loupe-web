@@ -9,10 +9,11 @@ import { Link, useNavigate } from "react-router-dom";
 import { Layers } from "lucide-react";
 import {
   usePublicTrending,
+  usePublicBrowse,
   usePublicSets,
   type CardSet,
 } from "@loupe/core";
-import { Carousel, ShopCard, Skeleton } from "@/components";
+import { Carousel, ShopCard, ShopCardSkeleton, Skeleton } from "@/components";
 import { SealedRail } from "../SealedRail/SealedRail";
 import { applyLens } from "./cardFilters";
 import type { RailSpec } from "./railCatalog";
@@ -32,6 +33,8 @@ export function MarketplaceRail({
   switch (spec.kind) {
     case "cards":
       return <CardMarketRail game={game} spec={spec} onCard={onCard} />;
+    case "catalog":
+      return <CatalogMarketRail game={game} spec={spec} onCard={onCard} />;
     case "sets":
       return <SetMarketRail game={game} spec={spec} />;
     case "sealed":
@@ -73,9 +76,7 @@ function CardMarketRail({
   return (
     <Carousel title={spec.title} subtitle={spec.subtitle}>
       {isLoading
-        ? Array.from({ length: 8 }).map((_, i) => (
-            <Skeleton key={i} height={300} radius={14} />
-          ))
+        ? Array.from({ length: 8 }).map((_, i) => <ShopCardSkeleton key={i} />)
         : cards.map((c) => (
             <ShopCard
               key={c.id}
@@ -83,6 +84,44 @@ function CardMarketRail({
               title={c.name}
               subtitle={c.setName}
               price={c.price}
+              tag={c.rarity}
+              onClick={() => onCard(c.id)}
+            />
+          ))}
+    </Carousel>
+  );
+}
+
+/** A catalog-sourced card rail (browse endpoint) — gives catalog-only games a
+ *  real card carousel even when the price/trending feeds are empty. */
+function CatalogMarketRail({
+  game,
+  spec,
+  onCard,
+}: {
+  game: string;
+  spec: Extract<RailSpec, { kind: "catalog" }>;
+  onCard: (id: string) => void;
+}) {
+  const { data, isLoading } = usePublicBrowse({
+    game,
+    page: 1,
+    pageSize: spec.limit ?? 20,
+    sort: spec.sort ?? "newest",
+  });
+  const cards = data?.results ?? [];
+  if (!isLoading && cards.length < (spec.minItems ?? 1)) return null;
+  return (
+    <Carousel title={spec.title} subtitle={spec.subtitle}>
+      {isLoading
+        ? Array.from({ length: 8 }).map((_, i) => <ShopCardSkeleton key={i} />)
+        : cards.map((c) => (
+            <ShopCard
+              key={c.id}
+              imageUrl={c.imageUrl}
+              title={c.name}
+              subtitle={c.setName}
+              price={c.price ?? c.low}
               tag={c.rarity}
               onClick={() => onCard(c.id)}
             />

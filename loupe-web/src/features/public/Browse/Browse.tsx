@@ -11,7 +11,8 @@ import {
 import {
   FilterPill,
   Pagination,
-  ProductCard,
+  ShopCard,
+  ShopCardSkeleton,
   SparkRow,
   Skeleton,
   NoteCard,
@@ -290,11 +291,19 @@ export function Browse() {
       </div>
 
       {active.isLoading ? (
-        <div className={styles["browse__grid"]}>
-          {Array.from({ length: 12 }).map((_, i) => (
-            <Skeleton key={i} height={150} radius={10} />
-          ))}
-        </div>
+        view === "list" ? (
+          <div className={styles["browse__list"]}>
+            {Array.from({ length: 8 }).map((_, i) => (
+              <Skeleton key={i} height={64} radius={12} />
+            ))}
+          </div>
+        ) : (
+          <div className={styles["browse__grid"]}>
+            {Array.from({ length: 12 }).map((_, i) => (
+              <ShopCardSkeleton key={i} />
+            ))}
+          </div>
+        )
       ) : results.length === 0 ? (
         !isSearch && !SUPPORTED.has(game) ? (
           <ComingSoon
@@ -368,10 +377,13 @@ export function Browse() {
                   onClick={() => navigate(`/cards/${encodeURIComponent(c.id)}`)}
                 />
               ) : (
-                <ProductCard
+                <ShopCard
                   key={c.id}
-                  card={c}
-                  variant={view}
+                  imageUrl={c.imageUrl}
+                  title={c.name}
+                  subtitle={c.setName}
+                  price={c.price ?? c.low}
+                  tag={c.rarity}
                   onClick={() => navigate(`/cards/${encodeURIComponent(c.id)}`)}
                 />
               ),
