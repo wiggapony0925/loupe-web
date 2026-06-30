@@ -7,6 +7,7 @@ import {
   FileText,
   Infinity as InfinityIcon,
   LineChart,
+  Minus,
   ScanLine,
   ShieldCheck,
   Sparkles,
@@ -54,6 +55,26 @@ const PRO_PERKS: Array<{ icon: typeof InfinityIcon; title: string; blurb: string
     blurb: "One-click PDFs for underwriting and capital gains.",
   },
 ];
+
+/** Row-by-row Free vs Pro so the upgrade delta is explicit. A `boolean`
+ *  renders a check/dash; a string renders as-is. */
+const COMPARE: Array<{ feature: string; free: string | boolean; pro: string | boolean }> = [
+  { feature: "Cards tracked", free: `${FREE_CARD_LIMIT}`, pro: "Unlimited" },
+  { feature: "Live, grade-aware valuations", free: true, pro: true },
+  { feature: "Price history", free: "30 days", pro: "All-time" },
+  { feature: "Price alerts", free: "A few", pro: "Unlimited" },
+  { feature: "Scanner auto-import", free: false, pro: true },
+  { feature: "Cost basis & profit/loss", free: false, pro: true },
+  { feature: "Movers & full analytics", free: "Basic", pro: true },
+  { feature: "Tax & insurance statements", free: "1 PDF", pro: "Unlimited" },
+];
+
+/** Render a comparison cell: check/dash for booleans, text otherwise. */
+function CompareCell({ value }: { value: string | boolean }) {
+  if (value === true) return <Check size={16} className={styles.cellYes} aria-label="Included" />;
+  if (value === false) return <Minus size={16} className={styles.cellNo} aria-label="Not included" />;
+  return <span className={styles.cellText}>{value}</span>;
+}
 
 /** Small one-shot "reveal on scroll" — flips a flag the first time the section
  *  enters the viewport so the cards animate in. */
@@ -222,6 +243,38 @@ export function Pricing() {
           </Button>
           <p className={styles.fine}>No charge today · cancel before day 7</p>
         </div>
+      </div>
+
+      {/* Row-by-row comparison so the Free → Pro delta is unmistakable. */}
+      <div className={styles.compareWrap}>
+        <table className={styles.compare}>
+          <thead>
+            <tr>
+              <th scope="col" className={styles.compareFeatureHead}>
+                Compare plans
+              </th>
+              <th scope="col">Free</th>
+              <th scope="col" className={styles.compareProCol}>
+                <Sparkles size={13} /> Pro
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {COMPARE.map((row) => (
+              <tr key={row.feature}>
+                <th scope="row" className={styles.compareFeature}>
+                  {row.feature}
+                </th>
+                <td>
+                  <CompareCell value={row.free} />
+                </td>
+                <td className={styles.compareProCol}>
+                  <CompareCell value={row.pro} />
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
 
       {/* Checkout assurances — quiet trust signals under the plans. */}
