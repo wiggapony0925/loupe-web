@@ -4,7 +4,7 @@
  * unconditionally (stable hook order), and every rail self-hides when its slice
  * is too thin. Add a rail by editing railCatalog.ts — never here.
  */
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Layers } from "lucide-react";
 import {
@@ -58,25 +58,16 @@ function CardMarketRail({
   spec: Extract<RailSpec, { kind: "cards" }>;
   onCard: (id: string) => void;
 }) {
-  const { data, isLoading, isFetching, refetch } = usePublicTrending({
+  const { data, isLoading } = usePublicTrending({
     tcg: game,
     sort: spec.fetch.sort,
     maxPrice: spec.fetch.maxPrice,
     limit: spec.fetch.limit,
   });
-  // The public trending endpoint intermittently returns an empty list for a
-  // game even when data exists (upstream cache miss). Retry a few times on a
-  // settled empty result — each refetch is a fresh roll — so a transient miss
-  // doesn't silently drop the rail. The counter bounds it so a genuinely-empty
-  // slice still self-hides after a handful of attempts.
-  const retries = useRef(0);
-  useEffect(() => {
-    if (!isFetching && (data?.length ?? 0) === 0 && retries.current < 3) {
-      retries.current += 1;
-      void refetch();
-    }
-  }, [isFetching, data, refetch]);
-
+  // The trending endpoint used to intermittently return [] (an uncached
+  // upstream-miss the rail couldn't distinguish from "genuinely empty"). That's
+  // fixed backend-side with a last-good fallback, so no client retry is needed:
+  // an empty slice here means the game truly has none → self-hide.
   const cards = applyLens(data ?? [], spec.lens ?? {});
   if (!isLoading && cards.length < (spec.minItems ?? 1)) return null;
   return (
