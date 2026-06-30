@@ -135,6 +135,7 @@ export const ENDPOINTS = {
     search: `${V1}/public/search`,
     trending: `${V1}/public/trending`,
     browse: `${V1}/public/browse`,
+    carousels: `${V1}/public/carousels`,
     sparklines: `${V1}/public/sparklines`,
   },
   grades: {

@@ -71,6 +71,7 @@ import type {
   CardSet,
   CardSparkline,
   CardSummary,
+  CarouselResponse,
   CardValuation,
   MarketSnapshot,
   NearbyListing,
@@ -198,6 +199,14 @@ export const usePublicTrending = (params: PublicTrendingParams = {}) =>
     {
       staleTime: 60_000,
     },
+  );
+
+/** AI-designed marketplace carousel recipes for a game (cached daily). */
+export const usePublicCarousels = (game: string) =>
+  useApiQuery<CarouselResponse>(
+    ["public-carousels", game],
+    () => api.cards.publicCarousels(game),
+    { staleTime: 30 * 60_000 },
   );
 
 /** Real price history for a card. `range` is a backend bucket

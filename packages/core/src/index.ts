@@ -53,6 +53,7 @@ export {
   usePublicSearch,
   usePublicTrending,
   usePublicBrowse,
+  usePublicCarousels,
   usePublicSparklines,
   usePriceHistory,
   useMarket,

@@ -126,6 +126,7 @@ import type {
   CardSet,
   CardSparkline,
   CardSummary,
+  CarouselResponse,
   MarketSnapshot,
   NearbyListing,
   PortfolioHistory,
@@ -374,6 +375,13 @@ export const api = {
         },
       );
       return (d.cards ?? []).map(toCardSummary);
+    },
+    /** AI-designed (or curated-fallback) marketplace carousel recipes for a game. */
+    publicCarousels: async (game: string): Promise<CarouselResponse> => {
+      return await apiFetch<CarouselResponse>(ENDPOINTS.public.carousels, {
+        query: { game },
+        skipAuth: true,
+      });
     },
     /** Batch mini price series keyed by card id — for list-row sparklines. */
     sparklines: async (

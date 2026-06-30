@@ -67,6 +67,33 @@ export interface CardSummary {
   low?: Money;
 }
 
+/**
+ * A serializable marketplace-carousel definition (a "recipe"): a theme + copy +
+ * a constrained filter vocabulary. Authored by the AI generator (or a curated
+ * pool) and compiled into a real rail on the web. Mirrors the backend
+ * `CarouselRecipe` schema.
+ */
+export interface CarouselRecipe {
+  id: string;
+  title: string;
+  subtitle: string;
+  source: "value" | "trending" | "catalog";
+  priceMin?: number;
+  priceMax?: number;
+  rarityPattern?: string;
+  rarities?: string[];
+  sort?: "price_desc" | "price_asc" | "name";
+  limit?: number;
+  minItems?: number;
+}
+
+/** A game's generated shelves + whether the model produced them. */
+export interface CarouselResponse {
+  game: string;
+  source: "ai" | "curated";
+  carousels: CarouselRecipe[];
+}
+
 /** A compact trend series for a list-row sparkline (Robinhood/StockX style). */
 export interface CardSparkline {
   cardId: string;
