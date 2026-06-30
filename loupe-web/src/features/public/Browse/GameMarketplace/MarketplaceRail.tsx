@@ -176,9 +176,17 @@ function SetMarketRail({
   );
 }
 
+/** Short set code from a set name, e.g. "BT-04: Booster…" → "BT-04",
+ *  "OP02 …" → "OP02". Null when the name has no code prefix. */
+function setCode(name: string): string | null {
+  const code = name.match(/^([A-Za-z]{1,4}[-\s]?\d{1,3}[A-Za-z]?)/)?.[1];
+  return code ? code.toUpperCase().replace(/\s+/, "-") : null;
+}
+
 function SetTile({ set, onClick }: { set: CardSet; onClick: () => void }) {
   const [imgOk, setImgOk] = useState(Boolean(set.imageUrl));
   const yr = /(\d{4})/.exec(set.releaseDate ?? "")?.[1] ?? null;
+  const code = setCode(set.name);
   return (
     <button type="button" className={styles.setTile} onClick={onClick}>
       <span className={styles.setLogo}>
@@ -189,6 +197,10 @@ function SetTile({ set, onClick }: { set: CardSet; onClick: () => void }) {
             loading="lazy"
             onError={() => setImgOk(false)}
           />
+        ) : code ? (
+          // No logo from the provider (Digimon/One Piece) — show the set code as
+          // a branded symbol instead of a generic icon that reads as "broken".
+          <span className={styles.setCode}>{code}</span>
         ) : (
           <Layers size={28} className={styles.setLogoFallback} />
         )}

@@ -2,6 +2,7 @@ import { CardThumb } from "@/components/CardThumb/CardThumb";
 import { Delta } from "@/components/Delta/Delta";
 import { Badge } from "@/components/Badge/Badge";
 import { formatMoney } from "@/lib/format";
+import { rarityLabel } from "@/lib/rarity";
 import type { Money } from "@loupe/core";
 import styles from "./ShopCard.module.scss";
 
@@ -19,6 +20,7 @@ export interface ShopCardProps {
 
 /** App-Store "Shop" style discovery tile — full-bleed art, quiet caption, price + delta. */
 export function ShopCard({ imageUrl, title, subtitle, price, changePct, tag, rank, onClick }: ShopCardProps) {
+  const rarity = rarityLabel(tag);
   return (
     <button type="button" className={styles.card} onClick={onClick}>
       <div className={styles.art}>
@@ -40,17 +42,19 @@ export function ShopCard({ imageUrl, title, subtitle, price, changePct, tag, ran
                 <Delta percent={changePct} variant="arrow" />
               )}
             </>
+          ) : rarity ? (
+            // No live price (catalog-only games) — show the rarity as a clear
+            // labelled chip, NOT a bare code in the price slot, so it reads as a
+            // tag instead of a broken price.
+            <Badge tone="neutral">{rarity}</Badge>
           ) : (
-            // No live price (e.g. catalog-only games) — surface the rarity in the
-            // price slot so the tile reads intentionally instead of showing a
-            // bare "—". Keeps every tile the same shape across games.
-            <span className={styles.priceMuted}>{tag || "View price"}</span>
+            <span className={styles.priceMuted}>—</span>
           )}
         </div>
-        {/* Rarity caption sits on its own line — a long tag like "RARE RAINBOW"
-            won't fit beside a 4-figure price in a narrow tile. */}
-        {price && changePct === undefined && tag && (
-          <span className={styles.tag}>{tag}</span>
+        {/* When there IS a price, the rarity sits on its own caption line — a
+            long tag like "Rare Rainbow" won't fit beside a 4-figure price. */}
+        {price && changePct === undefined && rarity && (
+          <span className={styles.tag}>{rarity}</span>
         )}
       </div>
     </button>
