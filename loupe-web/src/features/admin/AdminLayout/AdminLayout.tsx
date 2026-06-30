@@ -30,7 +30,7 @@ import {
   Plug,
   type LucideIcon,
 } from "lucide-react";
-import { usePublicFlags } from "@loupe/core";
+import { useAdminFlags } from "@loupe/core";
 import { Logo } from "@/assets";
 import { ThemeToggle, ScrollToTop, Avatar } from "@/components";
 import { NotFound } from "@/features/misc/NotFound/NotFound";
@@ -101,7 +101,13 @@ export function AdminLayout() {
   const { user, loading } = useAuth();
   const location = useLocation();
   const side = useUiStore((s) => s.sidebarSide);
-  const { data: flagMap } = usePublicFlags();
+  // Admin-portal flags come from the admin-only endpoint (they're withheld from
+  // the public flag map), keyed for O(1) lookup.
+  const { data: adminFlags } = useAdminFlags();
+  const flagMap = useMemo(
+    () => Object.fromEntries((adminFlags ?? []).map((f) => [f.key, f.enabled])),
+    [adminFlags],
+  );
   const [query, setQuery] = useState("");
   const [drawer, setDrawer] = useState(false); // mobile off-canvas
 
@@ -111,7 +117,7 @@ export function AdminLayout() {
   const groups: NavGroup[] = useMemo(() => {
     const q = query.trim().toLowerCase();
     const visible = ADMIN_PAGES.filter((p) => {
-      if (p.flag && flagMap?.[p.flag] === false) return false;
+      if (p.flag && flagMap[p.flag] === false) return false;
       if (!q) return true;
       return p.label.toLowerCase().includes(q) || p.hint.toLowerCase().includes(q);
     });

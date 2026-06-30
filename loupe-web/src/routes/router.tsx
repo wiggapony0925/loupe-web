@@ -7,6 +7,7 @@ import { NotFound } from "@/features/misc/NotFound/NotFound";
 import { RouteError } from "@/routes/RouteError";
 import { EmbeddedGuard } from "@/routes/EmbeddedGuard";
 import { ADMIN_PAGES, ADMIN_INDEX_PATH } from "@/features/admin/adminPages";
+import { AdminFeatureGate } from "@/features/admin/AdminFeatureGate";
 
 /**
  * Routes are code-split: each page (and the admin/site/blog bundles) loads on
@@ -187,16 +188,15 @@ export const router = createBrowserRouter([
         path: "/admin",
         element: el(M.admin, "AdminLayout"),
         // Every page (route + nav) is generated from the ADMIN_PAGES registry, so
-        // the two can't drift. Flagged pages are wrapped in a FeatureGate so a
-        // disabled flag 404s direct URL access too — not just the nav link.
+        // the two can't drift. Flagged pages are wrapped in an AdminFeatureGate
+        // (reads the admin-only flags endpoint) so a disabled flag 404s direct
+        // URL access too — not just the nav link.
         children: [
           { index: true, element: <Navigate to={`/admin/${ADMIN_INDEX_PATH}`} replace /> },
           ...ADMIN_PAGES.map((page) => ({
             path: page.path,
             element: page.flag ? (
-              <FeatureGate flag={page.flag} fallback={<NotFound />}>
-                {el(M.admin, page.component)}
-              </FeatureGate>
+              <AdminFeatureGate flag={page.flag}>{el(M.admin, page.component)}</AdminFeatureGate>
             ) : (
               el(M.admin, page.component)
             ),
