@@ -28,7 +28,7 @@ import { CardTable } from "./CardTable/CardTable";
 import styles from "./Browse.module.scss";
 
 const PAGE_SIZE = 24;
-const SUPPORTED = new Set(["pokemon", "magic", "yugioh", "digimon"]);
+const SUPPORTED = new Set(["pokemon", "magic", "yugioh", "digimon", "onepiece"]);
 // Games the search endpoint accepts as a `tcg` filter (others fall back to all).
 const SEARCH_TCGS = new Set([
   "pokemon",

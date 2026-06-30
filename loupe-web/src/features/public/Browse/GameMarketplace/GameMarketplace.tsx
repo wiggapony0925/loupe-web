@@ -6,6 +6,7 @@ const GAME_LABELS: Record<string, string> = {
   magic: "Magic",
   yugioh: "Yu-Gi-Oh!",
   digimon: "Digimon",
+  onepiece: "One Piece",
 };
 
 /**
