@@ -288,6 +288,85 @@
   color: var(--ink-dim);
 }
 
+// ── Free vs Pro comparison ──
+.compareWrap {
+  position: relative;
+  max-width: 920px;
+  margin: var(--space-2xl) auto 0;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: var(--bg-elevated);
+}
+
+.compare {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-md);
+
+  th,
+  td {
+    padding: 12px var(--space-md);
+    text-align: center;
+    border-bottom: 1px solid var(--line);
+    color: var(--ink);
+  }
+
+  // Feature label column — left aligned, the row's heading.
+  .compareFeature,
+  .compareFeatureHead {
+    text-align: left;
+    font-weight: 600;
+    color: var(--ink-muted);
+  }
+
+  // Header row.
+  thead th {
+    padding-block: 14px;
+    font-size: var(--text-sm);
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    background: var(--bg-sunken);
+  }
+  .compareFeatureHead {
+    color: var(--ink);
+  }
+
+  // The Pro column gets a mint wash + accent so the value pops.
+  .compareProCol {
+    background: color-mix(in srgb, var(--accent-mint) 7%, transparent);
+  }
+  thead .compareProCol {
+    color: var(--accent-mint);
+    background: color-mix(in srgb, var(--accent-mint) 14%, transparent);
+
+    svg {
+      vertical-align: -2px;
+      margin-right: 4px;
+    }
+  }
+
+  tbody tr:last-child th,
+  tbody tr:last-child td {
+    border-bottom: none;
+  }
+
+  .cellYes {
+    color: var(--accent-mint);
+    vertical-align: middle;
+  }
+  .cellNo {
+    color: var(--ink-dim);
+    opacity: 0.6;
+    vertical-align: middle;
+  }
+  .cellText {
+    font-weight: 600;
+  }
+}
+
 // ── Checkout assurances ──
 .trust {
   position: relative;
