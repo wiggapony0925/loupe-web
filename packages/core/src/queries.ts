@@ -28,8 +28,11 @@ import type {
   DbGraph,
   DbOverview,
   DbTableDetail,
+  EnvReport,
+  IntegrationsReport,
   HealthReport,
   RevenueSummary,
+  CardTree,
   CatalogCoverage,
   ScannerStats,
   GradeReviewPage,
@@ -475,7 +478,10 @@ export const useStartCheckout = (
 
 /** Open the Stripe customer portal so a Pro member can manage or cancel. */
 export const useBillingPortal = (
-  options?: Omit<UseMutationOptions<PortalSession, ApiError, void>, "mutationFn">,
+  options?: Omit<
+    UseMutationOptions<PortalSession, ApiError, void>,
+    "mutationFn"
+  >,
 ) => useApiMutation<PortalSession, void>(() => api.me.billingPortal(), options);
 
 /** The signed-in user's cross-device recents (searches + recently-viewed). */
@@ -1095,7 +1101,11 @@ export const useSetUserRole = (
 /** Comp a user to Loupe Pro (or back to free). Refreshes their entitlements. */
 export const useSetUserPlan = (
   options?: Omit<
-    UseMutationOptions<AdminUser, ApiError, { id: string; plan: "free" | "pro" }>,
+    UseMutationOptions<
+      AdminUser,
+      ApiError,
+      { id: string; plan: "free" | "pro" }
+    >,
     "mutationFn"
   >,
 ) => {
@@ -1408,6 +1418,21 @@ export const useAdminDbGraph = (enabled = true) =>
     staleTime: 60_000,
   });
 
+/** Server-side environment manager (presence + non-secret values; secrets withheld). */
+export const useAdminEnv = (enabled = true) =>
+  useApiQuery<EnvReport>(["admin-env"], api.admin.ops.env, {
+    enabled,
+    staleTime: 60_000,
+  });
+
+/** External-service (second-party) catalog. Pass `probe` to live-ping each one. */
+export const useAdminIntegrations = (probe = false, enabled = true) =>
+  useApiQuery<IntegrationsReport>(
+    ["admin-integrations", probe],
+    () => api.admin.ops.integrations(probe),
+    { enabled, staleTime: probe ? 0 : 60_000 },
+  );
+
 /** Cloud Run + Cloud SQL status (graceful when GCP isn't configured). */
 export const useAdminCloud = (enabled = true) =>
   useApiQuery<CloudStatus>(["admin-cloud"], api.admin.ops.cloud.status, {
@@ -1449,7 +1474,10 @@ export const useAdminRevenue = (enabled = true) =>
 
 /** Sign a user out everywhere (revoke all tokens). Refreshes their detail. */
 export const useRevokeUserSessions = (
-  options?: Omit<UseMutationOptions<AdminUserDetail, ApiError, string>, "mutationFn">,
+  options?: Omit<
+    UseMutationOptions<AdminUserDetail, ApiError, string>,
+    "mutationFn"
+  >,
 ) => {
   const qc = useQueryClient();
   return useApiMutation<AdminUserDetail, string>(
@@ -1466,12 +1494,22 @@ export const useRevokeUserSessions = (
 
 /** Mint a token to view the app as a user (super-admin). */
 export const useImpersonateUser = (
-  options?: Omit<UseMutationOptions<ImpersonateResult, ApiError, string>, "mutationFn">,
-) => useApiMutation<ImpersonateResult, string>((id) => api.admin.users.impersonate(id), options);
+  options?: Omit<
+    UseMutationOptions<ImpersonateResult, ApiError, string>,
+    "mutationFn"
+  >,
+) =>
+  useApiMutation<ImpersonateResult, string>(
+    (id) => api.admin.users.impersonate(id),
+    options,
+  );
 
 /** Refund a user's latest charge (super-admin, money-out). */
 export const useRefundUser = (
-  options?: Omit<UseMutationOptions<RefundResult, ApiError, string>, "mutationFn">,
+  options?: Omit<
+    UseMutationOptions<RefundResult, ApiError, string>,
+    "mutationFn"
+  >,
 ) => {
   const qc = useQueryClient();
   return useApiMutation<RefundResult, string>(
@@ -1489,13 +1527,18 @@ export const useRefundUser = (
 /** Cancel a user's Stripe subscription (super-admin). Refreshes detail + revenue. */
 export const useCancelUserSubscription = (
   options?: Omit<
-    UseMutationOptions<AdminUserDetail, ApiError, { id: string; immediately?: boolean }>,
+    UseMutationOptions<
+      AdminUserDetail,
+      ApiError,
+      { id: string; immediately?: boolean }
+    >,
     "mutationFn"
   >,
 ) => {
   const qc = useQueryClient();
   return useApiMutation<AdminUserDetail, { id: string; immediately?: boolean }>(
-    ({ id, immediately }) => api.admin.users.cancelSubscription(id, immediately),
+    ({ id, immediately }) =>
+      api.admin.users.cancelSubscription(id, immediately),
     {
       ...options,
       onSuccess: (data, ...rest) => {
@@ -1515,6 +1558,13 @@ export const useAdminCatalog = (enabled = true) =>
   useApiQuery<CatalogCoverage>(["admin-catalog"], api.admin.catalog, {
     enabled,
     staleTime: 60_000,
+  });
+
+/** Card/Set data lineage — provider per field + ordered price fallback chain. */
+export const useAdminCardTree = (enabled = true) =>
+  useApiQuery<CardTree>(["admin-card-tree"], api.admin.cardTree, {
+    enabled,
+    staleTime: 300_000,
   });
 
 /** Grade-review queue — QA of graded cards (Loupe first-party by default). */
@@ -1565,8 +1615,15 @@ export const useAdminInsightsStatus = (enabled = true) =>
 
 /** Ask a natural-language question of the database (read-only, super-admin). */
 export const useAskInsights = (
-  options?: Omit<UseMutationOptions<InsightsAnswer, ApiError, string>, "mutationFn">,
-) => useApiMutation<InsightsAnswer, string>((q) => api.admin.insights.ask(q), options);
+  options?: Omit<
+    UseMutationOptions<InsightsAnswer, ApiError, string>,
+    "mutationFn"
+  >,
+) =>
+  useApiMutation<InsightsAnswer, string>(
+    (q) => api.admin.insights.ask(q),
+    options,
+  );
 
 /** Search the local card catalog (admin explorer). */
 export const useAdminCards = (params?: AdminCardsParams, enabled = true) =>

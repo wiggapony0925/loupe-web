@@ -192,6 +192,8 @@ export const ENDPOINTS = {
     dbGraph: `${V1}/admin/database/graph`,
     cloud: `${V1}/admin/cloud`,
     cloudLogs: `${V1}/admin/cloud/logs`,
+    env: `${V1}/admin/env`,
+    integrations: `${V1}/admin/integrations`,
     audit: `${V1}/admin/audit`,
     auditFacets: `${V1}/admin/audit/facets`,
     // Monetization.
@@ -200,6 +202,7 @@ export const ENDPOINTS = {
     catalog: `${V1}/admin/catalog`,
     scanner: `${V1}/admin/scanner`,
     cards: `${V1}/admin/cards`,
+    cardTree: `${V1}/admin/card-tree`,
     card: (id: string) => `${V1}/admin/cards/${id}`,
     cardPrice: (id: string) => `${V1}/admin/cards/${id}/price`,
     gradeReview: `${V1}/admin/grades`,

@@ -26,6 +26,8 @@ import {
   Radio,
   ShieldCheck,
   TerminalSquare,
+  Network,
+  Plug,
   type LucideIcon,
 } from "lucide-react";
 import { Logo } from "@/assets";
@@ -61,6 +63,8 @@ const NAV: NavGroup[] = [
       { to: "/admin/health", label: "System health", icon: Activity, hint: "Live status" },
       { to: "/admin/database", label: "Database", icon: Database, hint: "Schema & rows" },
       { to: "/admin/cloud", label: "Google Cloud", icon: Cloud, hint: "Run & SQL" },
+      { to: "/admin/env", label: "Environment", icon: KeyRound, hint: "Config & secrets" },
+      { to: "/admin/integrations", label: "Integrations", icon: Plug, hint: "External services" },
       { to: "/admin/audit", label: "Audit log", icon: ScrollText, hint: "Activity trail" },
     ],
   },
@@ -82,6 +86,7 @@ const NAV: NavGroup[] = [
     items: [
       { to: "/admin/catalog", label: "Catalog", icon: Library, hint: "Coverage by game" },
       { to: "/admin/cards", label: "Card data", icon: Search, hint: "Explore & override" },
+      { to: "/admin/card-tree", label: "Card tree", icon: Network, hint: "Data lineage" },
       { to: "/admin/grades", label: "Grade review", icon: ShieldCheck, hint: "QA graded cards" },
       { to: "/admin/scanner", label: "Scanner", icon: ScanLine, hint: "Identify funnel" },
     ],
@@ -107,6 +112,7 @@ const NAV: NavGroup[] = [
     label: "Tools",
     items: [
       { to: "/admin/insights", label: "Ask your data", icon: Sparkles, hint: "NL → SQL" },
+      { to: "/admin/api", label: "API inspector", icon: Network, hint: "Live API traffic" },
       { to: "/admin/console", label: "API console", icon: TerminalSquare, hint: "Run GET requests" },
       { to: "/admin/simulator", label: "Device simulator", icon: Smartphone, hint: "Preview" },
       { to: "/admin/navkeys", label: "Nav keys", icon: KeyRound, hint: "Sign-in deep links" },

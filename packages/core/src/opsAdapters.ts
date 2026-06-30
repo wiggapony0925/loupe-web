@@ -20,7 +20,11 @@ import type {
   DbTableDetail,
   DbTableSummary,
   EngagementSummary,
+  EnvReport,
+  EnvVar,
   GameCoverage,
+  Integration,
+  IntegrationsReport,
   GradeReviewPage,
   GradeReviewRow,
   HealthCheck,
@@ -46,6 +50,84 @@ export function toHealthReport(r: RawHealthReport): HealthReport {
     status: r.status,
     generatedAt: r.generated_at,
     checks: r.checks.map((c) => ({ ...c })),
+  };
+}
+
+interface RawEnvVar {
+  key: string;
+  label: string;
+  group: string;
+  secret: boolean;
+  is_set: boolean;
+  value: string | null;
+  length: number;
+  description: string;
+  docs_url: string | null;
+}
+interface RawEnvReport {
+  app_env: string;
+  generated_at: string;
+  variables: RawEnvVar[];
+}
+export function toEnvReport(r: RawEnvReport): EnvReport {
+  return {
+    appEnv: r.app_env,
+    generatedAt: r.generated_at,
+    variables: r.variables.map(
+      (v): EnvVar => ({
+        key: v.key,
+        label: v.label,
+        group: v.group,
+        secret: v.secret,
+        isSet: v.is_set,
+        value: v.value,
+        length: v.length,
+        description: v.description,
+        docsUrl: v.docs_url,
+      }),
+    ),
+  };
+}
+
+interface RawIntegration {
+  id: string;
+  name: string;
+  category: string;
+  purpose: string;
+  configured: boolean;
+  capabilities: string[];
+  docs_url: string | null;
+  status: Integration["status"];
+  http_status: number | null;
+  latency_ms: number | null;
+  detail: string;
+}
+interface RawIntegrationsReport {
+  generated_at: string;
+  probed: boolean;
+  integrations: RawIntegration[];
+}
+export function toIntegrationsReport(
+  r: RawIntegrationsReport,
+): IntegrationsReport {
+  return {
+    generatedAt: r.generated_at,
+    probed: r.probed,
+    integrations: r.integrations.map(
+      (i): Integration => ({
+        id: i.id,
+        name: i.name,
+        category: i.category,
+        purpose: i.purpose,
+        configured: i.configured,
+        capabilities: i.capabilities ?? [],
+        docsUrl: i.docs_url,
+        status: i.status,
+        httpStatus: i.http_status,
+        latencyMs: i.latency_ms,
+        detail: i.detail,
+      }),
+    ),
   };
 }
 
@@ -128,7 +210,10 @@ export function toDbTableDetail(r: RawTableDetail): DbTableDetail {
   };
 }
 export function toDbGraph(r: RawGraph): DbGraph {
-  return { nodes: r.nodes.map((n) => ({ ...n })), edges: r.edges.map((e) => ({ ...e })) };
+  return {
+    nodes: r.nodes.map((n) => ({ ...n })),
+    edges: r.edges.map((e) => ({ ...e })),
+  };
 }
 
 interface RawCloudService {
@@ -301,7 +386,11 @@ interface RawCardDetail extends RawCardRow {
   set_id: string;
   image_phash: string | null;
   card_metadata: Record<string, unknown> | null;
-  external_refs: Array<{ source: string; external_id: string; confidence: number | null }>;
+  external_refs: Array<{
+    source: string;
+    external_id: string;
+    confidence: number | null;
+  }>;
   prices: RawPriceSnapshot[];
 }
 
@@ -315,7 +404,9 @@ const toCardRow = (r: RawCardRow): AdminCardRow => ({
   year: r.year,
   imageUrl: r.image_url,
 });
-export const toAdminPriceSnapshot = (p: RawPriceSnapshot): AdminPriceSnapshot => ({
+export const toAdminPriceSnapshot = (
+  p: RawPriceSnapshot,
+): AdminPriceSnapshot => ({
   id: p.id,
   house: p.house,
   grade: p.grade,

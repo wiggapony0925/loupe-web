@@ -1,0 +1,229 @@
+// Integrations — second-party service catalog, grouped by category.
+
+.spin {
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+// ── Summary strip ─────────────────────────────────────────────────────────────
+.summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: var(--space-md);
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: var(--space-md);
+  @include surface;
+
+  &__icon {
+    display: inline-flex;
+    width: 28px;
+    height: 28px;
+    align-items: center;
+    justify-content: center;
+    color: var(--ink-muted);
+    background: var(--bg-sunken);
+    border-radius: var(--radius-sm);
+  }
+  &__value {
+    font-size: clamp(20px, 3vw, 28px);
+    font-weight: 700;
+    color: var(--ink);
+    @include tabular;
+  }
+  &__label {
+    font-size: var(--text-xs);
+    color: var(--ink-muted);
+  }
+  &__hint {
+    font-style: normal;
+    color: var(--ink-dim);
+  }
+
+  &--mint .stat__value {
+    color: var(--up);
+  }
+  &--rose .stat__value {
+    color: var(--down);
+  }
+}
+
+// ── Filters ──────────────────────────────────────────────────────────────────
+.filters {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+}
+.searchWrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-width: 200px;
+}
+.searchIcon {
+  position: absolute;
+  left: var(--space-sm);
+  color: var(--ink-dim);
+  pointer-events: none;
+}
+.search {
+  width: 100%;
+  padding: 9px var(--space-sm) 9px calc(var(--space-sm) * 2 + 15px);
+  font: inherit;
+  font-size: var(--text-sm);
+  color: var(--ink);
+  background: var(--bg-base);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+
+  &::placeholder {
+    color: var(--ink-dim);
+  }
+  &:focus-visible {
+    outline: none;
+    border-color: var(--accent-mint);
+  }
+}
+
+.empty {
+  padding: var(--space-xl) 0;
+  text-align: center;
+  font-size: var(--text-sm);
+  color: var(--ink-dim);
+}
+
+// ── Group sections ───────────────────────────────────────────────────────────
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+
+  &__head {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+  }
+  &__title {
+    font-size: var(--text-sm);
+    font-weight: 700;
+    color: var(--ink);
+  }
+  &__count {
+    padding: 1px 8px;
+    font-size: var(--text-xs);
+    color: var(--ink-muted);
+    background: var(--bg-sunken);
+    border-radius: var(--radius-pill);
+    @include tabular;
+  }
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: var(--space-md);
+}
+
+// ── Card ─────────────────────────────────────────────────────────────────────
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: var(--space-md);
+  @include surface;
+  transition: border-color var(--dur-fast) var(--ease-out);
+
+  &:hover {
+    border-color: var(--line-strong);
+  }
+  &--off {
+    opacity: 0.72;
+  }
+
+  &__top {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+  }
+  &__name {
+    font-size: var(--text-md);
+    font-weight: 700;
+    color: var(--ink);
+    @include truncate;
+  }
+  &__docs {
+    margin-left: auto;
+    display: inline-flex;
+    color: var(--ink-dim);
+    transition: color var(--dur-fast) var(--ease-out);
+
+    &:hover {
+      color: var(--accent-mint);
+    }
+  }
+  &__purpose {
+    flex: 1;
+    font-size: var(--text-xs);
+    color: var(--ink-muted);
+    line-height: 1.5;
+  }
+  &__foot {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    flex-wrap: wrap;
+  }
+  &__latency {
+    font-size: var(--text-xs);
+    color: var(--ink-muted);
+    @include tabular;
+  }
+  &__needs {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    font-size: 10px;
+    color: var(--accent-amber);
+  }
+  &__caps {
+    margin-left: auto;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--ink-dim);
+    @include truncate;
+  }
+}
+
+// Status dot on the card header.
+.dot {
+  flex-shrink: 0;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--ink-dim);
+
+  &--live {
+    background: var(--up);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--up) 22%, transparent);
+  }
+  &--down {
+    background: var(--down);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--down) 22%, transparent);
+  }
+  &--ready {
+    background: var(--accent-blue, var(--up));
+  }
+  &--off {
+    background: var(--ink-dim);
+  }
+}

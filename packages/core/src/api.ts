@@ -57,6 +57,8 @@ import {
   toDbOverview,
   toDbTableDetail,
   toEngagementSummary,
+  toEnvReport,
+  toIntegrationsReport,
   toGradeReviewPage,
   toHealthReport,
   toPulseFeed,
@@ -75,6 +77,7 @@ import type {
   AuditFacets,
   AuditPage,
   AuditParams,
+  CardTree,
   CatalogCoverage,
   CloudLogEntry,
   PriceOverrideInput,
@@ -85,6 +88,8 @@ import type {
   DbOverview,
   DbTableDetail,
   EngagementSummary,
+  EnvReport,
+  IntegrationsReport,
   GradeReviewPage,
   GradeReviewParams,
   HealthReport,
@@ -550,7 +555,9 @@ export const api = {
   },
   /** Public sealed-product catalog (booster boxes, ETBs, tins, …). */
   sealed: {
-    search: async (params: SealedSearchParams = {}): Promise<SealedProduct[]> => {
+    search: async (
+      params: SealedSearchParams = {},
+    ): Promise<SealedProduct[]> => {
       const d = await apiFetch<Parameters<typeof toSealedProduct>[0][]>(
         ENDPOINTS.sealed.search({
           q: params.q,
@@ -602,7 +609,9 @@ export const api = {
   },
   /** The signed-in user's owned sealed product (vault). */
   sealedHoldings: {
-    list: async (params: SealedHoldingsParams = {}): Promise<SealedHolding[]> => {
+    list: async (
+      params: SealedHoldingsParams = {},
+    ): Promise<SealedHolding[]> => {
       const d = await apiFetch<Parameters<typeof toSealedHolding>[0][]>(
         ENDPOINTS.sealedHoldings.list({
           include_opened: params.includeOpened,
@@ -694,8 +703,7 @@ export const api = {
         skipAuth: true,
       }),
     /** Clear the server-set HttpOnly auth cookie (web sign-out). */
-    logout: () =>
-      apiFetch<null>(ENDPOINTS.auth.logout, { method: "POST" }),
+    logout: () => apiFetch<null>(ENDPOINTS.auth.logout, { method: "POST" }),
     /** Sign out everywhere: revoke every outstanding access + refresh token for
      *  the current user across all devices (bumps the server-side token epoch).
      *  Requires the current token, so call it before clearing local session. */
@@ -704,7 +712,10 @@ export const api = {
     /** Change password: verifies the current one, sets the new one, and revokes
      *  every OTHER session. Returns a fresh TokenPair for the current device. */
     changePassword: (body: ChangePasswordRequest) =>
-      apiFetch<TokenPair>(ENDPOINTS.auth.changePassword, { method: "POST", json: body }),
+      apiFetch<TokenPair>(ENDPOINTS.auth.changePassword, {
+        method: "POST",
+        json: body,
+      }),
     /** Complete a 2FA sign-in: exchange the login challenge + a code for tokens. */
     mfaVerify: (body: MfaVerifyRequest) =>
       apiFetch<TokenPair>(ENDPOINTS.auth.mfaVerify, {
@@ -728,8 +739,7 @@ export const api = {
         json: { code },
       }),
     /** Whether the signed-in user currently has 2FA enabled. */
-    mfaStatus: () =>
-      apiFetch<MfaStatus>(ENDPOINTS.auth.mfaStatus),
+    mfaStatus: () => apiFetch<MfaStatus>(ENDPOINTS.auth.mfaStatus),
   },
   me: {
     /** Current authenticated user. */
@@ -1019,6 +1029,9 @@ export const api = {
     /** Catalog coverage by game (cards/sets, pHash %, price sources). */
     catalog: async (): Promise<CatalogCoverage> =>
       toCatalogCoverage(await apiFetch(ENDPOINTS.admin.catalog)),
+    /** Card/Set data lineage — which provider feeds each field + price fallback. */
+    cardTree: async (): Promise<CardTree> =>
+      (await apiFetch(ENDPOINTS.admin.cardTree)) as CardTree,
     /** Grade-review queue — QA of graded cards (Loupe first-party by default). */
     gradeReview: async (params?: GradeReviewParams): Promise<GradeReviewPage> =>
       toGradeReviewPage(
@@ -1076,7 +1089,11 @@ export const api = {
       search: async (params?: AdminCardsParams): Promise<AdminCardPage> =>
         toAdminCardPage(
           await apiFetch(ENDPOINTS.admin.cards, {
-            query: { q: params?.q, page: params?.page, page_size: params?.pageSize },
+            query: {
+              q: params?.q,
+              page: params?.page,
+              page_size: params?.pageSize,
+            },
           }),
         ),
       get: async (id: string): Promise<AdminCardDetail> =>
@@ -1110,6 +1127,12 @@ export const api = {
         graph: async (): Promise<DbGraph> =>
           toDbGraph(await apiFetch(ENDPOINTS.admin.dbGraph)),
       },
+      env: async (): Promise<EnvReport> =>
+        toEnvReport(await apiFetch(ENDPOINTS.admin.env)),
+      integrations: async (probe = false): Promise<IntegrationsReport> =>
+        toIntegrationsReport(
+          await apiFetch(ENDPOINTS.admin.integrations, { query: { probe } }),
+        ),
       cloud: {
         status: async (): Promise<CloudStatus> =>
           toCloudStatus(await apiFetch(ENDPOINTS.admin.cloud)),
@@ -1140,7 +1163,8 @@ export const api = {
     },
     /** Live site config — the Pro plan shape + announcement banner. */
     config: {
-      get: (): Promise<SiteConfig> => apiFetch<SiteConfig>(ENDPOINTS.admin.config),
+      get: (): Promise<SiteConfig> =>
+        apiFetch<SiteConfig>(ENDPOINTS.admin.config),
       updatePlan: (input: PlanConfigUpdate): Promise<SiteConfig> =>
         apiFetch<SiteConfig>(ENDPOINTS.admin.configPlan, {
           method: "PATCH",

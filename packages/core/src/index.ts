@@ -9,6 +9,30 @@ export {
 } from "./client";
 export { ENDPOINTS } from "./endpoints";
 export { api } from "./api";
+export {
+  // Recorder + subscription (the inspector reads these).
+  subscribeApiTelemetry,
+  getApiLog,
+  clearApiLog,
+  recordApiCall,
+  setApiTelemetryEnabled,
+  isApiTelemetryEnabled,
+  setApiTelemetryCapacity,
+  // Aggregation.
+  summarizeApiStats,
+  summarizeApiTelemetry,
+  // Pure helpers (also unit-tested).
+  normalizeRoute,
+  summarizeShape,
+  // Source attribution.
+  withApiSource,
+  pushApiSource,
+  popApiSource,
+  peekApiSource,
+  type ApiCallRecord,
+  type ApiRouteStats,
+  type ApiTelemetrySummary,
+} from "./apiTelemetry";
 export * from "./types";
 export {
   useScanLoop,
@@ -121,6 +145,8 @@ export {
   useDeleteFlag,
   useUpsertFlag,
   useAdminHealth,
+  useAdminEnv,
+  useAdminIntegrations,
   useAdminDbTables,
   useAdminDbTable,
   useAdminDbGraph,
@@ -134,6 +160,7 @@ export {
   useRefundUser,
   useImpersonateUser,
   useAdminCatalog,
+  useAdminCardTree,
   useAdminScanner,
   useAdminGrades,
   useAdminCards,

@@ -1,0 +1,248 @@
+// Environment manager — summary, filters, and grouped variable rows.
+
+.summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: var(--space-md);
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--space-md);
+  @include surface;
+
+  &__value {
+    font-size: clamp(22px, 3vw, 30px);
+    font-weight: 700;
+    color: var(--ink);
+    @include tabular;
+  }
+  &__label {
+    font-size: var(--text-xs);
+    color: var(--ink-muted);
+  }
+
+  &--mint .stat__value {
+    color: var(--up);
+  }
+  &--amber .stat__value {
+    color: var(--accent-amber);
+  }
+}
+
+// ── Filters ──────────────────────────────────────────────────────────────────
+.filters {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+}
+.searchWrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-width: 220px;
+}
+.searchIcon {
+  position: absolute;
+  left: var(--space-sm);
+  color: var(--ink-dim);
+  pointer-events: none;
+}
+.search {
+  width: 100%;
+  padding: 9px var(--space-sm) 9px calc(var(--space-sm) * 2 + 15px);
+  font: inherit;
+  font-size: var(--text-sm);
+  color: var(--ink);
+  background: var(--bg-base);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+
+  &::placeholder {
+    color: var(--ink-dim);
+  }
+  &:focus-visible {
+    outline: none;
+    border-color: var(--accent-mint);
+  }
+}
+
+.skeletons {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+.empty {
+  padding: var(--space-xl) 0;
+  text-align: center;
+  font-size: var(--text-sm);
+  color: var(--ink-dim);
+}
+
+// ── Group sections ───────────────────────────────────────────────────────────
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+
+  &__head {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+  }
+  &__title {
+    font-size: var(--text-sm);
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    color: var(--ink);
+  }
+  &__count {
+    padding: 1px 8px;
+    font-size: var(--text-xs);
+    color: var(--ink-muted);
+    background: var(--bg-sunken);
+    border-radius: var(--radius-pill);
+    @include tabular;
+  }
+}
+
+.rows {
+  @include surface;
+  overflow: hidden;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-sm) var(--space-md);
+  border-bottom: 1px solid var(--line);
+
+  &:last-child {
+    border-bottom: 0;
+  }
+
+  &__main {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+    flex: 1;
+  }
+  &__top {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    flex-wrap: wrap;
+  }
+  &__key {
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    font-weight: 600;
+    color: var(--ink);
+  }
+  &__scope {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 1px 7px;
+    font-size: 10px;
+    text-transform: capitalize;
+    color: var(--ink-muted);
+    background: var(--bg-sunken);
+    border-radius: var(--radius-pill);
+  }
+  &__secret {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    padding: 1px 7px;
+    font-size: 10px;
+    color: var(--accent-amber);
+    background: color-mix(in srgb, var(--accent-amber) 14%, transparent);
+    border-radius: var(--radius-pill);
+  }
+  &__docs {
+    display: inline-flex;
+    color: var(--ink-dim);
+    transition: color var(--dur-fast) var(--ease-out);
+
+    &:hover {
+      color: var(--accent-mint);
+    }
+  }
+  &__desc {
+    font-size: var(--text-xs);
+    color: var(--ink-muted);
+  }
+  &__value {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    min-width: 180px;
+
+    @include bp-down("sm") {
+      min-width: 0;
+    }
+  }
+}
+
+// Value cell (revealable).
+.value {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  &__text {
+    max-width: 280px;
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--ink);
+    @include truncate;
+
+    &--masked {
+      color: var(--ink-dim);
+      letter-spacing: 1px;
+    }
+  }
+}
+
+.iconBtn {
+  display: inline-flex;
+  padding: 5px;
+  color: var(--ink-dim);
+  background: none;
+  border: 0;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition:
+    color var(--dur-fast) var(--ease-out),
+    background var(--dur-fast) var(--ease-out);
+
+  &:hover {
+    color: var(--ink);
+    background: var(--bg-sunken);
+  }
+}
+.ok {
+  color: var(--up);
+}
+
+// Server secret that's configured — presence only.
+.sealed {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--ink-muted);
+
+  &__len {
+    font-size: var(--text-xs);
+    color: var(--ink-dim);
+    @include tabular;
+  }
+}

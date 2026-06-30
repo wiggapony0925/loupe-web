@@ -87,3 +87,49 @@ export interface TestAccount {
   email: string;
   password: string;
 }
+
+// --- Card data lineage ("Card Tree") ---
+
+/** One unified-model field and which layer supplies it. */
+export interface CardTreeField {
+  field: string;
+  from: string;
+  note: string;
+}
+
+/** A catalog provider in the lineage graph. */
+export interface CardTreeSource {
+  id: string;
+  label: string;
+  url: string;
+  games: string[];
+  game_keys: string[];
+  provides: string[];
+  embedded_price: boolean;
+  key_required: boolean;
+}
+
+/** Per-game routing: which catalog provider + price strategy feeds a game. */
+export interface CardTreeGame {
+  tcg: string;
+  label: string;
+  catalog_source: string;
+  catalog_label: string;
+  price: string;
+}
+
+/** One step in the ordered price fallback chain. */
+export interface CardTreePriceStep {
+  order: number;
+  id: string;
+  configured: boolean;
+}
+
+/** The full card/set data-lineage tree. */
+export interface CardTree {
+  card_model: { name: string; fields: CardTreeField[] };
+  set_model: { name: string; fields: CardTreeField[] };
+  catalog_sources: CardTreeSource[];
+  games: CardTreeGame[];
+  price_chain: CardTreePriceStep[];
+}

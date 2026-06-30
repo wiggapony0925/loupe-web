@@ -19,6 +19,54 @@ export interface HealthReport {
   checks: HealthCheck[];
 }
 
+// ── Environment manager ──
+export interface EnvVar {
+  /** The ENV var name, e.g. "STRIPE_SECRET_KEY". */
+  key: string;
+  label: string;
+  group: string;
+  /** Secret values are never echoed by the server — `value` stays null. */
+  secret: boolean;
+  isSet: boolean;
+  /** Present only for non-secret config; null for secrets and unset vars. */
+  value: string | null;
+  /** Character count of the configured value (UI can show "set · 32 chars"). */
+  length: number;
+  description: string;
+  docsUrl: string | null;
+}
+
+export interface EnvReport {
+  appEnv: string;
+  generatedAt: string;
+  variables: EnvVar[];
+}
+
+// ── Integrations (second-party / external services) ──
+export type IntegrationStatus = "live" | "down" | "ready" | "unconfigured";
+
+export interface Integration {
+  id: string;
+  name: string;
+  category: string;
+  purpose: string;
+  configured: boolean;
+  capabilities: string[];
+  docsUrl: string | null;
+  status: IntegrationStatus;
+  /** Populated only after a live probe. */
+  httpStatus: number | null;
+  latencyMs: number | null;
+  detail: string;
+}
+
+export interface IntegrationsReport {
+  generatedAt: string;
+  /** Whether this report ran a live reachability probe. */
+  probed: boolean;
+  integrations: Integration[];
+}
+
 // ── Database explorer ──
 export interface DbColumn {
   name: string;

@@ -5,10 +5,28 @@
  * the injected config (see config.ts), never from a platform global.
  */
 import { getApiConfig } from "./config";
+import {
+  normalizeRoute,
+  peekApiSource,
+  recordApiCall,
+  summarizeShape,
+} from "./apiTelemetry";
+
+/** Monotonic clock with a wall-clock fallback (RN/older runtimes). */
+function nowMs(): number {
+  return typeof performance !== "undefined" && performance.now
+    ? performance.now()
+    : Date.now();
+}
 
 export interface Envelope<T = unknown> {
   data: T | null;
-  meta: { request_id: string; timestamp: string; version: string; duration_ms: number | null };
+  meta: {
+    request_id: string;
+    timestamp: string;
+    version: string;
+    duration_ms: number | null;
+  };
   pagination: unknown | null;
   error: ErrorDetail | null;
 }
@@ -27,7 +45,10 @@ export class ApiError extends Error {
   status: number;
   path: string;
   details?: unknown;
-  constructor(path: string, opts: { code: string; message: string; status: number; details?: unknown }) {
+  constructor(
+    path: string,
+    opts: { code: string; message: string; status: number; details?: unknown },
+  ) {
     super(opts.message);
     this.name = "ApiError";
     this.path = path;
@@ -91,6 +112,40 @@ export async function apiFetchEnvelope<T = unknown>(
   const token = skipAuth ? null : cfg.getToken?.();
   if (token) finalHeaders.Authorization = `Bearer ${token}`;
 
+  // Telemetry — capture method, source, and the start clock synchronously,
+  // before the first await, so concurrent calls attribute correctly.
+  const method = (rest.method ?? "GET").toUpperCase();
+  const fullPath = path + buildQuery(query);
+  const source = peekApiSource();
+  const startedAt = Date.now();
+  const t0 = nowMs();
+  const emit = (
+    status: number,
+    ok: boolean,
+    extra: {
+      bytes?: number | null;
+      serverMs?: number | null;
+      requestId?: string | null;
+      dataShape?: string | null;
+      error?: { code: string; message: string } | null;
+    } = {},
+  ) =>
+    recordApiCall({
+      method,
+      path: fullPath,
+      route: normalizeRoute(fullPath),
+      status,
+      ok,
+      durationMs: Math.round(nowMs() - t0),
+      serverMs: extra.serverMs ?? null,
+      bytes: extra.bytes ?? null,
+      requestId: extra.requestId ?? null,
+      startedAt,
+      dataShape: extra.dataShape ?? null,
+      error: extra.error ?? null,
+      source,
+    });
+
   let res: Response;
   try {
     res = await fetch(url(path) + buildQuery(query), {
@@ -101,14 +156,27 @@ export async function apiFetchEnvelope<T = unknown>(
       ...(cfg.withCredentials ? { credentials: "include" as const } : {}),
     });
   } catch (e) {
-    throw new ApiError(path, { code: "network.unreachable", message: String(e), status: 0 });
+    emit(0, false, {
+      error: { code: "network.unreachable", message: String(e) },
+    });
+    throw new ApiError(path, {
+      code: "network.unreachable",
+      message: String(e),
+      status: 0,
+    });
   }
 
-  if (res.status === 204) return { data: null, meta: emptyMeta(), pagination: null, error: null };
+  if (res.status === 204) {
+    emit(204, true, { bytes: 0, dataShape: "null" });
+    return { data: null, meta: emptyMeta(), pagination: null, error: null };
+  }
 
   const text = await res.text().catch(() => "");
   let parsed: unknown = text;
-  if ((res.headers.get("content-type") ?? "").includes("application/json") && text) {
+  if (
+    (res.headers.get("content-type") ?? "").includes("application/json") &&
+    text
+  ) {
     try {
       parsed = JSON.parse(text);
     } catch {
@@ -124,6 +192,11 @@ export async function apiFetchEnvelope<T = unknown>(
       status: res.status,
     };
     const err = isEnvelope(parsed) && parsed.error ? parsed.error : fallback;
+    emit(res.status, false, {
+      bytes: text.length,
+      requestId: isEnvelope(parsed) ? (parsed.meta?.request_id ?? null) : null,
+      error: { code: err.code, message: err.message },
+    });
     throw new ApiError(path, {
       code: err.code,
       message: err.message,
@@ -132,16 +205,41 @@ export async function apiFetchEnvelope<T = unknown>(
     });
   }
 
-  if (isEnvelope(parsed)) return parsed as Envelope<T>;
-  return { data: parsed as T, meta: emptyMeta(), pagination: null, error: null };
+  if (isEnvelope(parsed)) {
+    emit(res.status, true, {
+      bytes: text.length,
+      serverMs: parsed.meta?.duration_ms ?? null,
+      requestId: parsed.meta?.request_id ?? null,
+      dataShape: summarizeShape(parsed.data),
+    });
+    return parsed as Envelope<T>;
+  }
+  emit(res.status, true, {
+    bytes: text.length,
+    dataShape: summarizeShape(parsed),
+  });
+  return {
+    data: parsed as T,
+    meta: emptyMeta(),
+    pagination: null,
+    error: null,
+  };
 }
 
 /** Convenience wrapper that unwraps to `envelope.data`. Throws {@link ApiError} on failure. */
-export async function apiFetch<T = unknown>(path: string, init: ApiFetchInit = {}): Promise<T> {
+export async function apiFetch<T = unknown>(
+  path: string,
+  init: ApiFetchInit = {},
+): Promise<T> {
   const envelope = await apiFetchEnvelope<T>(path, init);
   return envelope.data as T;
 }
 
 function emptyMeta(): Envelope["meta"] {
-  return { request_id: "", timestamp: new Date().toISOString(), version: "v1", duration_ms: null };
+  return {
+    request_id: "",
+    timestamp: new Date().toISOString(),
+    version: "v1",
+    duration_ms: null,
+  };
 }
