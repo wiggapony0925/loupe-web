@@ -505,6 +505,45 @@ $hairline: rgba(255, 255, 255, 0.12);
 // When the live control bar is shown, lift the result sheet above it.
 .sheetAboveControls {
   bottom: 104px;
+  animation: sheetUp var(--dur-med, 0.26s) var(--ease-out);
+}
+
+// Desktop / no-camera: a centered, self-contained panel instead of a
+// full-bleed bottom sheet, so it reads as a finished product on a wide screen.
+.sheetCentered {
+  left: 50%;
+  right: auto;
+  bottom: auto;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: min(94vw, 440px);
+  gap: var(--space-md);
+  padding: var(--space-lg);
+  border-radius: 22px;
+  background:
+    radial-gradient(120% 80% at 50% 0%, color-mix(in srgb, var(--accent-mint) 9%, transparent), transparent 70%),
+    rgba(12, 16, 19, 0.94);
+  border: 1px solid $hairline;
+  -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: blur(18px);
+  box-shadow:
+    0 24px 60px -12px rgba(0, 0, 0, 0.7),
+    0 0 0 1px rgba(255, 255, 255, 0.03) inset;
+  animation: sheetPop var(--dur-med, 0.26s) var(--ease-out);
+}
+
+@keyframes sheetUp {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+}
+
+@keyframes sheetPop {
+  from {
+    opacity: 0;
+    transform: translate(-50%, calc(-50% + 10px)) scale(0.985);
+  }
 }
 
 // ── Hero top match (big art so the card is actually visible) ──
@@ -957,4 +996,36 @@ $hairline: rgba(255, 255, 255, 0.12);
 
 .fileInput {
   display: none;
+}
+
+// ── Keyboard focus (production accessibility) ──
+// A single, consistent mint focus ring across every interactive control, only
+// for keyboard users (:focus-visible) so mouse clicks stay clean.
+.iconBtn,
+.categoryBtn,
+.tcgOption,
+.dropzone,
+.hero,
+.result,
+.gradeCta,
+.scanAgain,
+.recentItem,
+.shutter,
+.ctrlSide {
+  &:focus-visible {
+    outline: 2px solid var(--accent-mint);
+    outline-offset: 2px;
+  }
+}
+
+// Respect reduced-motion: no sheet entrance / sweep for users who opt out.
+@media (prefers-reduced-motion: reduce) {
+  .sheetAboveControls,
+  .sheetCentered {
+    animation: none;
+  }
+
+  .sweep {
+    display: none;
+  }
 }

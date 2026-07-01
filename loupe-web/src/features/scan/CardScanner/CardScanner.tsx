@@ -249,6 +249,18 @@ export function CardScanner() {
     void navigate(-1);
   }, [navigate, stopCamera]);
 
+  // Esc closes the menu first, then the scanner — standard for a full-screen
+  // overlay. Keyboard parity is table stakes for a production surface.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "Escape") return;
+      if (tcgMenuOpen) setTcgMenuOpen(false);
+      else close();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [tcgMenuOpen, close]);
+
   // Match quality: is the top candidate a decisive win, or are we genuinely
   // torn between look-alikes/reprints? Drives whether we say "Best match" or
   // ask the user to confirm the exact printing.
@@ -259,6 +271,11 @@ export function CardScanner() {
     topConfidence >= LOCK &&
     (!second || topConfidence - second.confidence >= AMBIGUOUS_GAP);
   const ambiguous = !!top && !decisive;
+
+  // The viewfinder reticle belongs to the live camera. On desktop (no feed) it
+  // only makes sense while a frame is being read (the sweep animation) — never
+  // idle behind the dropzone or a result, where it just adds visual noise.
+  const showReticle = camState === "live" || (scanning && !top);
 
   return (
     <div
@@ -349,15 +366,17 @@ export function CardScanner() {
         />
       )}
 
-      {/* Reticle */}
-      <div className={styles.reticleWrap} aria-hidden>
-        <div className={cx(styles.reticle, locked && styles.reticleLocked)}>
-          {(["tl", "tr", "bl", "br"] as const).map((c) => (
-            <span key={c} className={cx(styles.corner, styles[`corner_${c}`])} />
-          ))}
-          {scanning && !locked && <span className={styles.sweep} />}
+      {/* Reticle — live viewfinder, or the desktop "reading a frame" sweep. */}
+      {showReticle && (
+        <div className={styles.reticleWrap} aria-hidden>
+          <div className={cx(styles.reticle, locked && styles.reticleLocked)}>
+            {(["tl", "tr", "bl", "br"] as const).map((c) => (
+              <span key={c} className={cx(styles.corner, styles[`corner_${c}`])} />
+            ))}
+            {scanning && !locked && <span className={styles.sweep} />}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Permission / upload entry — only when idle (no result, not mid-scan,
           no recent miss) so it never competes with live feedback. */}
@@ -449,13 +468,15 @@ export function CardScanner() {
         </div>
       )}
 
-      {/* Results — prominent top match with real card art, then alternates. */}
+      {/* Results — prominent top match with real card art, then alternates.
+          Live = a bottom sheet over the camera; desktop = a centered, framed
+          panel (a full-bleed sheet reads as unfinished on a wide screen). */}
       {candidates[0] && (
         <section
           className={cx(
             styles.sheet,
             styles.sheetOpen,
-            camState === "live" && styles.sheetAboveControls,
+            camState === "live" ? styles.sheetAboveControls : styles.sheetCentered,
           )}
         >
           <div className={styles.sheetHead}>
