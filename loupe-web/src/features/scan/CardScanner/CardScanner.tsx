@@ -15,7 +15,7 @@ import {
   Smartphone,
   X,
 } from "lucide-react";
-import { useScanLoop, type ScanCandidate } from "@loupe/core";
+import { api, useScanLoop, type ScanCandidate } from "@loupe/core";
 import { Button, CardThumb } from "@/components";
 import { cx } from "@/lib/cx";
 import { isMobileDevice } from "@/lib/device";
@@ -67,6 +67,19 @@ const GAME_LABELS: Record<string, string> = {
 };
 const gameLabel = (tcg?: string) => (tcg ? (GAME_LABELS[tcg] ?? tcg) : null);
 
+/** One entry in the batch tray. The captured photo shows immediately as a
+ *  placeholder; once identify resolves it flips to the matched card (or a
+ *  no-match state you can retake). */
+interface TrayEntry {
+  localId: string;
+  photo: string; // object URL of the frame we captured
+  status: "identifying" | "matched" | "nomatch";
+  card: ScanCandidate | null;
+}
+
+let _traySeq = 0;
+const nextTrayId = () => `t${Date.now().toString(36)}${(_traySeq++).toString(36)}`;
+
 /**
  * In-browser card scanner. Streams the rear camera (when available) and POSTs
  * a downscaled frame to `/v1/cards/identify` on a debounced loop, exactly like
@@ -86,11 +99,12 @@ export function CardScanner() {
   const [tcg, setTcg] = useState<string>(""); // "" = all games
   const [tcgMenuOpen, setTcgMenuOpen] = useState(false);
   const [recents, setRecents] = useState<ScanCandidate[]>([]);
-  // Batch scan session — cards captured this run, like the mobile app's bottom
-  // tray. You scan card after card; each locked match drops in here to add or
-  // remove, without leaving the viewfinder.
-  const [session, setSession] = useState<ScanCandidate[]>([]);
+  // Batch scan session — like the mobile app's bottom tray. Each capture drops
+  // in instantly as the photo you took, then resolves in place to the matched
+  // card. Scan a stack; add or remove without leaving the viewfinder.
+  const [session, setSession] = useState<TrayEntry[]>([]);
   const [justAdded, setJustAdded] = useState<string | null>(null);
+  const photoUrls = useRef<Set<string>>(new Set()); // for objectURL cleanup
   const [dragOver, setDragOver] = useState(false);
   const dragDepth = useRef(0); // enter/leave fire per-child; count to avoid flicker
   // Adaptive reticle — the corner brackets glide to the detected card.
@@ -199,30 +213,78 @@ export function CardScanner() {
     lockConfidence: LOCK,
   });
 
-  const addToSession = useCallback((c: ScanCandidate) => {
-    setSession((prev) => (prev.some((x) => x.id === c.id) ? prev : [c, ...prev]));
-    setJustAdded(c.id);
+  const dropPhoto = useCallback((url?: string) => {
+    if (url && photoUrls.current.has(url)) {
+      URL.revokeObjectURL(url);
+      photoUrls.current.delete(url);
+    }
   }, []);
+
   const removeFromSession = useCallback(
-    (id: string) => setSession((prev) => prev.filter((c) => c.id !== id)),
-    [],
+    (localId: string) =>
+      setSession((prev) => {
+        const gone = prev.find((e) => e.localId === localId);
+        dropPhoto(gone?.photo);
+        return prev.filter((e) => e.localId !== localId);
+      }),
+    [dropPhoto],
   );
 
-  // Once a card locks: on the live camera it drops into the batch tray (scan the
-  // next card without leaving); on desktop/upload it feeds the recents strip.
+  const clearSession = useCallback(() => {
+    setSession((prev) => {
+      prev.forEach((e) => dropPhoto(e.photo));
+      return [];
+    });
+  }, [dropPhoto]);
+
+  // A capture: show the photo you just took in the tray immediately, then
+  // resolve it in place to the identified card (or a no-match you can retake).
+  const captureToTray = useCallback(
+    async (blob: Blob) => {
+      const localId = nextTrayId();
+      const photo = URL.createObjectURL(blob);
+      photoUrls.current.add(photo);
+      setSession((prev) => [{ localId, photo, status: "identifying", card: null }, ...prev]);
+      try {
+        const res = await api.cards.identify(blob, tcg || undefined);
+        const card = res.candidates[0] ?? null;
+        setSession((prev) => {
+          // Already have this exact card as a resolved match? Drop the dupe.
+          if (
+            card &&
+            prev.some(
+              (e) => e.localId !== localId && e.card?.id === card.id && e.status === "matched",
+            )
+          ) {
+            dropPhoto(photo);
+            return prev.filter((e) => e.localId !== localId);
+          }
+          return prev.map((e) =>
+            e.localId === localId
+              ? { ...e, status: card ? "matched" : "nomatch", card }
+              : e,
+          );
+        });
+        if (card) setJustAdded(localId);
+      } catch {
+        setSession((prev) =>
+          prev.map((e) => (e.localId === localId ? { ...e, status: "nomatch" } : e)),
+        );
+      }
+    },
+    [tcg, dropPhoto],
+  );
+
+  // Desktop/upload path still feeds the recents strip on a lock.
   useEffect(() => {
-    if (!locked || !candidates[0]) return;
+    if (!locked || !candidates[0] || camState === "live") return;
     const top = candidates[0];
-    if (camState === "live") {
-      addToSession(top);
-    } else {
-      setRecents((prev) =>
-        prev[0]?.id === top.id
-          ? prev
-          : [top, ...prev.filter((c) => c.id !== top.id)].slice(0, MAX_RECENTS),
-      );
-    }
-  }, [locked, candidates, camState, addToSession]);
+    setRecents((prev) =>
+      prev[0]?.id === top.id
+        ? prev
+        : [top, ...prev.filter((c) => c.id !== top.id)].slice(0, MAX_RECENTS),
+    );
+  }, [locked, candidates, camState]);
 
   // Clear the "just added" pulse shortly after it fires.
   useEffect(() => {
@@ -231,13 +293,26 @@ export function CardScanner() {
     return () => clearTimeout(t);
   }, [justAdded]);
 
+  // Revoke any outstanding object URLs when the scanner unmounts.
+  useEffect(() => {
+    const urls = photoUrls.current;
+    return () => {
+      urls.forEach((u) => URL.revokeObjectURL(u));
+      urls.clear();
+    };
+  }, []);
+
   const onFile = useCallback(
     async (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0];
       e.target.value = ""; // allow re-picking the same file
-      if (file) await identifyBlob(file, true); // manual — never dropped
+      if (!file) return;
+      // On the live camera an upload joins the batch tray (photo → match); on
+      // desktop it drives the single centered result panel.
+      if (camState === "live") await captureToTray(file);
+      else await identifyBlob(file, true);
     },
-    [identifyBlob],
+    [camState, captureToTray, identifyBlob],
   );
 
   // ── Desktop-native ways to hand us a photo: drag a card image anywhere onto
@@ -280,12 +355,12 @@ export function CardScanner() {
     return () => window.removeEventListener("paste", onPaste);
   }, [identifyBlob]);
 
-  // Manual shutter — capture this exact frame now (Collectr-style), on top of
-  // the always-on live loop. Manual so the single-flight guard never drops it.
+  // Shutter — snap the current frame into the tray as a photo, then let it
+  // resolve to the matched card in place.
   const onShutter = useCallback(async () => {
     const blob = await captureBlob();
-    if (blob) await identifyBlob(blob, true);
-  }, [captureBlob, identifyBlob]);
+    if (blob) await captureToTray(blob);
+  }, [captureBlob, captureToTray]);
 
   const pick = useCallback(
     (c: ScanCandidate) => {
@@ -661,46 +736,92 @@ export function CardScanner() {
         </section>
       )}
 
-      {/* Batch scan tray (live) — every card you scan drops in here so you can
-          run through a stack, then add or remove without leaving the camera. */}
+      {/* Batch scan tray (live) — each capture lands as the photo you took,
+          then flips in place to the matched card. Scan a stack; add / remove. */}
       {camState === "live" && session.length > 0 && (
         <section className={styles.tray} aria-label={`${session.length} cards scanned`}>
           <div className={styles.trayHead}>
             <span className={styles.trayCount}>
-              <Layers size={13} /> {session.length} scanned
+              <Layers size={13} /> {session.filter((e) => e.status === "matched").length}/
+              {session.length} identified
             </span>
-            <button className={styles.trayClear} onClick={() => setSession([])}>
+            <button className={styles.trayClear} onClick={clearSession}>
               Clear
             </button>
           </div>
           <ul className={styles.trayRow}>
-            {session.map((c) => (
-              <li
-                key={c.id}
-                className={cx(styles.trayItem, justAdded === c.id && styles.trayItemNew)}
-              >
-                <button
-                  className={styles.trayThumb}
-                  onClick={() => pick(c)}
-                  aria-label={`View ${c.name}`}
+            {session.map((e) => {
+              const matched = e.status === "matched" && e.card;
+              const label = matched
+                ? e.card!.name
+                : e.status === "identifying"
+                  ? "Identifying…"
+                  : "No match";
+              return (
+                <li
+                  key={e.localId}
+                  className={cx(
+                    styles.trayItem,
+                    justAdded === e.localId && styles.trayItemNew,
+                  )}
                 >
-                  <CardThumb
-                    src={candidateArt(c)}
-                    alt={c.name}
-                    size="lg"
-                    className={styles.fillThumb}
-                  />
-                </button>
-                <button
-                  className={styles.trayRemove}
-                  onClick={() => removeFromSession(c.id)}
-                  aria-label={`Remove ${c.name}`}
-                >
-                  <X size={12} />
-                </button>
-                <span className={styles.trayName}>{c.name}</span>
-              </li>
-            ))}
+                  <button
+                    className={styles.trayThumb}
+                    onClick={() => e.card && pick(e.card)}
+                    disabled={!e.card}
+                    aria-label={matched ? `View ${e.card!.name}` : label}
+                  >
+                    <span className={styles.trayArt}>
+                      {matched ? (
+                        <CardThumb
+                          src={candidateArt(e.card!)}
+                          alt={e.card!.name}
+                          size="lg"
+                          className={styles.fillThumb}
+                        />
+                      ) : (
+                        <img
+                          src={e.photo}
+                          alt=""
+                          className={cx(
+                            styles.trayPhoto,
+                            e.status === "nomatch" && styles.trayPhotoDim,
+                          )}
+                        />
+                      )}
+                      {e.status === "identifying" && (
+                        <span className={styles.trayScan} aria-hidden />
+                      )}
+                      {e.status === "nomatch" && (
+                        <span className={styles.trayNoMatch} aria-hidden>
+                          ?
+                        </span>
+                      )}
+                      {matched && (
+                        <span className={styles.trayCheck} aria-hidden>
+                          <Check size={11} />
+                        </span>
+                      )}
+                    </span>
+                  </button>
+                  <button
+                    className={styles.trayRemove}
+                    onClick={() => removeFromSession(e.localId)}
+                    aria-label={`Remove ${label}`}
+                  >
+                    <X size={12} />
+                  </button>
+                  <span
+                    className={cx(
+                      styles.trayName,
+                      e.status !== "matched" && styles.trayNameMuted,
+                    )}
+                  >
+                    {label}
+                  </span>
+                </li>
+              );
+            })}
           </ul>
         </section>
       )}
