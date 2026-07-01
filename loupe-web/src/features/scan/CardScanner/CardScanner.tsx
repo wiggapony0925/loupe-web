@@ -20,6 +20,7 @@ import { Button, CardThumb } from "@/components";
 import { cx } from "@/lib/cx";
 import { isMobileDevice } from "@/lib/device";
 import { candidateArt } from "../candidateArt";
+import { detectCardRect, lerpRect, type DetectRect } from "./cardDetect";
 import styles from "./CardScanner.module.scss";
 
 type CamState =
@@ -92,6 +93,9 @@ export function CardScanner() {
   const [justAdded, setJustAdded] = useState<string | null>(null);
   const [dragOver, setDragOver] = useState(false);
   const dragDepth = useRef(0); // enter/leave fire per-child; count to avoid flicker
+  // Adaptive reticle — the corner brackets glide to the detected card.
+  const [reticleRect, setReticleRect] = useState<DetectRect | null>(null);
+  const detectCanvasRef = useRef<HTMLCanvasElement | null>(null);
 
   const stopCamera = useCallback(() => {
     streamRef.current?.getTracks().forEach((t) => t.stop());
@@ -130,6 +134,43 @@ export function CardScanner() {
     void startCamera();
     return () => stopCamera();
   }, [startCamera, stopCamera]);
+
+  // Adaptive reticle loop — while the camera is live, look for the card in each
+  // frame and glide the corner brackets to it. Best effort: after a few misses
+  // we release back to the centred frame so it never sticks to nothing.
+  useEffect(() => {
+    if (camState !== "live") {
+      setReticleRect(null);
+      return;
+    }
+    if (!detectCanvasRef.current) detectCanvasRef.current = document.createElement("canvas");
+    const ctx = detectCanvasRef.current.getContext("2d", { willReadFrequently: true });
+    let timer: ReturnType<typeof setTimeout>;
+    let active = true;
+    let current: DetectRect | null = null;
+    let misses = 0;
+    const tick = () => {
+      if (!active) return;
+      const video = videoRef.current;
+      if (video && ctx && video.videoWidth) {
+        const found = detectCardRect(video, ctx, window.innerWidth, window.innerHeight);
+        if (found) {
+          misses = 0;
+          current = current ? lerpRect(current, found, 0.5) : found;
+          setReticleRect(current);
+        } else if (++misses >= 5) {
+          current = null;
+          setReticleRect(null);
+        }
+      }
+      timer = setTimeout(tick, 170);
+    };
+    timer = setTimeout(tick, 400);
+    return () => {
+      active = false;
+      clearTimeout(timer);
+    };
+  }, [camState]);
 
   /** Draw the current video frame to a downscaled JPEG blob. */
   const captureBlob = useCallback(async (): Promise<Blob | null> => {
@@ -403,10 +444,27 @@ export function CardScanner() {
         />
       )}
 
-      {/* Reticle — live viewfinder, or the desktop "reading a frame" sweep. */}
+      {/* Reticle — live viewfinder, or the desktop "reading a frame" sweep.
+          When the detector finds the card, the frame glides to its bounds. */}
       {showReticle && (
         <div className={styles.reticleWrap} aria-hidden>
-          <div className={cx(styles.reticle, locked && styles.reticleLocked)}>
+          <div
+            className={cx(
+              styles.reticle,
+              locked && styles.reticleLocked,
+              reticleRect && styles.reticleTracking,
+            )}
+            style={
+              reticleRect
+                ? {
+                    left: `${reticleRect.left * 100}%`,
+                    top: `${reticleRect.top * 100}%`,
+                    width: `${reticleRect.width * 100}%`,
+                    height: `${reticleRect.height * 100}%`,
+                  }
+                : undefined
+            }
+          >
             {(["tl", "tr", "bl", "br"] as const).map((c) => (
               <span key={c} className={cx(styles.corner, styles[`corner_${c}`])} />
             ))}
