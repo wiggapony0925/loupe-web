@@ -2,13 +2,16 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   ArrowRight,
-  Camera,
   Check,
   ChevronDown,
+  Clipboard,
   ImageUp,
   Loader2,
+  MousePointerClick,
+  RotateCcw,
   ScanLine,
   ScanSearch,
+  Smartphone,
   X,
 } from "lucide-react";
 import { useScanLoop, type ScanCandidate } from "@loupe/core";
@@ -28,6 +31,14 @@ type CamState =
 
 /** Confidence at which we treat the top candidate as a confident lock. */
 const LOCK = 0.6;
+/**
+ * Minimum confidence gap between the top match and the runner-up for us to
+ * call it decisively. When two candidates sit within this margin (a reprint
+ * tie, a look-alike), we don't silently commit — we ask the user to confirm
+ * the exact printing. That's how you get to "always the right card": be
+ * decisive when the signal is decisive, ask when it genuinely isn't.
+ */
+const AMBIGUOUS_GAP = 0.12;
 /** Gap between live identify frames (ms). Mirrors the mobile cadence. */
 const FRAME_INTERVAL = 900;
 /** Long edge we downscale captured frames to before upload. */
@@ -62,6 +73,8 @@ export function CardScanner() {
   const [tcg, setTcg] = useState<string>(""); // "" = all games
   const [tcgMenuOpen, setTcgMenuOpen] = useState(false);
   const [recents, setRecents] = useState<ScanCandidate[]>([]);
+  const [dragOver, setDragOver] = useState(false);
+  const dragDepth = useRef(0); // enter/leave fire per-child; count to avoid flicker
 
   const stopCamera = useCallback(() => {
     streamRef.current?.getTracks().forEach((t) => t.stop());
@@ -149,6 +162,46 @@ export function CardScanner() {
     [identifyBlob],
   );
 
+  // ── Desktop-native ways to hand us a photo: drag a card image anywhere onto
+  // the surface, or just paste one from the clipboard (⌘/Ctrl+V). Both feed the
+  // same identify path as the file picker — no clicking through a dialog.
+  const onDragOver = useCallback((e: React.DragEvent) => {
+    if (e.dataTransfer.types.includes("Files")) e.preventDefault();
+  }, []);
+  const onDragEnter = useCallback((e: React.DragEvent) => {
+    if (!e.dataTransfer.types.includes("Files")) return;
+    dragDepth.current += 1;
+    setDragOver(true);
+  }, []);
+  const onDragLeave = useCallback(() => {
+    dragDepth.current = Math.max(0, dragDepth.current - 1);
+    if (dragDepth.current === 0) setDragOver(false);
+  }, []);
+  const onDrop = useCallback(
+    async (e: React.DragEvent) => {
+      e.preventDefault();
+      dragDepth.current = 0;
+      setDragOver(false);
+      const file = Array.from(e.dataTransfer.files).find((f) =>
+        f.type.startsWith("image/"),
+      );
+      if (file) await identifyBlob(file, true);
+    },
+    [identifyBlob],
+  );
+
+  useEffect(() => {
+    const onPaste = (e: ClipboardEvent) => {
+      const item = Array.from(e.clipboardData?.items ?? []).find((i) =>
+        i.type.startsWith("image/"),
+      );
+      const file = item?.getAsFile();
+      if (file) void identifyBlob(file, true);
+    };
+    window.addEventListener("paste", onPaste);
+    return () => window.removeEventListener("paste", onPaste);
+  }, [identifyBlob]);
+
   // Manual shutter — capture this exact frame now (Collectr-style), on top of
   // the always-on live loop. Manual so the single-flight guard never drops it.
   const onShutter = useCallback(async () => {
@@ -196,13 +249,41 @@ export function CardScanner() {
     void navigate(-1);
   }, [navigate, stopCamera]);
 
+  // Match quality: is the top candidate a decisive win, or are we genuinely
+  // torn between look-alikes/reprints? Drives whether we say "Best match" or
+  // ask the user to confirm the exact printing.
+  const top = candidates[0];
+  const second = candidates[1];
+  const decisive =
+    !!top &&
+    topConfidence >= LOCK &&
+    (!second || topConfidence - second.confidence >= AMBIGUOUS_GAP);
+  const ambiguous = !!top && !decisive;
+
   return (
-    <div className={styles.scan}>
+    <div
+      className={styles.scan}
+      onDragOver={onDragOver}
+      onDragEnter={onDragEnter}
+      onDragLeave={onDragLeave}
+      onDrop={onDrop}
+    >
       <video ref={videoRef} className={styles.video} autoPlay playsInline muted />
       <canvas ref={canvasRef} className={styles.canvas} aria-hidden />
 
       {/* When there's no live feed, a calm branded backdrop sits behind the UI. */}
       {camState !== "live" && <div className={styles.backdrop} aria-hidden />}
+
+      {/* Drag-a-photo overlay — the whole surface is a dropzone on desktop. */}
+      {dragOver && (
+        <div className={styles.dropOverlay} aria-hidden>
+          <div className={styles.dropInner}>
+            <ImageUp size={40} />
+            <p className={styles.dropTitle}>Drop to identify</p>
+            <p className={styles.dropSub}>Release the card photo anywhere</p>
+          </div>
+        </div>
+      )}
 
       {/* Top bar */}
       <header className={styles.top}>
@@ -287,22 +368,55 @@ export function CardScanner() {
         !scanning &&
         !noMatch && (
           <div className={styles.permission}>
-            <Camera size={28} />
-            <p className={styles.permissionTitle}>
-              {camState === "desktop"
-                ? "Camera scanning works best on your phone"
-                : camState === "unsupported"
-                  ? "This browser can’t open the camera"
-                  : "Camera access is off"}
-            </p>
+            {/* A big, framed dropzone — click, drag, or paste. On desktop this
+                is the primary flow (a laptop's front camera can't scan a card),
+                so it earns the spotlight instead of hiding behind a dialog. */}
+            <button
+              type="button"
+              className={cx(styles.dropzone, dragOver && styles.dropzoneActive)}
+              onClick={() => fileRef.current?.click()}
+              aria-label="Upload a card photo"
+            >
+              <span className={styles.dropzoneReticle} aria-hidden>
+                {(["tl", "tr", "bl", "br"] as const).map((c) => (
+                  <span key={c} className={cx(styles.corner, styles[`corner_${c}`])} />
+                ))}
+                <ScanSearch size={30} className={styles.dropzoneIcon} />
+              </span>
+              <span className={styles.dropzoneTitle}>
+                {camState === "desktop"
+                  ? "Drop a card photo to identify"
+                  : camState === "unsupported"
+                    ? "This browser can’t open the camera"
+                    : "Camera access is off"}
+              </span>
+              <span className={styles.dropzoneSub}>
+                Drag &amp; drop, paste from your clipboard, or click to browse —
+                same instant identification as the live camera.
+              </span>
+              <span className={styles.dropzoneChips}>
+                <span className={styles.chip}>
+                  <ImageUp size={14} /> Browse
+                </span>
+                <span className={styles.chip}>
+                  <Clipboard size={14} /> Paste
+                  <kbd className={styles.kbd}>⌘V</kbd>
+                </span>
+                <span className={styles.chip}>
+                  <MousePointerClick size={14} /> Drag &amp; drop
+                </span>
+              </span>
+            </button>
             <p className={styles.permissionSub}>
-              {camState === "desktop"
-                ? "Open Loupe on your phone to scan live, or upload a clear photo of the card here — same instant identification."
-                : "Upload a clear photo of the card instead — same instant identification."}
+              {camState === "desktop" ? (
+                <>
+                  <Smartphone size={13} /> On your phone, Loupe scans live through
+                  the camera.
+                </>
+              ) : (
+                "Upload a clear photo of the card instead."
+              )}
             </p>
-            <Button leadingIcon={<ImageUp size={16} />} onClick={() => fileRef.current?.click()}>
-              Upload a photo
-            </Button>
             {camState === "denied" && (
               <Button variant="ghost" onClick={startCamera}>
                 Try the camera again
@@ -345,24 +459,31 @@ export function CardScanner() {
           )}
         >
           <div className={styles.sheetHead}>
-            <span className={styles.sheetTitle}>
-              {locked ? (
+            <span className={cx(styles.sheetTitle, ambiguous && styles.sheetTitleAsk)}>
+              {decisive ? (
                 <>
                   <Check size={15} /> Best match
                 </>
               ) : (
                 <>
-                  <ScanLine size={15} /> Possible matches
+                  <ScanLine size={15} /> Which one is it?
                 </>
               )}
             </span>
-            <span className={styles.confidence}>{Math.round(topConfidence * 100)}%</span>
+            {ambiguous && (
+              <span className={styles.askHint}>Confirm the exact printing</span>
+            )}
           </div>
 
-          {/* Hero card — big art so you can actually SEE the match. */}
-          <button className={styles.hero} onClick={() => pick(candidates[0]!)}>
+          {/* Hero card — big art + a confidence ring so the match reads at a
+              glance. Only shown as the definitive pick when it's decisive. */}
+          <button
+            className={cx(styles.hero, ambiguous && styles.heroAsk)}
+            onClick={() => pick(candidates[0]!)}
+          >
             <span className={styles.heroArt}>
               <CardThumb src={candidateArt(candidates[0])} alt={candidates[0].name} size="md" />
+              <ConfidenceRing value={topConfidence} tone={decisive ? "good" : "warn"} />
             </span>
             <span className={styles.heroBody}>
               <span className={styles.heroName}>{candidates[0].name}</span>
@@ -401,9 +522,14 @@ export function CardScanner() {
             </ul>
           )}
 
-          <button className={styles.gradeCta} onClick={() => gradeInPlayground(candidates[0]!)}>
-            <ScanSearch size={16} /> Grade in playground
-          </button>
+          <div className={styles.sheetActions}>
+            <button className={styles.scanAgain} onClick={reset}>
+              <RotateCcw size={15} /> Scan another
+            </button>
+            <button className={styles.gradeCta} onClick={() => gradeInPlayground(candidates[0]!)}>
+              <ScanSearch size={16} /> Grade in playground
+            </button>
+          </div>
         </section>
       )}
 
@@ -462,5 +588,32 @@ export function CardScanner() {
         onChange={onFile}
       />
     </div>
+  );
+}
+
+/**
+ * Circular match-confidence badge shown over the hero art. Reads at a glance:
+ * a filled mint ring for a decisive match, amber when we're asking the user to
+ * confirm. The number is the top-1 confidence as a percentage.
+ */
+function ConfidenceRing({ value, tone }: { value: number; tone: "good" | "warn" }) {
+  const pct = Math.max(0, Math.min(1, value));
+  const R = 15.5;
+  const circ = 2 * Math.PI * R;
+  return (
+    <span className={cx(styles.ring, tone === "warn" && styles.ringWarn)}>
+      <svg viewBox="0 0 40 40" className={styles.ringSvg} aria-hidden>
+        <circle className={styles.ringTrack} cx="20" cy="20" r={R} />
+        <circle
+          className={styles.ringFill}
+          cx="20"
+          cy="20"
+          r={R}
+          strokeDasharray={circ}
+          strokeDashoffset={circ * (1 - pct)}
+        />
+      </svg>
+      <span className={styles.ringPct}>{Math.round(pct * 100)}</span>
+    </span>
   );
 }

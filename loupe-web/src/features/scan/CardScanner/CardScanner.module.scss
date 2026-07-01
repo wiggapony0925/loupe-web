@@ -287,10 +287,151 @@ $hairline: rgba(255, 255, 255, 0.12);
 }
 
 .permissionSub {
-  max-width: 34ch;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 40ch;
   font-size: var(--text-sm);
-  color: rgba(255, 255, 255, 0.66);
-  margin-bottom: var(--space-sm);
+  color: rgba(255, 255, 255, 0.6);
+
+  svg {
+    color: rgba(255, 255, 255, 0.5);
+    flex-shrink: 0;
+  }
+}
+
+// ── Drag-anywhere overlay (desktop dropzone feedback) ──
+.dropOverlay {
+  position: absolute;
+  inset: 0;
+  z-index: 40;
+  display: grid;
+  place-items: center;
+  padding: var(--space-lg);
+  background: color-mix(in srgb, var(--accent-mint) 12%, rgba(5, 8, 10, 0.82));
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+}
+
+.dropInner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: clamp(28px, 5vw, 56px) clamp(36px, 8vw, 96px);
+  border-radius: 22px;
+  border: 2px dashed color-mix(in srgb, var(--accent-mint) 60%, transparent);
+  text-align: center;
+
+  svg {
+    color: var(--accent-mint);
+  }
+}
+
+.dropTitle {
+  font-size: var(--text-xl);
+  font-weight: 800;
+}
+
+.dropSub {
+  font-size: var(--text-sm);
+  color: rgba(255, 255, 255, 0.62);
+}
+
+// ── Premium dropzone (the desktop empty state) ──
+.dropzone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-sm);
+  width: min(92vw, 460px);
+  padding: clamp(24px, 4vw, 40px) clamp(20px, 4vw, 44px) clamp(20px, 3vw, 32px);
+  border-radius: 24px;
+  color: #fff;
+  text-align: center;
+  cursor: pointer;
+  background:
+    radial-gradient(120% 80% at 50% 0%, color-mix(in srgb, var(--accent-mint) 12%, transparent), transparent 68%),
+    rgba(255, 255, 255, 0.04);
+  border: 1.5px dashed rgba(255, 255, 255, 0.22);
+  transition:
+    border-color var(--dur-fast) var(--ease-out),
+    background var(--dur-fast) var(--ease-out),
+    transform var(--dur-fast) var(--ease-out);
+
+  &:hover {
+    border-color: color-mix(in srgb, var(--accent-mint) 55%, transparent);
+    background:
+      radial-gradient(120% 80% at 50% 0%, color-mix(in srgb, var(--accent-mint) 18%, transparent), transparent 68%),
+      rgba(255, 255, 255, 0.06);
+    transform: translateY(-2px);
+  }
+}
+
+.dropzoneActive {
+  border-color: var(--accent-mint);
+  border-style: solid;
+}
+
+.dropzoneReticle {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 104px;
+  height: 104px;
+  margin-bottom: 6px;
+}
+
+.dropzoneIcon {
+  color: var(--accent-mint);
+}
+
+.dropzoneTitle {
+  font-size: var(--text-xl);
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.dropzoneSub {
+  max-width: 40ch;
+  font-size: var(--text-sm);
+  color: rgba(255, 255, 255, 0.62);
+  line-height: 1.5;
+}
+
+.dropzoneChips {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin-top: var(--space-sm);
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 11px;
+  border-radius: var(--radius-pill);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.86);
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+
+  svg {
+    color: var(--accent-mint);
+  }
+}
+
+.kbd {
+  padding: 1px 5px;
+  border-radius: 5px;
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.14);
 }
 
 // ── Identifying / no-match feedback (centered over the frame) ──
@@ -386,6 +527,7 @@ $hairline: rgba(255, 255, 255, 0.12);
 }
 
 .heroArt {
+  position: relative;
   flex-shrink: 0;
   width: 84px;
   height: 118px;
@@ -454,6 +596,110 @@ $hairline: rgba(255, 255, 255, 0.12);
   font-weight: 800;
   color: var(--accent-mint);
   font-variant-numeric: tabular-nums;
+}
+
+// When we're not sure, the header asks the user to confirm rather than
+// asserting a match — amber, not mint.
+.sheetTitleAsk {
+  color: var(--accent-amber, #f4b740);
+
+  svg {
+    color: var(--accent-amber, #f4b740);
+  }
+}
+
+.askHint {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+// ── Confidence ring badge (over the hero art) ──
+.ring {
+  position: absolute;
+  right: 5px;
+  bottom: 5px;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: rgba(5, 8, 10, 0.82);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+}
+
+.ringSvg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.ringTrack {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.16);
+  stroke-width: 3.5;
+}
+
+.ringFill {
+  fill: none;
+  stroke: var(--accent-mint);
+  stroke-width: 3.5;
+  stroke-linecap: round;
+  transition: stroke-dashoffset var(--dur-med) var(--ease-out);
+}
+
+.ringWarn .ringFill {
+  stroke: var(--accent-amber, #f4b740);
+}
+
+.ringPct {
+  font-size: 11px;
+  font-weight: 800;
+  color: #fff;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+// Softer framing when we're asking (not asserting) — no confident mint border.
+.heroAsk {
+  border-color: color-mix(in srgb, var(--accent-amber, #f4b740) 40%, transparent);
+}
+
+// ── Result action row ──
+.sheetActions {
+  display: flex;
+  gap: 8px;
+}
+
+.scanAgain {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  flex-shrink: 0;
+  padding: 12px 16px;
+  border-radius: 14px;
+  font-size: var(--text-md);
+  font-weight: 700;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid $hairline;
+  cursor: pointer;
+  transition:
+    background var(--dur-fast) var(--ease-out),
+    transform var(--dur-fast) var(--ease-out);
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.13);
+    transform: translateY(-1px);
+  }
+  &:active {
+    transform: translateY(0);
+  }
 }
 
 .results {
@@ -545,7 +791,7 @@ $hairline: rgba(255, 255, 255, 0.12);
   align-items: center;
   justify-content: center;
   gap: 8px;
-  width: 100%;
+  flex: 1;
   padding: 12px;
   border-radius: 14px;
   font-size: var(--text-md);
