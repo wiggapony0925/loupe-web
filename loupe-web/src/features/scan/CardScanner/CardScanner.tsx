@@ -186,7 +186,10 @@ export function CardScanner() {
     };
   }, [camState]);
 
-  /** Draw the current video frame to a downscaled JPEG blob. */
+  /** Draw the current video frame to a downscaled JPEG blob. We send the whole
+   *  frame (not a crop): the catalog pHash is of the *entire* card image, so a
+   *  loose content-crop actually shifts the hash toward the wrong card. Proper
+   *  card-boundary cropping needs true corner detection + deskew (see notes). */
   const captureBlob = useCallback(async (): Promise<Blob | null> => {
     const video = videoRef.current;
     const canvas = canvasRef.current;
