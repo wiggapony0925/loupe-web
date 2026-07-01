@@ -54,6 +54,17 @@ const TCG_OPTIONS: { value: string; label: string }[] = [
   { value: "yugioh", label: "Yu-Gi-Oh!" },
 ];
 
+/** Pretty game names for the result chip. */
+const GAME_LABELS: Record<string, string> = {
+  pokemon: "Pokémon",
+  magic: "Magic",
+  yugioh: "Yu-Gi-Oh!",
+  onepiece: "One Piece",
+  digimon: "Digimon",
+  lorcana: "Lorcana",
+};
+const gameLabel = (tcg?: string) => (tcg ? (GAME_LABELS[tcg] ?? tcg) : null);
+
 /**
  * In-browser card scanner. Streams the rear camera (when available) and POSTs
  * a downscaled frame to `/v1/cards/identify` on a debounced loop, exactly like
@@ -479,6 +490,14 @@ export function CardScanner() {
             camState !== "live" && styles.sheetCentered,
           )}
         >
+          {/* Native bottom-sheet grabber (mobile) — tap to dismiss + rescan. */}
+          {camState === "live" && (
+            <button
+              className={styles.grabber}
+              onClick={reset}
+              aria-label="Dismiss and scan again"
+            />
+          )}
           <div className={styles.sheetHead}>
             <span className={cx(styles.sheetTitle, ambiguous && styles.sheetTitleAsk)}>
               {decisive ? (
@@ -518,9 +537,9 @@ export function CardScanner() {
                   .filter(Boolean)
                   .join(" · ") || "Tap to open the card"}
               </span>
-              <span className={styles.heroOpen}>
-                View card <ArrowRight size={14} />
-              </span>
+              {gameLabel(candidates[0].tcg) && (
+                <span className={styles.gameChip}>{gameLabel(candidates[0].tcg)}</span>
+              )}
             </span>
           </button>
 
@@ -553,12 +572,20 @@ export function CardScanner() {
             </ul>
           )}
 
+          {/* Action hierarchy (Collectr/Ludex-style): one prominent primary,
+              then quiet secondaries — not two equal-weight buttons. */}
+          <button className={styles.primaryCta} onClick={() => pick(candidates[0]!)}>
+            View card <ArrowRight size={17} />
+          </button>
           <div className={styles.sheetActions}>
-            <button className={styles.scanAgain} onClick={reset}>
-              <RotateCcw size={15} /> Scan another
+            <button
+              className={styles.secondaryBtn}
+              onClick={() => gradeInPlayground(candidates[0]!)}
+            >
+              <ScanSearch size={16} /> Grade
             </button>
-            <button className={styles.gradeCta} onClick={() => gradeInPlayground(candidates[0]!)}>
-              <ScanSearch size={16} /> Grade in playground
+            <button className={styles.secondaryBtn} onClick={reset}>
+              <RotateCcw size={16} /> Scan again
             </button>
           </div>
         </section>
