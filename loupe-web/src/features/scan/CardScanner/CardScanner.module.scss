@@ -564,11 +564,20 @@ $hairline: rgba(255, 255, 255, 0.12);
 .heroArt {
   position: relative;
   flex-shrink: 0;
-  width: 84px;
-  height: 118px;
-  border-radius: 9px;
-  overflow: hidden;
-  background: rgba(255, 255, 255, 0.08);
+  // Image-forward, like Collectr / Ludex: the card art is the hero. The inner
+  // CardThumb (size="lg") fills this width and brings its own 5/7 frame, so the
+  // art fits edge-to-edge instead of floating in an oversized box.
+  width: clamp(96px, 30vw, 116px);
+}
+
+// Card art fills its wrapper with no double-border; the wrapper defines size.
+// !important overrides the shared CardThumb's themed border/bg so it always
+// reads correctly on this fixed dark overlay (not tied to the app's theme).
+.fillThumb {
+  width: 100%;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: 0 6px 18px -6px rgba(0, 0, 0, 0.6);
 }
 
 .heroBody {
@@ -789,11 +798,7 @@ $hairline: rgba(255, 255, 255, 0.12);
 
 .resultThumb {
   flex-shrink: 0;
-  width: 42px;
-  height: 58px;
-  border-radius: 7px;
-  overflow: hidden;
-  background: rgba(255, 255, 255, 0.08);
+  width: 46px;
 }
 
 .resultBody {
@@ -996,19 +1001,15 @@ $hairline: rgba(255, 255, 255, 0.12);
 
 .recentItem {
   flex-shrink: 0;
-  width: 44px;
-  height: 62px;
-  border-radius: 7px;
-  overflow: hidden;
+  width: 46px;
   padding: 0;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid $hairline;
+  border: 0;
+  background: transparent;
   cursor: pointer;
   transition: transform var(--dur-fast) var(--ease-out);
 
   &:hover {
     transform: translateY(-2px);
-    border-color: color-mix(in srgb, var(--accent-mint) 50%, transparent);
   }
 }
 

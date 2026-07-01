@@ -503,7 +503,12 @@ export function CardScanner() {
             onClick={() => pick(candidates[0]!)}
           >
             <span className={styles.heroArt}>
-              <CardThumb src={candidateArt(candidates[0])} alt={candidates[0].name} size="md" />
+              <CardThumb
+                src={candidateArt(candidates[0])}
+                alt={candidates[0].name}
+                size="lg"
+                className={styles.fillThumb}
+              />
               <ConfidenceRing value={topConfidence} tone={decisive ? "good" : "warn"} />
             </span>
             <span className={styles.heroBody}>
@@ -526,7 +531,12 @@ export function CardScanner() {
                 <li key={c.id}>
                   <button className={styles.result} onClick={() => pick(c)}>
                     <span className={styles.resultThumb}>
-                      <CardThumb src={candidateArt(c)} alt={c.name} size="sm" />
+                      <CardThumb
+                        src={candidateArt(c)}
+                        alt={c.name}
+                        size="lg"
+                        className={styles.fillThumb}
+                      />
                     </span>
                     <span className={styles.resultBody}>
                       <span className={styles.resultName}>{c.name}</span>
@@ -567,7 +577,12 @@ export function CardScanner() {
                 title={c.name}
                 aria-label={`Reopen ${c.name}`}
               >
-                <CardThumb src={candidateArt(c)} alt={c.name} size="sm" />
+                <CardThumb
+                  src={candidateArt(c)}
+                  alt={c.name}
+                  size="lg"
+                  className={styles.fillThumb}
+                />
               </button>
             ))}
           </div>
