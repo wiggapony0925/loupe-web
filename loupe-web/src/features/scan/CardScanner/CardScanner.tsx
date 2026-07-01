@@ -272,10 +272,10 @@ export function CardScanner() {
     (!second || topConfidence - second.confidence >= AMBIGUOUS_GAP);
   const ambiguous = !!top && !decisive;
 
-  // The viewfinder reticle belongs to the live camera. On desktop (no feed) it
-  // only makes sense while a frame is being read (the sweep animation) — never
-  // idle behind the dropzone or a result, where it just adds visual noise.
-  const showReticle = camState === "live" || (scanning && !top);
+  // The viewfinder reticle belongs to framing a card — show it on the live
+  // camera or while a desktop frame is being read (the sweep), but never once a
+  // match is on screen or behind the idle dropzone, where it's just noise.
+  const showReticle = !top && (camState === "live" || scanning);
 
   return (
     <div
@@ -476,7 +476,7 @@ export function CardScanner() {
           className={cx(
             styles.sheet,
             styles.sheetOpen,
-            camState === "live" ? styles.sheetAboveControls : styles.sheetCentered,
+            camState !== "live" && styles.sheetCentered,
           )}
         >
           <div className={styles.sheetHead}>
@@ -574,8 +574,10 @@ export function CardScanner() {
         </div>
       )}
 
-      {/* Camera control bar — Collectr-style shutter + gallery. */}
-      {camState === "live" && (
+      {/* Camera control bar — Collectr-style shutter + gallery. Hidden once a
+          match is on screen so the result (and its "Scan another") owns the
+          bottom of the frame instead of competing with a live shutter. */}
+      {camState === "live" && candidates.length === 0 && (
         <div className={styles.controls}>
           <button
             className={styles.ctrlSide}
@@ -591,8 +593,12 @@ export function CardScanner() {
           >
             {scanning && <Loader2 size={24} className={styles.spin} />}
           </button>
-          <span className={styles.ctrlSide} aria-hidden />
-          {candidates.length === 0 && (
+          {/* Invisible spacer that balances the left button so the shutter
+              stays optically centered (must NOT inherit the button chrome). */}
+          <span className={styles.ctrlSpacer} aria-hidden />
+          {/* The coaching hint shares the strip's row — once there are recent
+              scans, let the strip own that space instead of overlapping. */}
+          {recents.length === 0 && (
             <span className={styles.controlsHint}>
               Hold a card in the frame — or tap to capture
             </span>

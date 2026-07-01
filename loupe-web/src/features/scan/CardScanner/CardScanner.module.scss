@@ -497,14 +497,10 @@ $hairline: rgba(255, 255, 255, 0.12);
   flex-direction: column;
   gap: var(--space-md);
   padding: var(--space-lg) 16px max(env(safe-area-inset-bottom), 18px);
+  padding-bottom: max(env(safe-area-inset-bottom), 22px);
   background: linear-gradient(180deg, transparent, $glass-strong 22%);
   -webkit-backdrop-filter: blur(8px);
   backdrop-filter: blur(8px);
-}
-
-// When the live control bar is shown, lift the result sheet above it.
-.sheetAboveControls {
-  bottom: 104px;
   animation: sheetUp var(--dur-med, 0.26s) var(--ease-out);
 }
 
@@ -714,6 +710,21 @@ $hairline: rgba(255, 255, 255, 0.12);
   gap: 8px;
 }
 
+// Narrow phones can't fit both labels side-by-side ("Grade in playground"
+// wraps mid-word), so stack them full-width — cleaner than a 2-line button.
+@media (max-width: 430px) {
+  .sheetActions {
+    flex-direction: column;
+  }
+
+  .scanAgain,
+  .gradeCta {
+    flex: none;
+    width: 100%;
+    white-space: nowrap;
+  }
+}
+
 .scanAgain {
   display: inline-flex;
   align-items: center;
@@ -901,6 +912,13 @@ $hairline: rgba(255, 255, 255, 0.12);
   -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
   cursor: pointer;
+}
+
+// Pure spacer opposite the upload button — keeps the shutter optically
+// centered without rendering a ghost circle.
+.ctrlSpacer {
+  width: 48px;
+  height: 48px;
 }
 
 .shutter {
