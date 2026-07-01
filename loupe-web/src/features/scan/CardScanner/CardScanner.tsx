@@ -10,15 +10,15 @@ import {
   Loader2,
   MousePointerClick,
   RotateCcw,
-  ScanLine,
   ScanSearch,
   Smartphone,
   X,
 } from "lucide-react";
-import { api, useScanLoop, type ScanCandidate } from "@loupe/core";
-import { Button, CardThumb } from "@/components";
+import { api, useScanLoop, usePriceHistory, type ScanCandidate } from "@loupe/core";
+import { Button, CardThumb, Delta, Sparkline } from "@/components";
 import { cx } from "@/lib/cx";
 import { isMobileDevice } from "@/lib/device";
+import { formatMoney } from "@/lib/format";
 import { candidateArt } from "../candidateArt";
 import { detectCardRect, lerpRect, type DetectRect } from "./cardDetect";
 import { ScanResultRow } from "./ScanResultRow";
@@ -96,6 +96,7 @@ export function CardScanner() {
   // card. Scan a stack; add or remove without leaving the viewfinder.
   const [session, setSession] = useState<TrayEntry[]>([]);
   const photoUrls = useRef<Set<string>>(new Set()); // for objectURL cleanup
+  const [showAlternates, setShowAlternates] = useState(false);
   const [dragOver, setDragOver] = useState(false);
   const dragDepth = useRef(0); // enter/leave fire per-child; count to avoid flicker
   // Adaptive reticle — the corner brackets glide to the detected card.
@@ -290,6 +291,9 @@ export function CardScanner() {
     };
   }, []);
 
+  // Collapse the alternates whenever a new result comes in.
+  useEffect(() => setShowAlternates(false), [candidates]);
+
   const onFile = useCallback(
     async (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0];
@@ -403,15 +407,20 @@ export function CardScanner() {
   }, [tcgMenuOpen, close]);
 
   // Match quality: is the top candidate a decisive win, or are we genuinely
-  // torn between look-alikes/reprints? Drives whether we say "Best match" or
-  // ask the user to confirm the exact printing.
+  // torn between look-alikes/reprints? Used to color the confidence badge.
   const top = candidates[0];
   const second = candidates[1];
   const decisive =
     !!top &&
     topConfidence >= LOCK &&
     (!second || topConfidence - second.confidence >= AMBIGUOUS_GAP);
-  const ambiguous = !!top && !decisive;
+
+  // Desktop/upload result: ONE suggestion, with its live price + 30-day trend.
+  // Other candidates hide behind a "not this card?" reveal (Collectr/Lens-style).
+  const { data: heroSeries } = usePriceHistory(top?.id ?? "", "30d");
+  const heroPrice = heroSeries?.points.length
+    ? heroSeries.points[heroSeries.points.length - 1]
+    : undefined;
 
   // The viewfinder reticle belongs to framing a card — show it on the live
   // camera or while a desktop frame is being read (the sweep), but never once a
@@ -629,55 +638,78 @@ export function CardScanner() {
       {/* Single-result panel — the desktop / upload path. On the live camera the
           batch tray (below) owns the result surface instead, so you can scan a
           stack of cards without a sheet interrupting each one. */}
-      {candidates[0] && camState !== "live" && (
+      {top && camState !== "live" && (
         <section className={cx(styles.sheet, styles.sheetOpen, styles.sheetCentered)}>
           <div className={styles.sheetHead}>
-            <span className={cx(styles.sheetTitle, ambiguous && styles.sheetTitleAsk)}>
-              {decisive ? (
-                <>
-                  <Check size={15} /> Best match
-                </>
-              ) : (
-                <>
-                  <ScanLine size={15} /> Which one is it?
-                </>
-              )}
+            <span className={cx(styles.sheetTitle, !decisive && styles.sheetTitleAsk)}>
+              <Check size={15} /> {decisive ? "Best match" : "Closest match"}
             </span>
-            {ambiguous && (
-              <span className={styles.askHint}>Confirm the exact printing</span>
-            )}
+            <span className={styles.confChip}>{Math.round(topConfidence * 100)}% match</span>
           </div>
 
-          {/* Hero card — big art + a confidence ring so the match reads at a
-              glance. Only shown as the definitive pick when it's decisive. */}
-          <button
-            className={cx(styles.hero, ambiguous && styles.heroAsk)}
-            onClick={() => pick(candidates[0]!)}
-          >
+          {/* ONE suggestion — big art + name + number + live price & 30-day trend. */}
+          <button className={styles.hero} onClick={() => pick(top)}>
             <span className={styles.heroArt}>
               <CardThumb
-                src={candidateArt(candidates[0])}
-                alt={candidates[0].name}
+                src={candidateArt(top)}
+                alt={top.name}
                 size="lg"
                 className={styles.fillThumb}
               />
               <ConfidenceRing value={topConfidence} tone={decisive ? "good" : "warn"} />
             </span>
             <span className={styles.heroBody}>
-              <span className={styles.heroName}>{candidates[0].name}</span>
+              <span className={styles.heroName}>{top.name}</span>
               <span className={styles.heroMeta}>
-                {[candidates[0].setName, candidates[0].number && `#${candidates[0].number}`]
+                {[top.setName, top.number && `#${top.number}`]
                   .filter(Boolean)
                   .join(" · ") || "Tap to open the card"}
               </span>
-              {gameLabel(candidates[0].tcg) && (
-                <span className={styles.gameChip}>{gameLabel(candidates[0].tcg)}</span>
+              {gameLabel(top.tcg) && (
+                <span className={styles.gameChip}>{gameLabel(top.tcg)}</span>
               )}
             </span>
           </button>
 
-          {/* Alternates — for reprint ties / lower-confidence matches. */}
-          {candidates.length > 1 && (
+          {/* Value line — price + 30-day sparkline + delta (Collectr/Ludex lead
+              with the card's value). */}
+          <div className={styles.valueRow}>
+            <span className={styles.valueAmount}>
+              {heroPrice != null ? formatMoney(heroPrice) : "—"}
+            </span>
+            {heroSeries && heroSeries.points.length > 1 && (
+              <>
+                <span className={styles.valueSpark}>
+                  <Sparkline data={heroSeries.points} width={96} height={32} />
+                </span>
+                <Delta percent={heroSeries.changePct} />
+              </>
+            )}
+          </div>
+
+          <button className={styles.primaryCta} onClick={() => pick(top)}>
+            View card <ArrowRight size={17} />
+          </button>
+          <div className={styles.sheetActions}>
+            <button
+              className={styles.secondaryBtn}
+              onClick={() => gradeInPlayground(top)}
+            >
+              <ScanSearch size={16} /> Grade
+            </button>
+            <button className={styles.secondaryBtn} onClick={reset}>
+              <RotateCcw size={16} /> Scan again
+            </button>
+          </div>
+
+          {/* Not the right card? Reveal the other candidates on demand — one
+              suggestion by default, alternatives one tap away. */}
+          {candidates.length > 1 && !showAlternates && (
+            <button className={styles.notThis} onClick={() => setShowAlternates(true)}>
+              Not this card?
+            </button>
+          )}
+          {showAlternates && candidates.length > 1 && (
             <ul className={styles.results}>
               {candidates.slice(1, 4).map((c) => (
                 <li key={c.id}>
@@ -697,30 +729,12 @@ export function CardScanner() {
                           "Tap to open"}
                       </span>
                     </span>
-                    <span className={styles.resultPct}>{Math.round(c.confidence * 100)}%</span>
                     <ArrowRight size={16} className={styles.resultArrow} />
                   </button>
                 </li>
               ))}
             </ul>
           )}
-
-          {/* Action hierarchy (Collectr/Ludex-style): one prominent primary,
-              then quiet secondaries — not two equal-weight buttons. */}
-          <button className={styles.primaryCta} onClick={() => pick(candidates[0]!)}>
-            View card <ArrowRight size={17} />
-          </button>
-          <div className={styles.sheetActions}>
-            <button
-              className={styles.secondaryBtn}
-              onClick={() => gradeInPlayground(candidates[0]!)}
-            >
-              <ScanSearch size={16} /> Grade
-            </button>
-            <button className={styles.secondaryBtn} onClick={reset}>
-              <RotateCcw size={16} /> Scan again
-            </button>
-          </div>
         </section>
       )}
 
