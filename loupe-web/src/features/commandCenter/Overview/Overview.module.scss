@@ -31,12 +31,17 @@
 
 .latest {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-lg);
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: var(--space-md);
   padding-top: var(--space-lg);
   border-top: 1px solid var(--line);
+}
+
+.latestHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
 }
 
 .latestText {
@@ -56,47 +61,76 @@
   color: var(--ink-dim);
 }
 
-/* Overlapping card-art stack, like the reference's avatar row. */
+// A vertical list of the canonical live sparkline rows (reused from the vault).
 .stack {
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  gap: 2px;
 }
 
-.stackItem {
-  width: 38px;
-  margin-left: -10px;
-  border-radius: var(--radius-sm);
-  box-shadow: 0 0 0 2px var(--bg-elevated);
-  transition: transform var(--dur-fast) var(--ease-out);
-
-  &:first-child {
-    margin-left: 0;
-  }
+// "Scan" pill in the header — jumps to the same scanner.
+.scanCta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  padding: 7px 13px;
+  border-radius: var(--radius-pill);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: var(--accent-mint);
+  background: color-mix(in srgb, var(--accent-mint) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent-mint) 32%, transparent);
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-out);
 
   &:hover {
-    transform: translateY(-3px);
-    z-index: 1;
+    background: color-mix(in srgb, var(--accent-mint) 20%, transparent);
   }
 }
 
 .viewAll {
-  display: grid;
-  place-items: center;
-  width: 38px;
-  height: 53px;
-  margin-left: 8px;
-  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  align-self: center;
+  padding: 8px 14px;
+  border-radius: var(--radius-pill);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--ink-dim);
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  transition: color var(--dur-fast) var(--ease-out);
+
+  &:hover {
+    color: var(--accent-mint);
+  }
+}
+
+// Empty state — no scans yet.
+.emptyScan {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 14px;
+  margin-top: var(--space-md);
   border-radius: var(--radius-md);
   border: 1px dashed var(--line-strong);
-  color: var(--ink-dim);
+  font-size: var(--text-md);
+  font-weight: 700;
+  color: var(--accent-mint);
   background: var(--bg-elevated);
+  cursor: pointer;
   transition:
-    color var(--dur-fast) var(--ease-out),
     border-color var(--dur-fast) var(--ease-out),
     background-color var(--dur-fast) var(--ease-out);
 
   &:hover {
-    color: var(--accent-mint);
     border-color: var(--accent-mint);
     background: var(--bg-sunken);
   }

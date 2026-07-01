@@ -14,6 +14,10 @@ import styles from "./LiveSparkRow.module.scss";
  */
 export function LiveSparkRow({ card, onClick }: { card: CardSummary; onClick?: () => void }) {
   const { data: series, isLoading } = usePriceHistory(card.id);
+  // Fall back to the latest series point when the card carries no price (e.g.
+  // a scan row) so the amount isn't a bare dash under a live sparkline.
+  const price =
+    card.price ?? (series?.points.length ? series.points[series.points.length - 1] : undefined);
 
   return (
     <button type="button" className={styles.row} onClick={onClick}>
@@ -36,7 +40,7 @@ export function LiveSparkRow({ card, onClick }: { card: CardSummary; onClick?: (
       </div>
 
       <div className={styles.price}>
-        <span className={styles.amount}>{card.price ? formatMoney(card.price) : "—"}</span>
+        <span className={styles.amount}>{price != null ? formatMoney(price) : "—"}</span>
         {series && <Delta percent={series.changePct} />}
       </div>
     </button>

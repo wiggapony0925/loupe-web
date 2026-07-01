@@ -1,15 +1,29 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, Layers, Wallet } from "lucide-react";
+import { ArrowRight, Layers, ScanLine, Wallet } from "lucide-react";
 import {
   useAnalyticsOverview,
   useHomeFeed,
   usePortfolioHistory,
+  type CardSummary,
+  type RecentScanRow,
 } from "@loupe/core";
-import { Panel, MetricCard, SegmentedControl, CardThumb } from "@/components";
+import { Panel, MetricCard, SegmentedControl, LiveSparkRow } from "@/components";
 import type { RangeKey } from "@/components/MarketChart/MarketChart";
 import { formatMoney, formatSignedMoney } from "@/lib/format";
 import styles from "./Overview.module.scss";
+
+/** A recent scan → the CardSummary the canonical sparkline row consumes. */
+const toCardSummary = (r: RecentScanRow): CardSummary => ({
+  id: r.cardId ?? "",
+  name: r.cardName ?? "Card",
+  setName: r.cardSetName ?? "",
+  imageUrl: r.cardImageUrl ?? "",
+  price:
+    r.estimatedValueUsd != null
+      ? { amount: r.estimatedValueUsd, currency: "USD" }
+      : undefined,
+});
 
 const RANGES: { value: RangeKey; label: string }[] = [
   { value: "1W", label: "1W" },
@@ -89,42 +103,50 @@ export function Overview() {
         />
       </div>
 
-      {recent.length > 0 && (
+      {recent.length > 0 ? (
         <div className={styles.latest}>
-          <div className={styles.latestText}>
-            <span className={styles.latestTitle}>Latest additions</span>
-            <span className={styles.latestSub}>
-              Your {recent.length} most recent scans.
-            </span>
-          </div>
-          <div className={styles.stack}>
-            {recent.slice(0, 6).map((c) => (
-              <button
-                key={c.gradeId}
-                type="button"
-                className={styles.stackItem}
-                title={c.cardName ?? "Card"}
-                onClick={() =>
-                  c.cardId && navigate(`/cards/${encodeURIComponent(c.cardId)}`)
-                }
-              >
-                <CardThumb
-                  src={c.cardImageUrl ?? ""}
-                  alt={c.cardName ?? "Card"}
-                  size="sm"
-                />
-              </button>
-            ))}
+          <div className={styles.latestHead}>
+            <div className={styles.latestText}>
+              <span className={styles.latestTitle}>Latest scans</span>
+              <span className={styles.latestSub}>
+                Your {recent.length} most recent — live price + trend.
+              </span>
+            </div>
             <button
               type="button"
-              className={styles.viewAll}
-              aria-label="View all cards in your vault"
-              onClick={() => navigate("/app/vault")}
+              className={styles.scanCta}
+              onClick={() => navigate("/scan")}
             >
-              <ArrowRight size={16} />
+              <ScanLine size={15} /> Scan
             </button>
           </div>
+          <div className={styles.stack}>
+            {recent.slice(0, 5).map((r) => (
+              <LiveSparkRow
+                key={r.gradeId}
+                card={toCardSummary(r)}
+                onClick={() =>
+                  r.cardId && navigate(`/cards/${encodeURIComponent(r.cardId)}`)
+                }
+              />
+            ))}
+          </div>
+          <button
+            type="button"
+            className={styles.viewAll}
+            onClick={() => navigate("/app/vault")}
+          >
+            View all in vault <ArrowRight size={15} />
+          </button>
         </div>
+      ) : (
+        <button
+          type="button"
+          className={styles.emptyScan}
+          onClick={() => navigate("/scan")}
+        >
+          <ScanLine size={18} /> Scan a card to begin
+        </button>
       )}
     </Panel>
   );
