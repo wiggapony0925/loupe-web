@@ -6,6 +6,7 @@ import {
   ChevronDown,
   Clipboard,
   ImageUp,
+  Layers,
   Loader2,
   MousePointerClick,
   RotateCcw,
@@ -84,6 +85,11 @@ export function CardScanner() {
   const [tcg, setTcg] = useState<string>(""); // "" = all games
   const [tcgMenuOpen, setTcgMenuOpen] = useState(false);
   const [recents, setRecents] = useState<ScanCandidate[]>([]);
+  // Batch scan session — cards captured this run, like the mobile app's bottom
+  // tray. You scan card after card; each locked match drops in here to add or
+  // remove, without leaving the viewfinder.
+  const [session, setSession] = useState<ScanCandidate[]>([]);
+  const [justAdded, setJustAdded] = useState<string | null>(null);
   const [dragOver, setDragOver] = useState(false);
   const dragDepth = useRef(0); // enter/leave fire per-child; count to avoid flicker
 
@@ -152,17 +158,37 @@ export function CardScanner() {
     lockConfidence: LOCK,
   });
 
-  // Keep a strip of recently-identified cards (Collectr-style). Push the top
-  // candidate once it locks; de-dupe by id, newest first.
+  const addToSession = useCallback((c: ScanCandidate) => {
+    setSession((prev) => (prev.some((x) => x.id === c.id) ? prev : [c, ...prev]));
+    setJustAdded(c.id);
+  }, []);
+  const removeFromSession = useCallback(
+    (id: string) => setSession((prev) => prev.filter((c) => c.id !== id)),
+    [],
+  );
+
+  // Once a card locks: on the live camera it drops into the batch tray (scan the
+  // next card without leaving); on desktop/upload it feeds the recents strip.
   useEffect(() => {
     if (!locked || !candidates[0]) return;
     const top = candidates[0];
-    setRecents((prev) =>
-      prev[0]?.id === top.id
-        ? prev
-        : [top, ...prev.filter((c) => c.id !== top.id)].slice(0, MAX_RECENTS),
-    );
-  }, [locked, candidates]);
+    if (camState === "live") {
+      addToSession(top);
+    } else {
+      setRecents((prev) =>
+        prev[0]?.id === top.id
+          ? prev
+          : [top, ...prev.filter((c) => c.id !== top.id)].slice(0, MAX_RECENTS),
+      );
+    }
+  }, [locked, candidates, camState, addToSession]);
+
+  // Clear the "just added" pulse shortly after it fires.
+  useEffect(() => {
+    if (!justAdded) return;
+    const t = setTimeout(() => setJustAdded(null), 900);
+    return () => clearTimeout(t);
+  }, [justAdded]);
 
   const onFile = useCallback(
     async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -479,25 +505,11 @@ export function CardScanner() {
         </div>
       )}
 
-      {/* Results — prominent top match with real card art, then alternates.
-          Live = a bottom sheet over the camera; desktop = a centered, framed
-          panel (a full-bleed sheet reads as unfinished on a wide screen). */}
-      {candidates[0] && (
-        <section
-          className={cx(
-            styles.sheet,
-            styles.sheetOpen,
-            camState !== "live" && styles.sheetCentered,
-          )}
-        >
-          {/* Native bottom-sheet grabber (mobile) — tap to dismiss + rescan. */}
-          {camState === "live" && (
-            <button
-              className={styles.grabber}
-              onClick={reset}
-              aria-label="Dismiss and scan again"
-            />
-          )}
+      {/* Single-result panel — the desktop / upload path. On the live camera the
+          batch tray (below) owns the result surface instead, so you can scan a
+          stack of cards without a sheet interrupting each one. */}
+      {candidates[0] && camState !== "live" && (
+        <section className={cx(styles.sheet, styles.sheetOpen, styles.sheetCentered)}>
           <div className={styles.sheetHead}>
             <span className={cx(styles.sheetTitle, ambiguous && styles.sheetTitleAsk)}>
               {decisive ? (
@@ -591,9 +603,53 @@ export function CardScanner() {
         </section>
       )}
 
-      {/* Recent scans strip — your last few identified cards; tap to reopen. */}
-      {recents.length > 0 && candidates.length === 0 && (
-        <div className={cx(styles.recents, camState === "live" && styles.recentsAboveControls)}>
+      {/* Batch scan tray (live) — every card you scan drops in here so you can
+          run through a stack, then add or remove without leaving the camera. */}
+      {camState === "live" && session.length > 0 && (
+        <section className={styles.tray} aria-label={`${session.length} cards scanned`}>
+          <div className={styles.trayHead}>
+            <span className={styles.trayCount}>
+              <Layers size={13} /> {session.length} scanned
+            </span>
+            <button className={styles.trayClear} onClick={() => setSession([])}>
+              Clear
+            </button>
+          </div>
+          <ul className={styles.trayRow}>
+            {session.map((c) => (
+              <li
+                key={c.id}
+                className={cx(styles.trayItem, justAdded === c.id && styles.trayItemNew)}
+              >
+                <button
+                  className={styles.trayThumb}
+                  onClick={() => pick(c)}
+                  aria-label={`View ${c.name}`}
+                >
+                  <CardThumb
+                    src={candidateArt(c)}
+                    alt={c.name}
+                    size="lg"
+                    className={styles.fillThumb}
+                  />
+                </button>
+                <button
+                  className={styles.trayRemove}
+                  onClick={() => removeFromSession(c.id)}
+                  aria-label={`Remove ${c.name}`}
+                >
+                  <X size={12} />
+                </button>
+                <span className={styles.trayName}>{c.name}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {/* Recent scans strip (desktop/upload) — last few identified; tap to reopen. */}
+      {camState !== "live" && recents.length > 0 && candidates.length === 0 && (
+        <div className={styles.recents}>
           <span className={styles.recentsLabel}>Recent</span>
           <div className={styles.recentsRow}>
             {recents.map((c) => (
@@ -616,10 +672,9 @@ export function CardScanner() {
         </div>
       )}
 
-      {/* Camera control bar — Collectr-style shutter + gallery. Hidden once a
-          match is on screen so the result (and its "Scan another") owns the
-          bottom of the frame instead of competing with a live shutter. */}
-      {camState === "live" && candidates.length === 0 && (
+      {/* Camera control bar — shutter + gallery. Stays up during batch scanning
+          so you keep capturing card after card into the tray. */}
+      {camState === "live" && (
         <div className={styles.controls}>
           <button
             className={styles.ctrlSide}
@@ -638,9 +693,9 @@ export function CardScanner() {
           {/* Invisible spacer that balances the left button so the shutter
               stays optically centered (must NOT inherit the button chrome). */}
           <span className={styles.ctrlSpacer} aria-hidden />
-          {/* The coaching hint shares the strip's row — once there are recent
-              scans, let the strip own that space instead of overlapping. */}
-          {recents.length === 0 && (
+          {/* The coaching hint shares the tray's row — once cards are in the
+              tray, let it own that space instead of overlapping. */}
+          {session.length === 0 && (
             <span className={styles.controlsHint}>
               Hold a card in the frame — or tap to capture
             </span>
