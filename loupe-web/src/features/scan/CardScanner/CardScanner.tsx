@@ -197,11 +197,13 @@ export function CardScanner() {
     );
   }, []);
 
-  // Shared scan-loop controller (cadence + single-flight + candidate/lock
-  // state) — the same hook any Loupe client uses; we only supply captureFrame.
+  // Scan-loop controller — used for its manual `identifyBlob` (desktop uploads)
+  // and candidate/lock state. The continuous auto-loop is OFF: capturing is
+  // deliberate (tap the shutter), so we never fire identify — and flash the
+  // "Identifying…" spinner + sweep — every second when nothing's in frame.
   const { candidates, topConfidence, scanning, locked, noMatch, identifyBlob, reset } = useScanLoop({
     captureFrame: captureBlob,
-    enabled: camState === "live",
+    enabled: false,
     intervalMs: FRAME_INTERVAL,
     tcg: tcg || undefined,
     lockConfidence: LOCK,
