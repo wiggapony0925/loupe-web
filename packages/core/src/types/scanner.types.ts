@@ -23,3 +23,18 @@ export interface ScannerStats {
   scansTotal: number;
   scansByStatus: Record<string, number>;
 }
+
+/** One day of identify activity for the speed + accuracy trend charts. */
+export interface ScannerTrendPoint {
+  date: string; // YYYY-MM-DD (UTC)
+  count: number;
+  meanConfidence: number; // 0-1
+  latencyP50Ms: number;
+  latencyP95Ms: number;
+  fastPathRate: number; // 0-1
+}
+
+export interface ScannerTrend {
+  windowDays: number;
+  points: ScannerTrendPoint[];
+}

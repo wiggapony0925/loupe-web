@@ -31,6 +31,7 @@ import type {
   HealthReport,
   PulseFeed,
   ScannerStats,
+  ScannerTrend,
 } from "./types";
 
 interface RawHealthCheck {
@@ -363,6 +364,17 @@ interface RawScannerStats {
   scans_total: number;
   scans_by_status: Record<string, number>;
 }
+interface RawScannerTrend {
+  window_days: number;
+  points: {
+    date: string;
+    count: number;
+    mean_confidence: number;
+    latency_p50_ms: number;
+    latency_p95_ms: number;
+    fast_path_rate: number;
+  }[];
+}
 interface RawCardRow {
   id: string;
   name: string;
@@ -557,5 +569,19 @@ export function toScannerStats(r: RawScannerStats): ScannerStats {
     byTcg: r.by_tcg ?? {},
     scansTotal: r.scans_total,
     scansByStatus: r.scans_by_status ?? {},
+  };
+}
+
+export function toScannerTrend(r: RawScannerTrend): ScannerTrend {
+  return {
+    windowDays: r.window_days,
+    points: (r.points ?? []).map((p) => ({
+      date: p.date,
+      count: p.count,
+      meanConfidence: p.mean_confidence,
+      latencyP50Ms: p.latency_p50_ms,
+      latencyP95Ms: p.latency_p95_ms,
+      fastPathRate: p.fast_path_rate,
+    })),
   };
 }

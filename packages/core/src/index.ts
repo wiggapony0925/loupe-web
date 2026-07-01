@@ -163,6 +163,7 @@ export {
   useAdminCatalog,
   useAdminCardTree,
   useAdminScanner,
+  useAdminScannerTrend,
   useAdminGrades,
   useAdminCards,
   useAdminCard,

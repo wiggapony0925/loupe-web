@@ -63,6 +63,7 @@ import {
   toHealthReport,
   toPulseFeed,
   toScannerStats,
+  toScannerTrend,
 } from "./opsAdapters";
 import type {
   AdminMetrics,
@@ -97,6 +98,7 @@ import type {
   PulseFeed,
   RetentionReport,
   ScannerStats,
+  ScannerTrend,
   AnalyticsOverview,
   ApplicationStatusUpdateInput,
   ApplicationSubmitted,
@@ -1091,6 +1093,11 @@ export const api = {
     scanner: async (days = 30): Promise<ScannerStats> =>
       toScannerStats(
         await apiFetch(ENDPOINTS.admin.scanner, { query: { days } }),
+      ),
+    /** Daily speed + accuracy trend series for the scanner charts. */
+    scannerTrend: async (days = 30): Promise<ScannerTrend> =>
+      toScannerTrend(
+        await apiFetch(ENDPOINTS.admin.scannerTrend, { query: { days } }),
       ),
     /** Card explorer — search the local catalog, inspect, override a price. */
     cards: {

@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { ScanLine, Zap, Target, DollarSign, Timer } from "lucide-react";
-import { useAdminScanner } from "@loupe/core";
+import { useAdminScanner, useAdminScannerTrend } from "@loupe/core";
 import { Skeleton, NoteCard, MetricCard, Panel, SegmentedControl } from "@/components";
+import { ScanTrends } from "./ScanTrends";
 import styles from "./AdminScanner.module.scss";
 import admin from "../admin.module.scss";
 
@@ -33,6 +34,7 @@ function Breakdown({ title, data }: { title: string; data: Record<string, number
 export function AdminScanner() {
   const [win, setWin] = useState<Window>("30");
   const { data: s, isLoading, isError } = useAdminScanner(Number(win));
+  const { data: trend } = useAdminScannerTrend(Number(win));
 
   return (
     <div className={admin.page}>
@@ -114,6 +116,8 @@ export function AdminScanner() {
               <strong>{pct(s.meanConfidence)}</strong>
             </div>
           </Panel>
+
+          {trend && trend.points.length > 0 && <ScanTrends points={trend.points} />}
 
           <div className={styles.grid}>
             <Breakdown title="By winning signal" data={s.bySource} />

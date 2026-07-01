@@ -35,6 +35,7 @@ import type {
   CardTree,
   CatalogCoverage,
   ScannerStats,
+  ScannerTrend,
   GradeReviewPage,
   GradeReviewParams,
   AdminCardPage,
@@ -1589,6 +1590,14 @@ export const useAdminScanner = (days = 30, enabled = true) =>
   useApiQuery<ScannerStats>(
     ["admin-scanner", days],
     () => api.admin.scanner(days),
+    { enabled, staleTime: 30_000 },
+  );
+
+/** Daily speed + accuracy trend series for the scanner charts. */
+export const useAdminScannerTrend = (days = 30, enabled = true) =>
+  useApiQuery<ScannerTrend>(
+    ["admin-scanner-trend", days],
+    () => api.admin.scannerTrend(days),
     { enabled, staleTime: 30_000 },
   );
 

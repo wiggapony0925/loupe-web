@@ -202,6 +202,7 @@ export const ENDPOINTS = {
     // Catalog & product.
     catalog: `${V1}/admin/catalog`,
     scanner: `${V1}/admin/scanner`,
+    scannerTrend: `${V1}/admin/scanner/trend`,
     cards: `${V1}/admin/cards`,
     cardTree: `${V1}/admin/card-tree`,
     card: (id: string) => `${V1}/admin/cards/${id}`,
