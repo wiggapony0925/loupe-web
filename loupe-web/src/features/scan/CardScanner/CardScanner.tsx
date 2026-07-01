@@ -21,6 +21,8 @@ import { cx } from "@/lib/cx";
 import { isMobileDevice } from "@/lib/device";
 import { candidateArt } from "../candidateArt";
 import { detectCardRect, lerpRect, type DetectRect } from "./cardDetect";
+import { ScanResultRow } from "./ScanResultRow";
+import type { TrayEntry } from "./scanTypes";
 import styles from "./CardScanner.module.scss";
 
 type CamState =
@@ -67,16 +69,6 @@ const GAME_LABELS: Record<string, string> = {
 };
 const gameLabel = (tcg?: string) => (tcg ? (GAME_LABELS[tcg] ?? tcg) : null);
 
-/** One entry in the batch tray. The captured photo shows immediately as a
- *  placeholder; once identify resolves it flips to the matched card (or a
- *  no-match state you can retake). */
-interface TrayEntry {
-  localId: string;
-  photo: string; // object URL of the frame we captured
-  status: "identifying" | "matched" | "nomatch";
-  card: ScanCandidate | null;
-}
-
 let _traySeq = 0;
 const nextTrayId = () => `t${Date.now().toString(36)}${(_traySeq++).toString(36)}`;
 
@@ -103,7 +95,6 @@ export function CardScanner() {
   // in instantly as the photo you took, then resolves in place to the matched
   // card. Scan a stack; add or remove without leaving the viewfinder.
   const [session, setSession] = useState<TrayEntry[]>([]);
-  const [justAdded, setJustAdded] = useState<string | null>(null);
   const photoUrls = useRef<Set<string>>(new Set()); // for objectURL cleanup
   const [dragOver, setDragOver] = useState(false);
   const dragDepth = useRef(0); // enter/leave fire per-child; count to avoid flicker
@@ -268,7 +259,6 @@ export function CardScanner() {
               : e,
           );
         });
-        if (card) setJustAdded(localId);
       } catch {
         setSession((prev) =>
           prev.map((e) => (e.localId === localId ? { ...e, status: "nomatch" } : e)),
@@ -288,13 +278,6 @@ export function CardScanner() {
         : [top, ...prev.filter((c) => c.id !== top.id)].slice(0, MAX_RECENTS),
     );
   }, [locked, candidates, camState]);
-
-  // Clear the "just added" pulse shortly after it fires.
-  useEffect(() => {
-    if (!justAdded) return;
-    const t = setTimeout(() => setJustAdded(null), 900);
-    return () => clearTimeout(t);
-  }, [justAdded]);
 
   // Revoke any outstanding object URLs when the scanner unmounts.
   useEffect(() => {
@@ -739,8 +722,8 @@ export function CardScanner() {
         </section>
       )}
 
-      {/* Batch scan tray (live) — each capture lands as the photo you took,
-          then flips in place to the matched card. Scan a stack; add / remove. */}
+      {/* Batch scan results (live) — each capture becomes a rich row: the card,
+          its collector number, live price, and 30-day trend. One row per photo. */}
       {camState === "live" && session.length > 0 && (
         <section className={styles.tray} aria-label={`${session.length} cards scanned`}>
           <div className={styles.trayHead}>
@@ -752,79 +735,15 @@ export function CardScanner() {
               Clear
             </button>
           </div>
-          <ul className={styles.trayRow}>
-            {session.map((e) => {
-              const matched = e.status === "matched" && e.card;
-              const label = matched
-                ? e.card!.name
-                : e.status === "identifying"
-                  ? "Identifying…"
-                  : "No match";
-              return (
-                <li
-                  key={e.localId}
-                  className={cx(
-                    styles.trayItem,
-                    justAdded === e.localId && styles.trayItemNew,
-                  )}
-                >
-                  <button
-                    className={styles.trayThumb}
-                    onClick={() => e.card && pick(e.card)}
-                    disabled={!e.card}
-                    aria-label={matched ? `View ${e.card!.name}` : label}
-                  >
-                    <span className={styles.trayArt}>
-                      {matched ? (
-                        <CardThumb
-                          src={candidateArt(e.card!)}
-                          alt={e.card!.name}
-                          size="lg"
-                          className={styles.fillThumb}
-                        />
-                      ) : (
-                        <img
-                          src={e.photo}
-                          alt=""
-                          className={cx(
-                            styles.trayPhoto,
-                            e.status === "nomatch" && styles.trayPhotoDim,
-                          )}
-                        />
-                      )}
-                      {e.status === "identifying" && (
-                        <span className={styles.trayScan} aria-hidden />
-                      )}
-                      {e.status === "nomatch" && (
-                        <span className={styles.trayNoMatch} aria-hidden>
-                          ?
-                        </span>
-                      )}
-                      {matched && (
-                        <span className={styles.trayCheck} aria-hidden>
-                          <Check size={11} />
-                        </span>
-                      )}
-                    </span>
-                  </button>
-                  <button
-                    className={styles.trayRemove}
-                    onClick={() => removeFromSession(e.localId)}
-                    aria-label={`Remove ${label}`}
-                  >
-                    <X size={12} />
-                  </button>
-                  <span
-                    className={cx(
-                      styles.trayName,
-                      e.status !== "matched" && styles.trayNameMuted,
-                    )}
-                  >
-                    {label}
-                  </span>
-                </li>
-              );
-            })}
+          <ul className={styles.trayList}>
+            {session.map((e) => (
+              <ScanResultRow
+                key={e.localId}
+                entry={e}
+                onOpen={() => e.card && pick(e.card)}
+                onRemove={() => removeFromSession(e.localId)}
+              />
+            ))}
           </ul>
         </section>
       )}

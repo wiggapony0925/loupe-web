@@ -1045,13 +1045,17 @@ $hairline: rgba(255, 255, 255, 0.12);
   }
 }
 
-.trayRow {
+// Vertical list of rich result rows (scrolls when the stack grows).
+.trayList {
   display: flex;
-  gap: 10px;
+  flex-direction: column;
+  gap: 8px;
   margin: 0;
-  padding: 2px;
+  padding: 0;
   list-style: none;
-  overflow-x: auto;
+  max-height: min(42vh, 340px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
   scrollbar-width: none;
 
   &::-webkit-scrollbar {
