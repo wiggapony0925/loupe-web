@@ -21,6 +21,7 @@ import { isMobileDevice } from "@/lib/device";
 import { formatMoney } from "@/lib/format";
 import { candidateArt } from "../candidateArt";
 import { detectCardRect, lerpRect, type DetectRect } from "./cardDetect";
+import { ocrImageToText } from "./clientOcr";
 import { ScanResultRow } from "./ScanResultRow";
 import type { TrayEntry } from "./scanTypes";
 import styles from "./CardScanner.module.scss";
@@ -141,6 +142,7 @@ export function CardScanner() {
     return () => stopCamera();
   }, [startCamera, stopCamera]);
 
+
   // Adaptive reticle loop — while the camera is live, look for the card in each
   // frame and glide the corner brackets to it. Best effort: after a few misses
   // we release back to the centred frame so it never sticks to nothing.
@@ -243,7 +245,14 @@ export function CardScanner() {
       photoUrls.current.add(photo);
       setSession((prev) => [{ localId, photo, status: "identifying", card: null }, ...prev]);
       try {
-        const res = await api.cards.identify(blob, tcg || undefined);
+        let res = await api.cards.identify(blob, tcg || undefined);
+        // Budget fallback: if the server skipped paid OCR (Vision cap hit),
+        // OCR the frame on-device with Tesseract and resubmit the text — the
+        // scan still resolves, at no API cost.
+        if (!res.candidates.length && res.fallbackRequired) {
+          const text = await ocrImageToText(blob);
+          if (text) res = await api.cards.identifyText(text, tcg || undefined);
+        }
         const card = res.candidates[0] ?? null;
         setSession((prev) => {
           // Already have this exact card as a resolved match? Drop the dupe.

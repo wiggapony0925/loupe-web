@@ -85,6 +85,7 @@ export const ENDPOINTS = {
     /** Derived market analytics (market cap, momentum, volatility, …). */
     analytics: (id: string) => `${V1}/cards/${id}/analytics`,
     identify: `${V1}/cards/identify`,
+    identifyText: `${V1}/cards/identify/text`,
   },
   /** Card sets — public catalog list + user-scoped completion progress. */
   sets: {

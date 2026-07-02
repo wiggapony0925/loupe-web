@@ -201,6 +201,26 @@ interface RawIdentifyCandidate {
 interface RawIdentify {
   candidates?: RawIdentifyCandidate[];
   accuracy_score?: number;
+  fallback_required?: boolean;
+}
+
+function toScanResult(d: RawIdentify): ScanResult {
+  const candidates = (d.candidates ?? [])
+    .map((c) => ({
+      id: c.upstream_id ?? c.card_id ?? "",
+      name: c.name,
+      setName: c.set_name ?? undefined,
+      number: c.number ?? undefined,
+      imageUrl: c.image_url ?? undefined,
+      tcg: c.tcg ?? undefined,
+      confidence: typeof c.confidence === "number" ? c.confidence : 0,
+    }))
+    .filter((c) => c.id);
+  return {
+    candidates,
+    accuracy: typeof d.accuracy_score === "number" ? d.accuracy_score : 0,
+    fallbackRequired: d.fallback_required ?? false,
+  };
 }
 
 /** Wire shapes for the reports API (snake_case from the backend). */
@@ -510,21 +530,16 @@ export const api = {
         method: "POST",
         form,
       });
-      const candidates = (d.candidates ?? [])
-        .map((c) => ({
-          id: c.upstream_id ?? c.card_id ?? "",
-          name: c.name,
-          setName: c.set_name ?? undefined,
-          number: c.number ?? undefined,
-          imageUrl: c.image_url ?? undefined,
-          tcg: c.tcg ?? undefined,
-          confidence: typeof c.confidence === "number" ? c.confidence : 0,
-        }))
-        .filter((c) => c.id);
-      return {
-        candidates,
-        accuracy: typeof d.accuracy_score === "number" ? d.accuracy_score : 0,
-      };
+      return toScanResult(d);
+    },
+    /** Budget fallback: identify from client-OCR'd text (no paid Vision call).
+     *  Used when `identify` returned `fallbackRequired`. */
+    identifyText: async (text: string, tcg?: string): Promise<ScanResult> => {
+      const d = await apiFetch<RawIdentify>(ENDPOINTS.cards.identifyText, {
+        method: "POST",
+        json: { text, tcg, client_provider: "tesseract_web" },
+      });
+      return toScanResult(d);
     },
     /** Public canonical identity. */
     canonical: async (id: string): Promise<CardSummary> => {

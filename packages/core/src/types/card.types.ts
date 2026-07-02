@@ -50,6 +50,9 @@ export interface ScanResult {
   candidates: ScanCandidate[];
   /** Confidence of the top candidate (0 if none). */
   accuracy: number;
+  /** Server refused paid OCR (Vision budget exhausted) — the client should OCR
+   *  on-device and resubmit via `identifyText`. Candidates will be empty. */
+  fallbackRequired?: boolean;
 }
 
 /** A card as shown in lists/grids — mapped from trending/search results. */
