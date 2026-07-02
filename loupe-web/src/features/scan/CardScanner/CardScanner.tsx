@@ -97,6 +97,7 @@ export function CardScanner() {
   const [session, setSession] = useState<TrayEntry[]>([]);
   const photoUrls = useRef<Set<string>>(new Set()); // for objectURL cleanup
   const [showAlternates, setShowAlternates] = useState(false);
+  const [flashing, setFlashing] = useState(false); // shutter capture pop
   const [dragOver, setDragOver] = useState(false);
   const dragDepth = useRef(0); // enter/leave fire per-child; count to avoid flicker
   // Adaptive reticle — the corner brackets glide to the detected card.
@@ -358,6 +359,11 @@ export function CardScanner() {
   // Shutter — snap the current frame into the tray as a photo, then let it
   // resolve to the matched card in place.
   const onShutter = useCallback(async () => {
+    // Flash + a short haptic so the tap feels instantaneous and tactile, then
+    // capture + resolve. `vibrate` is a no-op on desktop / unsupported browsers.
+    setFlashing(true);
+    window.setTimeout(() => setFlashing(false), 260);
+    navigator.vibrate?.(12);
     const blob = await captureBlob();
     if (blob) await captureToTray(blob);
   }, [captureBlob, captureToTray]);
@@ -448,6 +454,15 @@ export function CardScanner() {
 
       {/* When there's no live feed, a calm branded backdrop sits behind the UI. */}
       {camState !== "live" && <div className={styles.backdrop} aria-hidden />}
+
+      {/* Legibility scrims + the shutter flash (live camera only). */}
+      {camState === "live" && (
+        <>
+          <div className={styles.topScrim} aria-hidden />
+          <div className={styles.bottomScrim} aria-hidden />
+        </>
+      )}
+      {flashing && <div className={styles.flash} aria-hidden />}
 
       {/* Drag-a-photo overlay — the whole surface is a dropzone on desktop. */}
       {dragOver && (
