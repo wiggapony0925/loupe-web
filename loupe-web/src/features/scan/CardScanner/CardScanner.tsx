@@ -254,6 +254,8 @@ export function CardScanner() {
           if (text) res = await api.cards.identifyText(text, tcg || undefined);
         }
         const card = res.candidates[0] ?? null;
+        // Success buzz on a confident identification (no-op on desktop).
+        if (card) navigator.vibrate?.([5, 28, 9]);
         setSession((prev) => {
           // Already have this exact card as a resolved match? Drop the dupe.
           if (

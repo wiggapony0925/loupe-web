@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Check, ChevronUp, Layers, X } from "lucide-react";
 import type { ScanCandidate } from "@loupe/core";
 import { CardThumb } from "@/components";
@@ -34,6 +34,7 @@ export function ScanDock({
   onClear: () => void;
 }) {
   const [expanded, setExpanded] = useState(false);
+  const [bump, setBump] = useState(false);
   const matched = session.filter((e) => e.status === "matched").length;
   const working = session.some((e) => e.status === "identifying");
 
@@ -41,6 +42,18 @@ export function ScanDock({
   useEffect(() => {
     if (session.length === 0) setExpanded(false);
   }, [session.length]);
+
+  // Pop the count pill each time a new card lands as a confident match.
+  const prevMatched = useRef(matched);
+  useEffect(() => {
+    if (matched > prevMatched.current) {
+      setBump(true);
+      const t = setTimeout(() => setBump(false), 420);
+      prevMatched.current = matched;
+      return () => clearTimeout(t);
+    }
+    prevMatched.current = matched;
+  }, [matched]);
 
   if (session.length === 0) return null;
 
@@ -95,7 +108,13 @@ export function ScanDock({
             onClick={() => setExpanded(true)}
             aria-label={`Review ${session.length} scanned cards`}
           >
-            <span className={cx(styles.pill, working && styles.pillWorking)}>
+            <span
+              className={cx(
+                styles.pill,
+                working && styles.pillWorking,
+                bump && styles.pillBump,
+              )}
+            >
               <Layers size={13} />
               {matched}
               <span className={styles.pillTotal}>/{session.length}</span>

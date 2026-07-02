@@ -66,6 +66,11 @@ $hairline: rgba(255, 255, 255, 0.12);
   animation: dockPulse 1.4s ease-in-out infinite;
 }
 
+// A quick pop each time a new card resolves to a match.
+.pillBump {
+  animation: pillBump 420ms var(--ease-out);
+}
+
 .strip {
   flex: 1 1 auto;
   display: flex;
@@ -283,6 +288,18 @@ $hairline: rgba(255, 255, 255, 0.12);
   }
 }
 
+@keyframes pillBump {
+  0% {
+    transform: scale(1);
+  }
+  35% {
+    transform: scale(1.16);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
 @keyframes sheetUp {
   from {
     transform: translateY(16px);
@@ -308,6 +325,7 @@ $hairline: rgba(255, 255, 255, 0.12);
   .sheet,
   .scrim,
   .pillWorking,
+  .pillBump,
   .thumbScan {
     animation: none;
   }
