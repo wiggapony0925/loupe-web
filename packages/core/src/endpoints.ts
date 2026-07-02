@@ -204,6 +204,8 @@ export const ENDPOINTS = {
     catalog: `${V1}/admin/catalog`,
     scanner: `${V1}/admin/scanner`,
     scannerTrend: `${V1}/admin/scanner/trend`,
+    scannerHistory: `${V1}/admin/scanner/history`,
+    scannerHistoryItem: (id: string) => `${V1}/admin/scanner/history/${id}`,
     cards: `${V1}/admin/cards`,
     cardTree: `${V1}/admin/card-tree`,
     card: (id: string) => `${V1}/admin/cards/${id}`,

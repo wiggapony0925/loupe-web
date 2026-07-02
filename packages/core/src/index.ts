@@ -164,6 +164,8 @@ export {
   useAdminCardTree,
   useAdminScanner,
   useAdminScannerTrend,
+  useAdminScanHistory,
+  useAdminScanDetail,
   useAdminGrades,
   useAdminCards,
   useAdminCard,

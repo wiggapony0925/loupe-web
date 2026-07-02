@@ -32,6 +32,9 @@ import type {
   PulseFeed,
   ScannerStats,
   ScannerTrend,
+  ScanHistoryDetail,
+  ScanHistoryItem,
+  ScanHistoryPage,
 } from "./types";
 
 interface RawHealthCheck {
@@ -375,6 +378,44 @@ interface RawScannerTrend {
     fast_path_rate: number;
   }[];
 }
+interface RawScanHistoryItem {
+  id: string;
+  created_at: string;
+  user_id: string | null;
+  user_email: string | null;
+  image_url: string | null;
+  top_name: string | null;
+  top_upstream_id: string | null;
+  top_confidence: number;
+  primary_source: string;
+  candidate_count: number;
+  tcg_inferred: string;
+  ocr_provider: string;
+  parsed_title: string | null;
+  parsed_number: string | null;
+  latency_ms: number;
+  cost_usd: number;
+  feedback_correct: boolean | null;
+}
+interface RawScanHistoryPage {
+  items: RawScanHistoryItem[];
+  next_cursor: string | null;
+  total: number;
+}
+interface RawScanHistoryDetail extends RawScanHistoryItem {
+  ocr_full_text: string | null;
+  ocr_confidence: number;
+  parsed_set_code: string | null;
+  phash: string | null;
+  image_sha256: string | null;
+  candidates: {
+    upstream_id: string | null;
+    card_id: string | null;
+    name: string;
+    confidence: number;
+    source: string;
+  }[];
+}
 interface RawCardRow {
   id: string;
   name: string;
@@ -582,6 +623,54 @@ export function toScannerTrend(r: RawScannerTrend): ScannerTrend {
       latencyP50Ms: p.latency_p50_ms,
       latencyP95Ms: p.latency_p95_ms,
       fastPathRate: p.fast_path_rate,
+    })),
+  };
+}
+
+function toScanHistoryItem(r: RawScanHistoryItem): ScanHistoryItem {
+  return {
+    id: r.id,
+    createdAt: r.created_at,
+    userId: r.user_id,
+    userEmail: r.user_email,
+    imageUrl: r.image_url,
+    topName: r.top_name,
+    topUpstreamId: r.top_upstream_id,
+    topConfidence: r.top_confidence,
+    primarySource: r.primary_source,
+    candidateCount: r.candidate_count,
+    tcgInferred: r.tcg_inferred,
+    ocrProvider: r.ocr_provider,
+    parsedTitle: r.parsed_title,
+    parsedNumber: r.parsed_number,
+    latencyMs: r.latency_ms,
+    costUsd: r.cost_usd,
+    feedbackCorrect: r.feedback_correct,
+  };
+}
+
+export function toScanHistoryPage(r: RawScanHistoryPage): ScanHistoryPage {
+  return {
+    items: (r.items ?? []).map(toScanHistoryItem),
+    nextCursor: r.next_cursor,
+    total: r.total,
+  };
+}
+
+export function toScanHistoryDetail(r: RawScanHistoryDetail): ScanHistoryDetail {
+  return {
+    ...toScanHistoryItem(r),
+    ocrFullText: r.ocr_full_text,
+    ocrConfidence: r.ocr_confidence,
+    parsedSetCode: r.parsed_set_code,
+    phash: r.phash,
+    imageSha256: r.image_sha256,
+    candidates: (r.candidates ?? []).map((c) => ({
+      upstreamId: c.upstream_id,
+      cardId: c.card_id,
+      name: c.name,
+      confidence: c.confidence,
+      source: c.source,
     })),
   };
 }

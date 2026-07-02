@@ -64,6 +64,8 @@ import {
   toPulseFeed,
   toScannerStats,
   toScannerTrend,
+  toScanHistoryPage,
+  toScanHistoryDetail,
 } from "./opsAdapters";
 import type {
   AdminMetrics,
@@ -99,6 +101,9 @@ import type {
   RetentionReport,
   ScannerStats,
   ScannerTrend,
+  ScanHistoryDetail,
+  ScanHistoryPage,
+  ScanHistoryQuery,
   AnalyticsOverview,
   ApplicationStatusUpdateInput,
   ApplicationSubmitted,
@@ -1113,6 +1118,27 @@ export const api = {
     scannerTrend: async (days = 30): Promise<ScannerTrend> =>
       toScannerTrend(
         await apiFetch(ENDPOINTS.admin.scannerTrend, { query: { days } }),
+      ),
+    /** Scan history log — every scan's photo + metadata (paginated). */
+    scanHistory: async (q: ScanHistoryQuery = {}): Promise<ScanHistoryPage> =>
+      toScanHistoryPage(
+        await apiFetch(ENDPOINTS.admin.scannerHistory, {
+          query: {
+            limit: q.limit,
+            offset: q.offset,
+            user_id: q.userId,
+            source: q.source,
+            tcg: q.tcg,
+            provider: q.provider,
+            min_confidence: q.minConfidence,
+            matched: q.matched,
+          },
+        }),
+      ),
+    /** One scan — full candidates + raw OCR text. */
+    scanDetail: async (id: string): Promise<ScanHistoryDetail> =>
+      toScanHistoryDetail(
+        await apiFetch(ENDPOINTS.admin.scannerHistoryItem(id)),
       ),
     /** Card explorer — search the local catalog, inspect, override a price. */
     cards: {

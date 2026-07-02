@@ -1,3 +1,7 @@
+.tabs {
+  margin-bottom: var(--space-md);
+}
+
 .metrics {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));

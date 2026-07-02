@@ -3,10 +3,12 @@ import { ScanLine, Zap, Target, DollarSign, Timer } from "lucide-react";
 import { useAdminScanner, useAdminScannerTrend } from "@loupe/core";
 import { Skeleton, NoteCard, MetricCard, Panel, SegmentedControl } from "@/components";
 import { ScanTrends } from "./ScanTrends";
+import { ScanHistory } from "./ScanHistory";
 import styles from "./AdminScanner.module.scss";
 import admin from "../admin.module.scss";
 
 type Window = "7" | "30" | "90";
+type Tab = "funnel" | "history";
 const pct = (n: number) => `${(n * 100).toFixed(0)}%`;
 
 /** A labelled count breakdown rendered as a mini horizontal bar list. */
@@ -32,9 +34,10 @@ function Breakdown({ title, data }: { title: string; data: Record<string, number
 
 /** Admin: scan + identify funnel — pHash fast-path rate, accuracy, latency, spend. */
 export function AdminScanner() {
+  const [tab, setTab] = useState<Tab>("funnel");
   const [win, setWin] = useState<Window>("30");
-  const { data: s, isLoading, isError } = useAdminScanner(Number(win));
-  const { data: trend } = useAdminScannerTrend(Number(win));
+  const { data: s, isLoading, isError } = useAdminScanner(Number(win), tab === "funnel");
+  const { data: trend } = useAdminScannerTrend(Number(win), tab === "funnel");
 
   return (
     <div className={admin.page}>
@@ -42,22 +45,40 @@ export function AdminScanner() {
         <div>
           <h1 className={admin.title}>Scanner</h1>
           <p className={admin.subtitle}>
-            Identify funnel — pHash fast-path rate, accuracy, latency, and OCR spend.
+            {tab === "funnel"
+              ? "Identify funnel — pHash fast-path rate, accuracy, latency, and OCR spend."
+              : "Scan history — every scan's photo, result, account, and timing."}
           </p>
         </div>
-        <SegmentedControl<Window>
-          aria-label="Time window"
-          value={win}
-          onChange={setWin}
+        {tab === "funnel" && (
+          <SegmentedControl<Window>
+            aria-label="Time window"
+            value={win}
+            onChange={setWin}
+            options={[
+              { value: "7", label: "7d" },
+              { value: "30", label: "30d" },
+              { value: "90", label: "90d" },
+            ]}
+          />
+        )}
+      </div>
+
+      <div className={styles.tabs}>
+        <SegmentedControl<Tab>
+          aria-label="Scanner view"
+          value={tab}
+          onChange={setTab}
           options={[
-            { value: "7", label: "7d" },
-            { value: "30", label: "30d" },
-            { value: "90", label: "90d" },
+            { value: "funnel", label: "Funnel" },
+            { value: "history", label: "History" },
           ]}
         />
       </div>
 
-      {isLoading ? (
+      {tab === "history" ? (
+        <ScanHistory />
+      ) : isLoading ? (
         <div className={styles.metrics}>
           {Array.from({ length: 4 }).map((_, i) => (
             <Skeleton key={i} height={120} radius={20} />

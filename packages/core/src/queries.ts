@@ -36,6 +36,9 @@ import type {
   CatalogCoverage,
   ScannerStats,
   ScannerTrend,
+  ScanHistoryPage,
+  ScanHistoryDetail,
+  ScanHistoryQuery,
   GradeReviewPage,
   GradeReviewParams,
   AdminCardPage,
@@ -1599,6 +1602,22 @@ export const useAdminScannerTrend = (days = 30, enabled = true) =>
     ["admin-scanner-trend", days],
     () => api.admin.scannerTrend(days),
     { enabled, staleTime: 30_000 },
+  );
+
+/** Scan history log — every scan's photo + metadata (paginated + filtered). */
+export const useAdminScanHistory = (q: ScanHistoryQuery = {}, enabled = true) =>
+  useApiQuery<ScanHistoryPage>(
+    ["admin-scan-history", q],
+    () => api.admin.scanHistory(q),
+    { enabled, staleTime: 15_000, placeholderData: (prev) => prev },
+  );
+
+/** One scan's full drill-down (candidates + raw OCR). Enabled when `id` is set. */
+export const useAdminScanDetail = (id: string | null) =>
+  useApiQuery<ScanHistoryDetail>(
+    ["admin-scan-detail", id],
+    () => api.admin.scanDetail(id as string),
+    { enabled: !!id, staleTime: 60_000 },
   );
 
 /** Live activity feed — polls so the stream stays current. */
