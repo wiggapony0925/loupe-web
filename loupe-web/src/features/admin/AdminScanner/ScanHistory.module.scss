@@ -18,6 +18,44 @@
   font-variant-numeric: tabular-nums;
 }
 
+.accountChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 240px;
+  padding: 5px 10px;
+  border-radius: var(--radius-pill);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: #06251c;
+  background: var(--accent-mint);
+  border: 0;
+  cursor: pointer;
+
+  svg {
+    flex: 0 0 auto;
+    opacity: 0.7;
+  }
+  &:hover {
+    filter: brightness(0.95);
+  }
+}
+
+.linkBtn {
+  padding: 0;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--accent-mint);
+  background: none;
+  border: 0;
+  cursor: pointer;
+  text-align: left;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
 // ── Grid of scan tiles ──────────────────────────────────────────────
 .grid {
   display: grid;
@@ -275,6 +313,14 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+a.candName {
+  text-decoration: none;
+
+  &:hover {
+    color: var(--accent-mint);
+    text-decoration: underline;
+  }
 }
 .candConf {
   font-size: var(--text-sm);

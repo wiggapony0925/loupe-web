@@ -46,6 +46,7 @@ export function ScanHistory() {
   const [match, setMatch] = useState<MatchFilter>("all");
   const [source, setSource] = useState<string | null>(null);
   const [tcg, setTcg] = useState<string | null>(null);
+  const [account, setAccount] = useState<{ id: string; email: string | null } | null>(null);
   const [offset, setOffset] = useState(0);
   const [openId, setOpenId] = useState<string | null>(null);
 
@@ -56,7 +57,14 @@ export function ScanHistory() {
     matched,
     source: source ?? undefined,
     tcg: tcg ?? undefined,
+    userId: account?.id,
   });
+
+  const filterAccount = (id: string, email: string | null) => {
+    setAccount({ id, email });
+    setOffset(0);
+    setOpenId(null);
+  };
 
   const reset = (fn: () => void) => {
     fn();
@@ -88,6 +96,17 @@ export function ScanHistory() {
           value={tcg}
           onChange={(v) => reset(() => setTcg(v))}
         />
+        {account && (
+          <button
+            type="button"
+            className={styles.accountChip}
+            onClick={() => reset(() => setAccount(null))}
+            title="Clear account filter"
+          >
+            {account.email ?? "anonymous"}
+            <X size={13} />
+          </button>
+        )}
         {data && (
           <span className={styles.total}>{data.total.toLocaleString()} scans</span>
         )}
@@ -136,7 +155,11 @@ export function ScanHistory() {
         </>
       )}
 
-      <ScanDetailModal id={openId} onClose={() => setOpenId(null)} />
+      <ScanDetailModal
+        id={openId}
+        onClose={() => setOpenId(null)}
+        onFilterAccount={filterAccount}
+      />
     </div>
   );
 }
@@ -183,7 +206,15 @@ function ScanCard({ item, onOpen }: { item: ScanHistoryItem; onOpen: () => void 
 }
 
 /** Full drill-down for one scan: photo, every candidate, raw OCR, metadata. */
-function ScanDetailModal({ id, onClose }: { id: string | null; onClose: () => void }) {
+function ScanDetailModal({
+  id,
+  onClose,
+  onFilterAccount,
+}: {
+  id: string | null;
+  onClose: () => void;
+  onFilterAccount: (id: string, email: string | null) => void;
+}) {
   const { data: d, isLoading } = useAdminScanDetail(id);
   return (
     <Modal
@@ -218,6 +249,20 @@ function ScanDetailModal({ id, onClose }: { id: string | null; onClose: () => vo
               {d.feedbackCorrect != null && (
                 <Fact k="User feedback" v={d.feedbackCorrect ? "✓ correct" : "✗ wrong"} />
               )}
+              {d.userId && (
+                <div className={styles.fact}>
+                  <dt>Investigate</dt>
+                  <dd>
+                    <button
+                      type="button"
+                      className={styles.linkBtn}
+                      onClick={() => onFilterAccount(d.userId as string, d.userEmail ?? null)}
+                    >
+                      See this account&rsquo;s scans →
+                    </button>
+                  </dd>
+                </div>
+              )}
             </dl>
           </div>
 
@@ -230,7 +275,19 @@ function ScanDetailModal({ id, onClose }: { id: string | null; onClose: () => vo
                 {d.candidates.map((c, i) => (
                   <li key={`${c.upstreamId ?? c.name}-${i}`} className={styles.cand}>
                     <span className={styles.candRank}>{i + 1}</span>
-                    <span className={styles.candName}>{c.name}</span>
+                    {c.upstreamId ? (
+                      <a
+                        className={styles.candName}
+                        href={`/cards/${c.upstreamId}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        title="Open the card in a new tab"
+                      >
+                        {c.name}
+                      </a>
+                    ) : (
+                      <span className={styles.candName}>{c.name}</span>
+                    )}
                     <Badge tone={sourceTone(c.source)}>{c.source}</Badge>
                     <span className={styles.candConf}>{pct(c.confidence)}</span>
                   </li>
