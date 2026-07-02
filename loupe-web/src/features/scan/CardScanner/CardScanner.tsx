@@ -6,7 +6,6 @@ import {
   ChevronDown,
   Clipboard,
   ImageUp,
-  Layers,
   Loader2,
   MousePointerClick,
   RotateCcw,
@@ -22,7 +21,7 @@ import { formatMoney } from "@/lib/format";
 import { candidateArt } from "../candidateArt";
 import { detectCardRect, lerpRect, type DetectRect } from "./cardDetect";
 import { ocrImageToText } from "./clientOcr";
-import { ScanResultRow } from "./ScanResultRow";
+import { ScanDock } from "./ScanDock";
 import type { TrayEntry } from "./scanTypes";
 import styles from "./CardScanner.module.scss";
 
@@ -747,30 +746,16 @@ export function CardScanner() {
         </section>
       )}
 
-      {/* Batch scan results (live) — each capture becomes a rich row: the card,
-          its collector number, live price, and 30-day trend. One row per photo. */}
-      {camState === "live" && session.length > 0 && (
-        <section className={styles.tray} aria-label={`${session.length} cards scanned`}>
-          <div className={styles.trayHead}>
-            <span className={styles.trayCount}>
-              <Layers size={13} /> {session.filter((e) => e.status === "matched").length}/
-              {session.length} identified
-            </span>
-            <button className={styles.trayClear} onClick={clearSession}>
-              Clear
-            </button>
-          </div>
-          <ul className={styles.trayList}>
-            {session.map((e) => (
-              <ScanResultRow
-                key={e.localId}
-                entry={e}
-                onOpen={() => e.card && pick(e.card)}
-                onRemove={() => removeFromSession(e.localId)}
-              />
-            ))}
-          </ul>
-        </section>
+      {/* Batch scan results (live) — a collapsible dock so a growing stack of
+          scanned cards never covers the camera. Collapsed = a slim thumbnail
+          strip; tap to review each card's price + 30-day trend and remove. */}
+      {camState === "live" && (
+        <ScanDock
+          session={session}
+          onOpen={pick}
+          onRemove={removeFromSession}
+          onClear={clearSession}
+        />
       )}
 
       {/* Recent scans strip (desktop/upload) — last few identified; tap to reopen. */}
