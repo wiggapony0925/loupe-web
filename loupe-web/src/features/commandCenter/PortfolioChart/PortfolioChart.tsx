@@ -112,7 +112,7 @@ export function PortfolioChart() {
               <div className={styles.emptyActions}>
                 <Button
                   leadingIcon={<ScanLine size={16} />}
-                  onClick={() => navigate("/scanner")}
+                  onClick={() => navigate("/scan")}
                 >
                   Scan a card
                 </Button>

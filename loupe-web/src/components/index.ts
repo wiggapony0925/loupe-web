@@ -25,6 +25,8 @@ export { LiveSparkRow } from "./LiveSparkRow/LiveSparkRow";
 export { ShopCard } from "./ShopCard/ShopCard";
 export { ShopCardSkeleton } from "./ShopCard/ShopCardSkeleton";
 export { SegmentedControl } from "./SegmentedControl/SegmentedControl";
+export { Switch } from "./Switch/Switch";
+export type { SwitchProps } from "./Switch/Switch";
 export { NoteCard } from "./NoteCard/NoteCard";
 export { SignInGate } from "./SignInGate/SignInGate";
 export { TextField } from "./TextField/TextField";

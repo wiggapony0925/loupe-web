@@ -33,6 +33,7 @@ export function CardThumb({ src, alt, size = "md", className }: CardThumbProps) 
         src={resolved}
         alt={alt}
         loading="lazy"
+        decoding="async"
         className={cx(styles.img, state === "ok" && styles.loaded)}
         onLoad={() => setState("ok")}
         onError={() => setState("error")}

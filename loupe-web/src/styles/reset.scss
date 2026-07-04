@@ -26,6 +26,36 @@ body {
   overflow-x: clip;
 }
 
+// Phone-browser platform rules (no-ops on desktop):
+// - no font inflation when iOS rotates to landscape
+// - no grey flash rectangle on tap (components own their :active feedback)
+html {
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+}
+
+// Interactive elements opt out of double-tap-to-zoom so taps fire immediately;
+// pinch/scroll still work.
+a,
+button,
+input,
+select,
+textarea,
+label,
+[role="button"] {
+  touch-action: manipulation;
+}
+
+// iOS Safari zooms the whole page when focusing any control set below 16px.
+// On touch devices, floor text controls at 16px (larger inputs keep their size).
+@media (pointer: coarse) {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+  select,
+  textarea {
+    font-size: max(16px, 1em);
+  }
+}
+
 body {
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;

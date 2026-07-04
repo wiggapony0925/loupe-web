@@ -287,8 +287,8 @@ export function MarketChart({
       >
         <svg
           className={styles.chart__svg}
-          width={width}
-          height={height}
+          viewBox={`0 0 ${width} ${height}`}
+          preserveAspectRatio="none"
           role="img"
           aria-label={title ?? "Price chart"}
         >

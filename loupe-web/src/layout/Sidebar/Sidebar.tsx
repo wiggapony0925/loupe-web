@@ -130,6 +130,7 @@ function NavItemLink({
     <NavLink
       to={to}
       end={end}
+      viewTransition
       className={({ isActive }) => cx(styles.item, isActive && styles.active)}
     >
       <Icon className={styles.icon} />

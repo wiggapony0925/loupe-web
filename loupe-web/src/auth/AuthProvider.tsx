@@ -84,6 +84,8 @@ interface AuthValue {
   register: (email: string, password: string, displayName?: string) => Promise<User>;
   /** Change password (verifies current, revokes other sessions, keeps this one). */
   changePassword: (currentPassword: string, newPassword: string) => Promise<void>;
+  /** Complete a forgot-password reset with the emailed token → signs in here. */
+  resetPassword: (token: string, newPassword: string) => Promise<User>;
   /** Sign in with a Google ID token (from the Google Identity SDK). */
   signInWithGoogle: (idToken: string) => Promise<User>;
   /** Sign in with an Apple identity token (from the Apple JS SDK). */
@@ -272,6 +274,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [setSession],
   );
 
+  // Reset password (forgot-password flow): the emailed token proves ownership,
+  // the server revokes every session and returns a fresh pair — adopt it so
+  // the user lands signed in on this device.
+  const resetPassword = useCallback(
+    async (token: string, newPassword: string) =>
+      setSession(await api.auth.resetPassword(token, newPassword)),
+    [setSession],
+  );
+
   const signInWithGoogle = useCallback(
     async (idToken: string) =>
       setSession(await api.auth.google({ id_token: idToken })),
@@ -302,6 +313,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       completeMfa,
       register,
       changePassword,
+      resetPassword,
       signInWithGoogle,
       signInWithApple,
       logout,
@@ -318,6 +330,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       completeMfa,
       register,
       changePassword,
+      resetPassword,
       signInWithGoogle,
       signInWithApple,
       logout,

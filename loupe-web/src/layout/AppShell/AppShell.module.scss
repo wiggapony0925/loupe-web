@@ -32,8 +32,16 @@
   padding: var(--space-2xl);
 
   @include bp-down("md") {
-    // No bottom tab bar anymore — just the iOS home-indicator safe area.
+    // Clear the bottom tab bar (~58px) + the iOS home-indicator safe area.
     padding: var(--space-lg) var(--space-lg)
-      calc(var(--space-lg) + env(safe-area-inset-bottom, 0px));
+      calc(var(--space-lg) + 58px + env(safe-area-inset-bottom, 0px));
   }
+}
+
+/* Bundled in the native app (?embed=app): bare, edge-to-edge content. */
+.embedded {
+  min-height: 100vh;
+  background: var(--bg-base);
+  padding: var(--space-lg) var(--space-lg)
+    calc(var(--space-lg) + env(safe-area-inset-bottom, 0px));
 }

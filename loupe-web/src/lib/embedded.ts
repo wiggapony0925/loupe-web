@@ -29,3 +29,13 @@ export function embedScope(): string | null {
 export function isEmbedded(): boolean {
   return embedScope() === "admin";
 }
+
+/**
+ * True when a user-facing page is bundled inside the native app
+ * (`?embed=app`) — the app brings its own chrome, so the web shell hides
+ * the TopBar / tab bar / sidebar / public header+footer and renders the
+ * page content edge-to-edge (the YouTube-in-app pattern).
+ */
+export function isAppEmbedded(): boolean {
+  return embedScope() === "app";
+}

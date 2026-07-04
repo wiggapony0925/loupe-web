@@ -19,6 +19,10 @@ import type {
   DbOverview,
   DbTableDetail,
   DbTableSummary,
+  EmailLogDetail,
+  EmailLogPage,
+  EmailLogRow,
+  EmailTemplatesReport,
   EngagementSummary,
   EnvReport,
   EnvVar,
@@ -132,6 +136,83 @@ export function toIntegrationsReport(
         detail: i.detail,
       }),
     ),
+  };
+}
+
+interface RawEmailTemplatesReport {
+  status: {
+    enabled: boolean;
+    from_email: string;
+    reply_to: string;
+    provider: string;
+    subscribers: number;
+  };
+  templates: EmailTemplatesReport["templates"];
+}
+export function toEmailTemplatesReport(
+  r: RawEmailTemplatesReport,
+): EmailTemplatesReport {
+  return {
+    status: {
+      enabled: r.status.enabled,
+      fromEmail: r.status.from_email,
+      replyTo: r.status.reply_to,
+      provider: r.status.provider,
+      subscribers: r.status.subscribers ?? 0,
+    },
+    templates: r.templates ?? [],
+  };
+}
+
+interface RawEmailLogRow {
+  id: string;
+  created_at: string;
+  to_email: string;
+  user_id: string | null;
+  category: string | null;
+  subject: string;
+  status: EmailLogRow["status"];
+  error: string | null;
+  attempts: number;
+  provider_id: string | null;
+}
+export function toEmailLogRow(r: RawEmailLogRow): EmailLogRow {
+  return {
+    id: r.id,
+    createdAt: r.created_at,
+    to: r.to_email,
+    userId: r.user_id,
+    category: r.category,
+    subject: r.subject,
+    status: r.status,
+    error: r.error,
+    attempts: r.attempts,
+    providerId: r.provider_id,
+  };
+}
+interface RawEmailLogDetail extends RawEmailLogRow {
+  html: string | null;
+  text: string | null;
+  from_email: string | null;
+}
+export function toEmailLogDetail(r: RawEmailLogDetail): EmailLogDetail {
+  return {
+    ...toEmailLogRow(r),
+    html: r.html,
+    text: r.text,
+    fromEmail: r.from_email,
+  };
+}
+interface RawEmailLogPage {
+  rows: RawEmailLogRow[];
+  total: number;
+  stats: EmailLogPage["stats"];
+}
+export function toEmailLogPage(r: RawEmailLogPage): EmailLogPage {
+  return {
+    rows: (r.rows ?? []).map(toEmailLogRow),
+    total: r.total ?? 0,
+    stats: r.stats,
   };
 }
 

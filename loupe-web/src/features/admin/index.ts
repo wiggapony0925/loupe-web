@@ -6,6 +6,7 @@ export { AdminDatabase } from "./AdminDatabase/AdminDatabase";
 export { AdminCloud } from "./AdminCloud/AdminCloud";
 export { AdminEnv } from "./AdminEnv/AdminEnv";
 export { AdminIntegrations } from "./AdminIntegrations/AdminIntegrations";
+export { AdminEmail } from "./AdminEmail/AdminEmail";
 export { AdminAudit } from "./AdminAudit/AdminAudit";
 export { AdminRevenue } from "./AdminRevenue/AdminRevenue";
 export { AdminCatalog } from "./AdminCatalog/AdminCatalog";

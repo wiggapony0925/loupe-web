@@ -56,6 +56,9 @@ import {
   toDbGraph,
   toDbOverview,
   toDbTableDetail,
+  toEmailLogDetail,
+  toEmailLogPage,
+  toEmailTemplatesReport,
   toEngagementSummary,
   toEnvReport,
   toIntegrationsReport,
@@ -90,6 +93,16 @@ import type {
   DbGraph,
   DbOverview,
   DbTableDetail,
+  AnnouncementDraft,
+  AnnouncementSendResult,
+  SupportDraft,
+  SupportSendResult,
+  EmailLogDetail,
+  EmailLogPage,
+  EmailLogParams,
+  EmailTemplateRender,
+  EmailTemplatesReport,
+  EmailTestResult,
   EngagementSummary,
   EnvReport,
   IntegrationsReport,
@@ -185,6 +198,8 @@ import type {
   TokenPair,
   UpdateGradeInput,
   User,
+  UserSettings,
+  UserSettingsUpdate,
   WaitlistEntry,
   WaitlistJoinInput,
   WaitlistJoined,
@@ -312,6 +327,17 @@ function toRevenueSummary(w: RevenueWire): RevenueSummary {
       month: p.month,
       newPro: p.new_pro,
     })),
+  };
+}
+
+/** Wire shape for the admin announcement composer endpoints. */
+function toAnnouncementBody(draft: AnnouncementDraft) {
+  return {
+    subject: draft.subject,
+    heading: draft.heading,
+    body: draft.body,
+    cta_label: draft.ctaLabel || undefined,
+    cta_url: draft.ctaUrl || undefined,
   };
 }
 
@@ -573,7 +599,19 @@ export const api = {
         ENDPOINTS.sets.list(tcg),
         { skipAuth: true },
       );
-      return (d.results ?? []).map(toCardSet);
+      // Some providers (e.g. ygoprodeck) split one set code across dozens of
+      // named sub-releases that all share the same `id` — 65 "Lost Art
+      // Promotion" rows under `ygoprodeck:LART`. They collapse to the same
+      // set-scoped card query, so collapse them here too: one entry per id,
+      // keeping the richest (most-cards) row as the representative. Dedupes
+      // the tiles + React keys across every consumer (rails, Sets explorer).
+      const byId = new Map<string, CardSet>();
+      for (const set of (d.results ?? []).map(toCardSet)) {
+        const prev = byId.get(set.id);
+        if (!prev || (set.totalCards ?? 0) > (prev.totalCards ?? 0))
+          byId.set(set.id, set);
+      }
+      return [...byId.values()];
     },
     /** Per-set completion progress for the signed-in user. */
     progress: async (): Promise<SetProgressRow[]> => {
@@ -746,6 +784,21 @@ export const api = {
         method: "POST",
         json: body,
       }),
+    /** Request a password-reset email. Always resolves (204) — the server
+     *  never reveals whether the address has an account. */
+    forgotPassword: (email: string) =>
+      apiFetch<void>(ENDPOINTS.auth.forgotPassword, {
+        method: "POST",
+        json: { email },
+        skipAuth: true,
+      }),
+    /** Complete a reset with the emailed token → signs this device in. */
+    resetPassword: (token: string, newPassword: string) =>
+      apiFetch<TokenPair>(ENDPOINTS.auth.resetPassword, {
+        method: "POST",
+        json: { token, new_password: newPassword },
+        skipAuth: true,
+      }),
     /** Complete a 2FA sign-in: exchange the login challenge + a code for tokens. */
     mfaVerify: (body: MfaVerifyRequest) =>
       apiFetch<TokenPair>(ENDPOINTS.auth.mfaVerify, {
@@ -774,6 +827,14 @@ export const api = {
   me: {
     /** Current authenticated user. */
     get: () => apiFetch<User>(ENDPOINTS.me.root),
+    /** Per-user settings (currency, theme, notification opt-outs). */
+    settings: () => apiFetch<UserSettings>(ENDPOINTS.me.settings),
+    /** Patch settings — omitted fields are left unchanged. */
+    updateSettings: (patch: UserSettingsUpdate) =>
+      apiFetch<UserSettings>(ENDPOINTS.me.settings, {
+        method: "PATCH",
+        json: patch,
+      }),
     /** Effective Loupe Pro entitlements (plan, limits, feature gates). */
     entitlements: () => apiFetch<Entitlements>(ENDPOINTS.me.entitlements),
     /** Pricing + whether real Stripe checkout is live yet. */
@@ -1189,6 +1250,64 @@ export const api = {
         toIntegrationsReport(
           await apiFetch(ENDPOINTS.admin.integrations, { query: { probe } }),
         ),
+      email: {
+        templates: async (): Promise<EmailTemplatesReport> =>
+          toEmailTemplatesReport(await apiFetch(ENDPOINTS.admin.emailTemplates)),
+        template: async (key: string): Promise<EmailTemplateRender> =>
+          apiFetch(ENDPOINTS.admin.emailTemplate(key)),
+        test: async (template: string): Promise<EmailTestResult> =>
+          apiFetch(ENDPOINTS.admin.emailTest, {
+            method: "POST",
+            json: { template },
+          }),
+        announcePreview: async (
+          draft: AnnouncementDraft,
+          kind: "announcement" | "support" = "announcement",
+        ): Promise<EmailTemplateRender> =>
+          apiFetch(ENDPOINTS.admin.emailAnnouncePreview, {
+            method: "POST",
+            json: { ...toAnnouncementBody(draft), kind },
+          }),
+        announce: async (
+          draft: AnnouncementDraft,
+          mode: "test" | "send",
+        ): Promise<AnnouncementSendResult> =>
+          apiFetch(ENDPOINTS.admin.emailAnnounce, {
+            method: "POST",
+            json: { ...toAnnouncementBody(draft), mode },
+          }),
+        support: async (
+          draft: SupportDraft,
+          mode: "test" | "send",
+        ): Promise<SupportSendResult> =>
+          apiFetch(ENDPOINTS.admin.emailSupport, {
+            method: "POST",
+            json: {
+              email: draft.email,
+              subject: draft.subject,
+              body: draft.body,
+              cta_label: draft.ctaLabel || undefined,
+              cta_url: draft.ctaUrl || undefined,
+              mode,
+            },
+          }),
+        log: async (params?: EmailLogParams): Promise<EmailLogPage> =>
+          toEmailLogPage(
+            await apiFetch(ENDPOINTS.admin.emailLog, {
+              query: {
+                status: params?.status,
+                category: params?.category,
+                q: params?.q,
+                limit: params?.limit,
+                offset: params?.offset,
+              },
+            }),
+          ),
+        logEntry: async (id: string): Promise<EmailLogDetail> =>
+          toEmailLogDetail(await apiFetch(ENDPOINTS.admin.emailLogEntry(id))),
+        logRetry: async (id: string): Promise<EmailTestResult> =>
+          apiFetch(ENDPOINTS.admin.emailLogRetry(id), { method: "POST" }),
+      },
       cloud: {
         status: async (): Promise<CloudStatus> =>
           toCloudStatus(await apiFetch(ENDPOINTS.admin.cloud)),

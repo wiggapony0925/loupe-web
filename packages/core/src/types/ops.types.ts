@@ -67,6 +67,113 @@ export interface IntegrationsReport {
   integrations: Integration[];
 }
 
+// ── Email (transactional template gallery) ──
+export interface EmailTemplateSummary {
+  key: string;
+  label: string;
+  group: string;
+  description: string;
+  subject: string;
+}
+
+export interface EmailStatus {
+  enabled: boolean;
+  fromEmail: string;
+  replyTo: string;
+  provider: string;
+  /** Active users currently subscribed to announcement email. */
+  subscribers: number;
+}
+
+export interface AnnouncementDraft {
+  subject: string;
+  heading: string;
+  body: string;
+  ctaLabel?: string;
+  ctaUrl?: string;
+}
+
+export interface AnnouncementSendResult {
+  mode: "test" | "send";
+  recipients: number;
+  detail: string;
+}
+
+/** One-to-one support message to a specific user. */
+export interface SupportDraft {
+  email: string;
+  subject: string;
+  body: string;
+  ctaLabel?: string;
+  ctaUrl?: string;
+}
+
+export interface SupportSendResult {
+  sent: boolean;
+  to: string;
+  detail: string;
+}
+
+/** One outbound email in the delivery log. */
+export type EmailLogStatus =
+  | "queued"
+  | "sent"
+  | "failed"
+  | "delivered"
+  | "bounced"
+  | "complained";
+
+export interface EmailLogRow {
+  id: string;
+  createdAt: string;
+  to: string;
+  userId: string | null;
+  category: string | null;
+  subject: string;
+  status: EmailLogStatus;
+  error: string | null;
+  attempts: number;
+  providerId: string | null;
+}
+
+export interface EmailLogDetail extends EmailLogRow {
+  html: string | null;
+  text: string | null;
+  fromEmail: string | null;
+}
+
+export interface EmailLogPage {
+  rows: EmailLogRow[];
+  total: number;
+  stats: Record<EmailLogStatus, number>;
+}
+
+export interface EmailLogParams {
+  status?: EmailLogStatus;
+  category?: string;
+  q?: string;
+  limit?: number;
+  offset?: number;
+}
+
+export interface EmailTemplatesReport {
+  status: EmailStatus;
+  templates: EmailTemplateSummary[];
+}
+
+export interface EmailTemplateRender {
+  key: string;
+  subject: string;
+  html: string;
+  text: string;
+}
+
+export interface EmailTestResult {
+  sent: boolean;
+  to: string;
+  detail: string;
+}
+
 // ── Database explorer ──
 export interface DbColumn {
   name: string;

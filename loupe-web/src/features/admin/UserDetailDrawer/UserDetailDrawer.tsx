@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { ShieldCheck, ShieldOff, Ban, RotateCcw, Trash2, Wallet, Star, ScanLine, DollarSign, Sparkles, LogOut, CreditCard, Receipt, Eye } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { ShieldCheck, ShieldOff, Ban, RotateCcw, Trash2, Wallet, Star, ScanLine, DollarSign, Sparkles, LogOut, CreditCard, Receipt, Eye, Mail } from "lucide-react";
 import {
   useAdminUserDetail,
   useSetUserRole,
@@ -30,6 +31,7 @@ function dt(iso?: string | null): string {
 
 /** Full user record + admin actions, shown when a user row is opened. */
 export function UserDetailDrawer({ userId, open, onOpenChange }: UserDetailDrawerProps) {
+  const navigate = useNavigate();
   const { user: me, impersonate } = useAuth();
   const { data: u, isLoading } = useAdminUserDetail(userId ?? "", open && Boolean(userId));
   const setRole = useSetUserRole();
@@ -294,6 +296,16 @@ export function UserDetailDrawer({ userId, open, onOpenChange }: UserDetailDrawe
           {/* Security & billing — sign out everywhere, cancel a paid plan. */}
           {!u.deleted && (
             <div className={styles.actions}>
+              <Button
+                variant="secondary"
+                size="sm"
+                leadingIcon={<Mail size={15} />}
+                onClick={() =>
+                  navigate(`/admin/email?to=${encodeURIComponent(u.email)}`)
+                }
+              >
+                Email user
+              </Button>
               <Button
                 variant="secondary"
                 size="sm"

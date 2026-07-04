@@ -79,6 +79,7 @@ function DrawerLink({
     <NavLink
       to={to}
       end={end}
+      viewTransition
       onClick={onNavigate}
       className={({ isActive }) => cx(drawer.item, isActive && drawer.active)}
     >

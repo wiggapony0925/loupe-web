@@ -64,6 +64,13 @@
   &__svg {
     display: block;
     overflow: visible;
+    // Size to the plot box, with the measured width living in the viewBox.
+    // ResizeObserver delivery is frame-gated, so a background/headless tab can
+    // hold a stale measurement across a viewport resize — scaling to fit keeps
+    // the full series visible (no right-edge clip) until the next frame
+    // re-measures; when the measurement is current this is a 1:1 no-op.
+    width: 100%;
+    height: 100%;
   }
 
   &__grid {

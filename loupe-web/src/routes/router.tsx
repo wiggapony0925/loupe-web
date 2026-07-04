@@ -88,6 +88,8 @@ const M = {
   cardScanner: () => import("@/features/scan/CardScanner/CardScanner"),
   login: () => import("@/features/auth/Login/Login"),
   signup: () => import("@/features/auth/Signup/Signup"),
+  forgotPassword: () => import("@/features/auth/ForgotPassword/ForgotPassword"),
+  resetPassword: () => import("@/features/auth/ResetPassword/ResetPassword"),
   publicLayout: () => import("@/features/public/PublicLayout/PublicLayout"),
   browse: () => import("@/features/public/Browse/Browse"),
   sealed: () => import("@/features/public/Sealed/Sealed"),
@@ -98,7 +100,6 @@ const M = {
   appShell: () => import("@/layout/AppShell/AppShell"),
   commandCenter: () => import("@/features/commandCenter/CommandCenter/CommandCenter"),
   vault: () => import("@/features/vault/Vault/Vault"),
-  markets: () => import("@/features/markets/Markets/Markets"),
   analytics: () => import("@/features/analytics/Analytics/Analytics"),
   statements: () => import("@/features/statements/Statements/Statements"),
   watchlist: () => import("@/features/watchlist/Watchlist/Watchlist"),
@@ -121,6 +122,8 @@ export const router = createBrowserRouter([
       { path: "/", element: el(M.landing, "MarketingLanding") },
       { path: "/login", element: el(M.login, "Login") },
       { path: "/signup", element: el(M.signup, "Signup") },
+      { path: "/forgot-password", element: el(M.forgotPassword, "ForgotPassword") },
+      { path: "/reset-password", element: el(M.resetPassword, "ResetPassword") },
       // Full-screen workspace — deliberately outside PublicLayout (no nav/footer
       // chrome), edge-to-edge like a Figma canvas.
       { path: "/grade", element: el(M.loupeGrade, "LoupeGrade") },
@@ -155,10 +158,13 @@ export const router = createBrowserRouter([
           { path: "vault", element: el(M.vault, "Vault") },
           { path: "discover", element: <Navigate to="/app/markets" replace /> },
           {
+            // The one marketplace: the public storefront (rails, search,
+            // browse) rendered inside the secured shell — no separate
+            // "Markets" clone to maintain.
             path: "markets",
             element: (
               <FeatureGate flag="web_markets" fallback={<NotFound />}>
-                {el(M.markets, "Markets")}
+                {el(M.browse, "Browse")}
               </FeatureGate>
             ),
           },

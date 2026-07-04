@@ -19,6 +19,22 @@
   }
 }
 
+// Route navigations crossfade via the View Transitions API (nav links pass
+// `viewTransition`; unsupported browsers just hard-swap as before). Kept fast
+// so pages feel snappy, not cinematic.
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 160ms;
+  animation-timing-function: ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none;
+  }
+}
+
 /* Lazy-route Suspense fallback — holds page height so the layout doesn't
    collapse while a code-split route chunk loads. */
 .route-fallback {

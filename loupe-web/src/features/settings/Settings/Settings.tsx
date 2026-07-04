@@ -1,10 +1,12 @@
 import { useState, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
-import { LogOut, MonitorSmartphone, Sparkles } from "lucide-react";
-import { Panel, SegmentedControl, ThemeToggle, Badge, Button, useConfirm } from "@/components";
+import { Download, LogOut, MonitorSmartphone, Sparkles } from "lucide-react";
+import { useUserSettings, useUpdateUserSettings } from "@loupe/core";
+import { Panel, SegmentedControl, Switch, ThemeToggle, Badge, Button, useConfirm } from "@/components";
 import { notify } from "@/stores/noticeStore";
 import { useUiStore } from "@/stores/uiStore";
 import { useAuth } from "@/auth/AuthProvider";
+import { useInstallPrompt } from "@/hooks/useInstallPrompt";
 import { MfaCard } from "../MfaCard/MfaCard";
 import { ChangePasswordCard } from "../ChangePasswordCard/ChangePasswordCard";
 import { usePro } from "@/pro";
@@ -24,6 +26,15 @@ export function Settings() {
   const collapsed = useUiStore((s) => s.sidebarCollapsed);
   const setCollapsed = useUiStore((s) => s.setSidebarCollapsed);
   const { subscriptionsEnabled, isPro, openPaywall, manageBilling, billingBusy } = usePro();
+  const { canInstall, showIosHint, install } = useInstallPrompt();
+  const { data: settings } = useUserSettings(Boolean(user));
+  const updateSettings = useUpdateUserSettings({
+    onError: () => notify.error("Couldn't update your email preferences. Please try again."),
+  });
+  // Optimistic: show the in-flight value; on error React Query falls back to the cache.
+  const emailAnnouncements = updateSettings.isPending
+    ? (updateSettings.variables?.email_announcements_enabled ?? true)
+    : (settings?.email_announcements_enabled ?? true);
 
   async function onSignOutEverywhere() {
     const ok = await confirm({
@@ -130,6 +141,22 @@ export function Settings() {
       <MfaCard />
 
       <Panel padding="lg">
+        <Row
+          title="Product updates & blog posts"
+          desc="Occasional emails about new features and posts from the Loupe blog. Security and account emails always arrive."
+        >
+          <Switch
+            aria-label="Product updates & blog posts"
+            checked={emailAnnouncements}
+            disabled={!settings}
+            onCheckedChange={(next) =>
+              updateSettings.mutate({ email_announcements_enabled: next })
+            }
+          />
+        </Row>
+      </Panel>
+
+      <Panel padding="lg">
         <Row title="Appearance" desc="Light, dark, or follow your system — flips every token instantly.">
           <ThemeToggle />
         </Row>
@@ -162,6 +189,33 @@ export function Settings() {
       </Panel>
 
       <Panel padding="lg">
+        {canInstall && (
+          <>
+            <Row
+              title="Install the app"
+              desc="Add Loupe to your home screen — full-screen, with Scan and Vault shortcuts."
+            >
+              <Button
+                variant="secondary"
+                size="sm"
+                leadingIcon={<Download size={16} />}
+                onClick={() => void install()}
+              >
+                Install
+              </Button>
+            </Row>
+            <Divider />
+          </>
+        )}
+        {showIosHint && (
+          <>
+            <Row
+              title="Install the app"
+              desc="In Safari, tap Share and choose “Add to Home Screen” for the full-screen app with Scan and Vault shortcuts."
+            />
+            <Divider />
+          </>
+        )}
         <Row title="Data source" desc="Live loupe-backend — real market data, no mock numbers.">
           <Badge tone="mint" dot>
             Live

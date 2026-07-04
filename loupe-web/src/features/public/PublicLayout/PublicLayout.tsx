@@ -4,6 +4,7 @@ import { LayoutDashboard, ScanLine, ShoppingCart, User } from "lucide-react";
 import { SearchCombobox, ThemeToggle, Footer, Modal, Button, FeatureGate, ScrollToTop, Banner } from "@/components";
 import { AuroraField, Logo } from "@/assets";
 import { useAuth } from "@/auth/AuthProvider";
+import { isAppEmbedded } from "@/lib/embedded";
 import styles from "./PublicLayout.module.scss";
 
 const CATEGORIES: Array<{ label: string; game: string }> = [
@@ -28,6 +29,7 @@ export function PublicLayout() {
     void navigate(`/cards${p.toString() ? `?${p}` : ""}`);
   };
 
+  const embedded = isAppEmbedded();
   return (
     <div className={styles["public"]}>
       <ScrollToTop />
@@ -35,6 +37,8 @@ export function PublicLayout() {
         <AuroraField variant="subtle" />
       </div>
 
+      {/* Bundled in the native app: the app owns chrome — no web header. */}
+      {!embedded && (
       <header className={styles["public__header"]}>
         <Link to="/" className={styles["public__brand"]} aria-label="Loupe home">
           <Logo size={26} />
@@ -67,6 +71,7 @@ export function PublicLayout() {
           </button>
         </div>
       </header>
+      )}
 
       {/* Notices directly under the storefront nav. */}
       <Banner />
@@ -130,7 +135,7 @@ export function PublicLayout() {
         <Outlet />
       </main>
 
-      <Footer />
+      {!embedded && <Footer />}
     </div>
   );
 }

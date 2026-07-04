@@ -1,0 +1,68 @@
+// Phone bottom tab bar — hidden ≥ md where the sidebar takes over.
+
+.bar {
+  display: none;
+
+  @include bp-down("md") {
+    position: fixed;
+    inset: auto 0 0 0;
+    z-index: 40;
+    display: flex;
+    align-items: stretch;
+    justify-content: space-around;
+    padding: 6px var(--space-sm) calc(6px + env(safe-area-inset-bottom, 0px));
+    background: color-mix(in srgb, var(--bg-elevated) 88%, transparent);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    border-top: 1px solid var(--line);
+  }
+}
+
+.tab {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 6px 2px;
+  border-radius: var(--radius-md);
+  color: var(--ink-dim);
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+
+  &:active {
+    background: var(--bg-sunken);
+  }
+}
+
+.active {
+  color: var(--accent-mint);
+}
+
+.label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+/* The product's core action, raised out of the bar like a camera shutter. */
+.scan {
+  flex-shrink: 0;
+  width: 54px;
+  height: 54px;
+  margin-top: -22px;
+  border: 4px solid var(--bg-base);
+  border-radius: 999px;
+  background: var(--accent-mint);
+  color: var(--on-accent);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 6px 18px color-mix(in srgb, var(--accent-mint) 35%, transparent);
+  -webkit-tap-highlight-color: transparent;
+
+  &:active {
+    transform: scale(0.94);
+  }
+}

@@ -21,7 +21,7 @@ export function SmartLink({ to, children, ...rest }: SmartLinkProps) {
 
   if (!hasScheme(to)) {
     return (
-      <Link to={to} {...rest}>
+      <Link to={to} viewTransition {...rest}>
         {children}
       </Link>
     );

@@ -28,6 +28,7 @@ import {
   TerminalSquare,
   Network,
   Plug,
+  Mail,
   type LucideIcon,
 } from "lucide-react";
 import { useAdminFlags } from "@loupe/core";
@@ -65,6 +66,7 @@ const ICONS: Record<string, LucideIcon> = {
   cloud: Cloud,
   env: KeyRound,
   integrations: Plug,
+  email: Mail,
   audit: ScrollText,
   revenue: LineChart,
   pro: Sparkles,
@@ -213,6 +215,7 @@ export function AdminLayout() {
                 <NavLink
                   key={to}
                   to={to}
+                  viewTransition
                   onClick={() => setDrawer(false)}
                   className={({ isActive }) => cx(styles.link, isActive && styles["link--active"])}
                 >

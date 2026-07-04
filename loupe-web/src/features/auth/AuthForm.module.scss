@@ -13,6 +13,21 @@
   background: color-mix(in srgb, var(--accent-rose) 12%, transparent);
 }
 
+// Right-aligned quiet link under the password field ("Forgot password?").
+.forgot {
+  align-self: flex-end;
+  margin-top: calc(var(--space-lg) * -0.6);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--ink-muted);
+  text-decoration: none;
+
+  &:hover {
+    color: var(--accent-mint);
+    text-decoration: underline;
+  }
+}
+
 // Quiet text button (e.g. "Use a different account" on the 2FA step).
 .linkButton {
   align-self: center;

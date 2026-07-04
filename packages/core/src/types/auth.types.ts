@@ -8,6 +8,28 @@ export interface User {
   created_at: string;
   /** True when the user is in the backend admin allowlist (drives portal access). */
   is_admin?: boolean;
+  /** True once the address is confirmed (verify link, or a social provider). */
+  email_verified?: boolean;
+}
+
+/** Per-user settings from `GET /v1/me/settings` (snake_case wire shape, like {@link User}). */
+export interface UserSettings {
+  currency: string;
+  theme: "system" | "light" | "dark";
+  live_sync_enabled: boolean;
+  push_notifications_enabled: boolean;
+  /** Opt-in for product-update + blog emails; security/account emails always send. */
+  email_announcements_enabled: boolean;
+  updated_at: string | null;
+}
+
+/** Body for `PATCH /v1/me/settings` — omitted fields are left unchanged. */
+export interface UserSettingsUpdate {
+  currency?: string;
+  theme?: "system" | "light" | "dark";
+  live_sync_enabled?: boolean;
+  push_notifications_enabled?: boolean;
+  email_announcements_enabled?: boolean;
 }
 
 export interface TokenPair {

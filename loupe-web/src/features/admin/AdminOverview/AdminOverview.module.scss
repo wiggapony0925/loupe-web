@@ -49,9 +49,12 @@
 
     @include bp-down("sm") {
       width: 100%;
+      // Wrap instead of clipping — buttons can't shrink below their label,
+      // so a single row overflows a phone and gets cut off mid-word.
+      flex-wrap: wrap;
 
       > * {
-        flex: 1;
+        flex: 1 1 45%;
       }
     }
   }

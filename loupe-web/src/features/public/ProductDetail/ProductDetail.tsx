@@ -295,6 +295,15 @@ export function ProductDetail() {
         </Panel>
       </div>
 
+      {/* Phones: the buy box lives below the fold — pin price + add. */}
+      <div className={styles.stickyBar}>
+        <div className={styles.stickyBar__price}>
+          <span>Market</span>
+          <strong>{price ? formatMoney(price) : "—"}</strong>
+        </div>
+        <AddToCollectionButton card={card} block={false} />
+      </div>
+
       {/* The signed-in owner's own copies (grade · graded? · cost/value/P-L).
           Renders nothing for guests, non-owners, or until /ownership ships. */}
       <OwnershipPanel cardId={card.id} />

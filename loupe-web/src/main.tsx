@@ -2,6 +2,9 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { configureApi } from "@loupe/core";
 import { initSentry } from "@/observability/sentry";
+// Capture `beforeinstallprompt` before React mounts (the event fires once,
+// early) — Settings surfaces the actual install button.
+import "@/lib/installPrompt";
 import "@/styles/global.scss";
 import App from "@/App";
 

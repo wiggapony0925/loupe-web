@@ -28,6 +28,16 @@ import type {
   DbGraph,
   DbOverview,
   DbTableDetail,
+  AnnouncementDraft,
+  AnnouncementSendResult,
+  SupportDraft,
+  SupportSendResult,
+  EmailLogDetail,
+  EmailLogPage,
+  EmailLogParams,
+  EmailTemplateRender,
+  EmailTemplatesReport,
+  EmailTestResult,
   EnvReport,
   IntegrationsReport,
   HealthReport,
@@ -121,6 +131,8 @@ import type {
   TokenPair,
   UpdateGradeInput,
   User,
+  UserSettings,
+  UserSettingsUpdate,
   WaitlistEntry,
   WaitlistJoinInput,
   WaitlistJoined,
@@ -496,6 +508,33 @@ export const useBillingPortal = (
     "mutationFn"
   >,
 ) => useApiMutation<PortalSession, void>(() => api.me.billingPortal(), options);
+
+/** Per-user settings (currency, theme, notification opt-outs). */
+export const useUserSettings = (enabled = true) =>
+  useApiQuery<UserSettings>(["me-settings"], api.me.settings, {
+    enabled,
+    staleTime: 60_000,
+  });
+
+/** Patch user settings; the server's copy replaces the cached one. */
+export const useUpdateUserSettings = (
+  options?: Omit<
+    UseMutationOptions<UserSettings, ApiError, UserSettingsUpdate>,
+    "mutationFn"
+  >,
+) => {
+  const qc = useQueryClient();
+  return useApiMutation<UserSettings, UserSettingsUpdate>(
+    (patch) => api.me.updateSettings(patch),
+    {
+      ...options,
+      onSuccess: (data, ...rest) => {
+        qc.setQueryData(["me-settings"], data);
+        options?.onSuccess?.(data, ...rest);
+      },
+    },
+  );
+};
 
 /** The signed-in user's cross-device recents (searches + recently-viewed). */
 export const useRecents = (enabled = true) =>
@@ -1445,6 +1484,67 @@ export const useAdminIntegrations = (probe = false, enabled = true) =>
     () => api.admin.ops.integrations(probe),
     { enabled, staleTime: probe ? 0 : 60_000 },
   );
+
+/** Email template gallery + provider status. */
+export const useAdminEmailTemplates = (enabled = true) =>
+  useApiQuery<EmailTemplatesReport>(
+    ["admin-email-templates"],
+    api.admin.ops.email.templates,
+    { enabled, staleTime: 60_000 },
+  );
+
+/** One template rendered with sample data (subject + html + text). */
+export const useAdminEmailTemplate = (key: string | null, enabled = true) =>
+  useApiQuery<EmailTemplateRender>(
+    ["admin-email-template", key],
+    () => api.admin.ops.email.template(key as string),
+    { enabled: enabled && !!key, staleTime: 60_000 },
+  );
+
+/** Send a template to the signed-in admin's own address (real delivery). */
+export const useAdminEmailTest = () =>
+  useApiMutation<EmailTestResult, string>((template) =>
+    api.admin.ops.email.test(template),
+  );
+
+/** Render a composed announcement/support draft (no send). */
+export const useAdminAnnouncementPreview = () =>
+  useApiMutation<
+    EmailTemplateRender,
+    { draft: AnnouncementDraft; kind?: "announcement" | "support" }
+  >(({ draft, kind }) => api.admin.ops.email.announcePreview(draft, kind));
+
+/** Deliver a composed announcement — mode "test" (to yourself) or "send". */
+export const useAdminAnnouncementSend = () =>
+  useApiMutation<AnnouncementSendResult, { draft: AnnouncementDraft; mode: "test" | "send" }>(
+    ({ draft, mode }) => api.admin.ops.email.announce(draft, mode),
+  );
+
+/** Send a one-to-one support message — mode "test" (to yourself) or "send". */
+export const useAdminSupportSend = () =>
+  useApiMutation<SupportSendResult, { draft: SupportDraft; mode: "test" | "send" }>(
+    ({ draft, mode }) => api.admin.ops.email.support(draft, mode),
+  );
+
+/** Email delivery log — every send, queue → delivered/bounced. */
+export const useAdminEmailLog = (params?: EmailLogParams, enabled = true) =>
+  useApiQuery<EmailLogPage>(
+    ["admin-email-log", params ?? {}],
+    () => api.admin.ops.email.log(params),
+    { enabled, staleTime: 10_000, placeholderData: (prev) => prev },
+  );
+
+/** One logged email, including the stored render. */
+export const useAdminEmailLogEntry = (id: string | null, enabled = true) =>
+  useApiQuery<EmailLogDetail>(
+    ["admin-email-log-entry", id],
+    () => api.admin.ops.email.logEntry(id as string),
+    { enabled: enabled && !!id, staleTime: 60_000 },
+  );
+
+/** Re-send a failed email from its stored render. */
+export const useAdminEmailLogRetry = () =>
+  useApiMutation<EmailTestResult, string>((id) => api.admin.ops.email.logRetry(id));
 
 /** Cloud Run + Cloud SQL status (graceful when GCP isn't configured). */
 export const useAdminCloud = (enabled = true) =>

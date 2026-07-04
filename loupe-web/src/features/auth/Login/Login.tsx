@@ -142,6 +142,9 @@ export function Login() {
           error={errors.password?.message}
           {...register("password")}
         />
+        <Link to="/forgot-password" className={styles.forgot}>
+          Forgot password?
+        </Link>
         {errors.root && <p className={styles.error}>{errors.root.message}</p>}
         <Button type="submit" block size="lg" disabled={isSubmitting}>
           {isSubmitting ? "Signing in…" : "Sign in"}

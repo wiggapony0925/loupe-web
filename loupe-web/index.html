@@ -25,6 +25,9 @@
     <!-- Icons -->
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <!-- Installable app: Add to Home Screen gets the standalone shell,
+         Scan/Vault shortcuts, and the dark splash. -->
+    <link rel="manifest" href="/manifest.webmanifest" />
 
     <!-- Open Graph (link previews on iMessage, Slack, Discord, Facebook, LinkedIn) -->
     <meta property="og:type" content="website" />
@@ -48,6 +51,11 @@
       content="Scan any Pokémon, Magic, or Yu-Gi-Oh! card and track grade-aware market values across web and mobile."
     />
     <meta name="twitter:image" content="https://loupe-web-714615078104.us-central1.run.app/og-image.png" />
+    <!-- Card-art CDNs (Pokémon / Magic / Yu-Gi-Oh!) — warm up DNS+TLS before the
+         first rail of thumbnails asks for them. These load direct (no proxy). -->
+    <link rel="preconnect" href="https://images.pokemontcg.io" />
+    <link rel="preconnect" href="https://cards.scryfall.io" />
+    <link rel="dns-prefetch" href="https://images.ygoprodeck.com" />
     <!-- Type system: Fraunces (editorial display serif) + Inter (UI sans). -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
