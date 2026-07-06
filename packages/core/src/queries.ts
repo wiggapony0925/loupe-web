@@ -462,12 +462,52 @@ export const useIdentifyCard = (
     options,
   );
 
-/** Canonical identity for a single card. */
-export const useCard = (id: string) =>
-  useApiQuery<CardSummary>(["card", id], () => api.cards.canonical(id), {
+/** Scan every cached list (trending, search/browse pages, rails) for a
+ *  CardSummary with this id. The user almost always reaches a detail page
+ *  from a list they were just looking at, so the identity+art+price they
+ *  clicked is already in memory — no need to show a skeleton while the
+ *  canonical endpoint re-derives it. */
+const findCardInListCaches = (
+  qc: ReturnType<typeof useQueryClient>,
+  id: string,
+): CardSummary | undefined => {
+  if (!id) return undefined;
+  for (const [, data] of qc.getQueriesData<unknown>({})) {
+    const pools: unknown[] = Array.isArray(data)
+      ? [data]
+      : data && typeof data === "object"
+        ? [
+            (data as { results?: unknown }).results,
+            (data as { cards?: unknown }).cards,
+          ]
+        : [];
+    for (const pool of pools) {
+      if (!Array.isArray(pool)) continue;
+      for (const item of pool) {
+        const c = item as Partial<CardSummary> | null;
+        if (c && c.id === id && typeof c.name === "string" && c.imageUrl) {
+          return c as CardSummary;
+        }
+      }
+    }
+  }
+  return undefined;
+};
+
+/** Canonical identity for a single card.
+ *
+ *  Seeded from any cached list row (`initialData`) so tile → detail paints
+ *  instantly; `initialDataUpdatedAt: 0` marks the seed stale, so the real
+ *  canonical fetch still runs in the background and upgrades the data. */
+export const useCard = (id: string) => {
+  const qc = useQueryClient();
+  return useApiQuery<CardSummary>(["card", id], () => api.cards.canonical(id), {
     enabled: Boolean(id),
     staleTime: 300_000,
+    initialData: () => findCardInListCaches(qc, id),
+    initialDataUpdatedAt: 0,
   });
+};
 
 /** Current user — enable once a token is present. */
 export const useMe = (enabled: boolean) =>
