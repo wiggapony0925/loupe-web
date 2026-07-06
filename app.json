@@ -1,0 +1,15 @@
+{
+  "expo": {
+    "extra": {
+      "eas": {
+        "projectId": "4cc2c303-a70b-494f-8098-94f82c05048e"
+      }
+    },
+    "ios": {
+      "bundleIdentifier": "app.loupe.client",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    }
+  }
+}

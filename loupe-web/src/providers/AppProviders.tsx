@@ -5,6 +5,7 @@ import { lazy, Suspense, useState, type ReactNode } from "react";
 import { ThemeProvider } from "@/theme";
 import { AuthProvider } from "@/auth/AuthProvider";
 import { ProProvider } from "@/pro";
+import { DisplayCurrencyProvider } from "@/providers/DisplayCurrencyProvider";
 import { ConfirmProvider, TooltipProvider } from "@/components";
 import { reportError } from "@/observability/sentry";
 
@@ -89,9 +90,11 @@ export function AppProviders({ children }: { children: ReactNode }) {
       <ThemeProvider>
         <AuthProvider>
           <ProProvider>
-            <ConfirmProvider>
-              <TooltipProvider delayDuration={250}>{children}</TooltipProvider>
-            </ConfirmProvider>
+            <DisplayCurrencyProvider>
+              <ConfirmProvider>
+                <TooltipProvider delayDuration={250}>{children}</TooltipProvider>
+              </ConfirmProvider>
+            </DisplayCurrencyProvider>
           </ProProvider>
         </AuthProvider>
       </ThemeProvider>

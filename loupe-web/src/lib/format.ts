@@ -1,4 +1,9 @@
 import type { Money } from "@loupe/core";
+import {
+  convertUsd,
+  getActiveDisplayCurrency,
+  type CurrencyMeta,
+} from "@/lib/currency";
 
 /** Coerce a `Money` or bare number into a number of major units. */
 function toAmount(value: Money | number): number {
@@ -9,24 +14,63 @@ function currencyOf(value: Money | number): string {
   return typeof value === "number" ? "USD" : value.currency;
 }
 
-/** `$1,240.50` — fixed 2 decimals, locale grouping. */
-export function formatMoney(value: Money | number, opts?: { maximumFractionDigits?: number }): string {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: currencyOf(value),
-    minimumFractionDigits: opts?.maximumFractionDigits ?? 2,
-    maximumFractionDigits: opts?.maximumFractionDigits ?? 2,
-  }).format(toAmount(value));
+/**
+ * Resolve a value into what should actually be rendered. USD is Loupe's
+ * canonical unit, so USD values follow the user's chosen display currency
+ * (profile `/me/settings.currency`, owned by `DisplayCurrencyProvider`).
+ * Money already denominated in another currency (e.g. Cardmarket EUR rows)
+ * renders natively — we never double-convert provider-native prices.
+ */
+function toDisplay(value: Money | number): {
+  amount: number;
+  code: string;
+  meta: CurrencyMeta | null;
+} {
+  const code = currencyOf(value);
+  const amount = toAmount(value);
+  if (code !== "USD") return { amount, code, meta: null };
+  const display = getActiveDisplayCurrency();
+  if (display.code === "USD") return { amount, code, meta: null };
+  return { amount: convertUsd(amount, display.code), code: display.code, meta: display };
 }
 
-/** `$1.2K` / `$3.4M` — compact notation for hero figures. */
-export function formatCompactMoney(value: Money | number): string {
+/** Crypto codes aren't valid Intl currency codes — format with the glyph. */
+function formatCrypto(amount: number, meta: CurrencyMeta, compact: boolean): string {
+  if (compact && Math.abs(amount) >= 1_000) {
+    return `${meta.symbol}${new Intl.NumberFormat("en-US", {
+      notation: "compact",
+      maximumFractionDigits: 1,
+    }).format(amount)}`;
+  }
+  return `${meta.symbol}${amount.toLocaleString("en-US", {
+    minimumFractionDigits: meta.decimals,
+    maximumFractionDigits: meta.decimals,
+  })}`;
+}
+
+/** `$1,240.50` — fixed 2 decimals, locale grouping (in the display currency). */
+export function formatMoney(value: Money | number, opts?: { maximumFractionDigits?: number }): string {
+  const { amount, code, meta } = toDisplay(value);
+  if (meta?.kind === "crypto") return formatCrypto(amount, meta, false);
+  const digits = opts?.maximumFractionDigits ?? meta?.decimals ?? 2;
   return new Intl.NumberFormat("en-US", {
     style: "currency",
-    currency: currencyOf(value),
+    currency: code,
+    minimumFractionDigits: digits,
+    maximumFractionDigits: digits,
+  }).format(amount);
+}
+
+/** `$1.2K` / `$3.4M` — compact notation for hero figures (display currency). */
+export function formatCompactMoney(value: Money | number): string {
+  const { amount, code, meta } = toDisplay(value);
+  if (meta?.kind === "crypto") return formatCrypto(amount, meta, true);
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: code,
     notation: "compact",
     maximumFractionDigits: 1,
-  }).format(toAmount(value));
+  }).format(amount);
 }
 
 /** `+$240.50` / `−$12.00` — signed money with a real minus glyph. */

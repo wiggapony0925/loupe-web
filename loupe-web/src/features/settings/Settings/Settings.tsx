@@ -10,6 +10,8 @@ import { useInstallPrompt } from "@/hooks/useInstallPrompt";
 import { MfaCard } from "../MfaCard/MfaCard";
 import { ChangePasswordCard } from "../ChangePasswordCard/ChangePasswordCard";
 import { usePro } from "@/pro";
+import { useDisplayCurrency } from "@/providers/DisplayCurrencyProvider";
+import { CURRENCIES } from "@/lib/currency";
 import { cx } from "@/lib/cx";
 import styles from "./Settings.module.scss";
 
@@ -27,6 +29,7 @@ export function Settings() {
   const setCollapsed = useUiStore((s) => s.setSidebarCollapsed);
   const { subscriptionsEnabled, isPro, openPaywall, manageBilling, billingBusy } = usePro();
   const { canInstall, showIosHint, install } = useInstallPrompt();
+  const { code: displayCurrency, setCurrency } = useDisplayCurrency();
   const { data: settings } = useUserSettings(Boolean(user));
   const updateSettings = useUpdateUserSettings({
     onError: () => notify.error("Couldn't update your email preferences. Please try again."),
@@ -153,6 +156,26 @@ export function Settings() {
               updateSettings.mutate({ email_announcements_enabled: next })
             }
           />
+        </Row>
+      </Panel>
+
+      <Panel padding="lg">
+        <Row
+          title="Display currency"
+          desc="Every price renders in this currency, on the web and in the mobile app — the choice is saved to your profile."
+        >
+          <select
+            aria-label="Display currency"
+            className={styles.currencySelect}
+            value={displayCurrency}
+            onChange={(e) => setCurrency(e.target.value)}
+          >
+            {CURRENCIES.map((c) => (
+              <option key={c.code} value={c.code}>
+                {c.flag} {c.code} · {c.name}
+              </option>
+            ))}
+          </select>
         </Row>
       </Panel>
 
