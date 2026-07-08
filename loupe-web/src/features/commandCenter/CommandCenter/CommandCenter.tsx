@@ -10,6 +10,7 @@ import {
 import { SealedCard } from "@/features/public/Sealed/SealedCard/SealedCard";
 import {
   Carousel,
+  CurrencySwitcher,
   ShopCard,
   Skeleton,
   NoteCard,
@@ -91,12 +92,16 @@ export function CommandCenter() {
           <p className={styles.eyebrow}>Your market</p>
           <h1 className={styles.greeting}>Welcome back, {firstName}.</h1>
         </div>
-        <Button
-          trailingIcon={<ArrowRight size={16} />}
-          onClick={() => navigate("/cards")}
-        >
-          Browse all cards
-        </Button>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          {/* Display currency — profile-synced, so mobile follows. */}
+          <CurrencySwitcher />
+          <Button
+            trailingIcon={<ArrowRight size={16} />}
+            onClick={() => navigate("/cards")}
+          >
+            Browse all cards
+          </Button>
+        </div>
       </header>
 
       {trending.isError ? (

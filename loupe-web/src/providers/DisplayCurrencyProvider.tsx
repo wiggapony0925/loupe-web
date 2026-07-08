@@ -21,13 +21,15 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { useUpdateUserSettings, useUserSettings } from "@loupe/core";
+import { useQuery } from "@tanstack/react-query";
+import { apiFetch, useUpdateUserSettings, useUserSettings } from "@loupe/core";
 import { useAuth } from "@/auth/AuthProvider";
 import {
   getActiveDisplayCurrency,
   getCurrency,
   isSupportedCurrency,
   setActiveDisplayCurrency,
+  setLiveFxRates,
   type CurrencyMeta,
 } from "@/lib/currency";
 
@@ -44,6 +46,25 @@ export function DisplayCurrencyProvider({ children }: { children: ReactNode }) {
   const { data: settings } = useUserSettings(isAuthed);
   const updateSettings = useUpdateUserSettings();
   const [code, setCode] = useState(() => getActiveDisplayCurrency().code);
+  // Live FX table from the backend — the ONE conversion source shared with
+  // mobile. Bumping `fxVersion` re-keys the subtree so every money figure
+  // repaints with the fresh rates.
+  const [fxVersion, setFxVersion] = useState(0);
+  const fx = useQuery({
+    queryKey: ["fx", "rates"],
+    queryFn: () =>
+      apiFetch<{ rates: Record<string, number> }>("/v1/market/fx/rates"),
+    staleTime: 6 * 60 * 60 * 1000,
+    gcTime: 24 * 60 * 60 * 1000,
+    retry: 2,
+  });
+  useEffect(() => {
+    const rates = fx.data?.rates;
+    if (rates && Object.keys(rates).length > 0) {
+      setLiveFxRates(rates);
+      setFxVersion((v) => v + 1);
+    }
+  }, [fx.data]);
 
   // Adopt the profile's saved currency (set here or on mobile).
   useEffect(() => {
@@ -69,7 +90,7 @@ export function DisplayCurrencyProvider({ children }: { children: ReactNode }) {
       {/* Re-key on the code: money strings come from pure helpers, so a
           currency switch must remount the subtree to repaint every figure.
           Switches are rare (settings-page action), so this is cheap. */}
-      <div style={{ display: "contents" }} key={code}>
+      <div style={{ display: "contents" }} key={`${code}:${fxVersion}`}>
         {children}
       </div>
     </DisplayCurrencyContext.Provider>

@@ -89,7 +89,20 @@ export function setActiveDisplayCurrency(code: string): void {
   }
 }
 
+// ── Live FX rates (module state; written by the provider) ────────────────
+// Backend `GET /v1/market/fx/rates` is the ONE conversion source shared
+// with mobile; the static `ratePerUsd` snapshot above is only the
+// offline / first-paint fallback.
+
+let liveRates: Record<string, number> | null = null;
+
+/** Provider-only: install the server FX table. */
+export function setLiveFxRates(rates: Record<string, number>): void {
+  if (rates && typeof rates.USD === "number") liveRates = rates;
+}
+
 /** Convert a USD amount → the target currency's native units. */
 export function convertUsd(usd: number, code: string): number {
-  return usd * getCurrency(code).ratePerUsd;
+  const live = liveRates?.[code];
+  return usd * (live ?? getCurrency(code).ratePerUsd);
 }

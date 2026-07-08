@@ -39,3 +39,38 @@ export function isEmbedded(): boolean {
 export function isAppEmbedded(): boolean {
   return embedScope() === "app";
 }
+
+const SCOPE_KEY = "loupe.embed.scope";
+
+/**
+ * The path prefixes an app-embed is confined to (`?scope=/help,/legal,…`), or
+ * null when not app-embedded or no scope was supplied.
+ *
+ * The native WebView passes the same confine list it uses to block hard
+ * navigations; we persist it into sessionStorage (like the embed flag) so it
+ * survives client-side SPA navigation — the mobile guard can't see those, so
+ * the web side enforces them (see `EmbeddedGuard`).
+ */
+export function appEmbedScopes(): string[] | null {
+  if (!isAppEmbedded()) return null;
+  try {
+    const param = new URLSearchParams(window.location.search).get("scope");
+    if (param) {
+      window.sessionStorage.setItem(SCOPE_KEY, param);
+    }
+    const raw = param ?? window.sessionStorage.getItem(SCOPE_KEY);
+    if (!raw) return null;
+    const scopes = raw
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean);
+    return scopes.length ? scopes : null;
+  } catch {
+    return null;
+  }
+}
+
+/** True when `pathname` falls within one of the embed's allowed scopes. */
+export function isPathInScope(pathname: string, scopes: string[]): boolean {
+  return scopes.some((s) => pathname === s || pathname.startsWith(`${s}/`));
+}

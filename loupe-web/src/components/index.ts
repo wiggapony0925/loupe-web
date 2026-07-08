@@ -1,4 +1,5 @@
 // Barrel export for the reusable component library. Import from "@/components".
+export { CurrencySwitcher } from "./CurrencySwitcher/CurrencySwitcher";
 export { Button } from "./Button/Button";
 export type { ButtonProps } from "./Button/Button";
 export { IconButton } from "./IconButton/IconButton";
