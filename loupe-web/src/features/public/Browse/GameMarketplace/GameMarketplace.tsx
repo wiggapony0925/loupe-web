@@ -39,16 +39,18 @@ export function GameMarketplace({
     setSeed(Math.floor(Math.random() * 2 ** 31));
   }, [game]);
 
-  // AI-authored shelves (cached daily server-side); falls back to curated-only
-  // when the model isn't configured — the rail engine doesn't care where a
-  // recipe came from, so this just enriches the rotating pool.
-  const { data: ai } = usePublicCarousels(game);
-  const aiRecipes = ai?.carousels;
-  const aiOn = ai?.source === "ai" && (aiRecipes?.length ?? 0) > 0;
+  // The backend owns the recipe pool: `/v1/public/carousels` returns the
+  // curated pool, upgraded to AI shelves (cached daily) when a model is
+  // configured. `carousels` is `undefined` until it answers — the rail engine
+  // then falls back to its local pool only for that cold-load window so the
+  // storefront is never bare. This is the single source of truth mobile shares.
+  const { data: carousels } = usePublicCarousels(game);
+  const recipes = carousels?.carousels;
+  const aiOn = carousels?.source === "ai" && (recipes?.length ?? 0) > 0;
 
   const rails = useMemo(
-    () => composeGameRails(label, seed, { aiRecipes }),
-    [label, seed, aiRecipes],
+    () => composeGameRails(label, seed, { recipes }),
+    [label, seed, recipes],
   );
 
   return (
