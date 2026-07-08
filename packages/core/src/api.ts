@@ -64,6 +64,7 @@ import {
   toIntegrationsReport,
   toGradeReviewPage,
   toHealthReport,
+  toPriceChartingOverview,
   toPulseFeed,
   toScannerStats,
   toScannerTrend,
@@ -108,6 +109,8 @@ import type {
   IntegrationsReport,
   GradeReviewPage,
   GradeReviewParams,
+  PriceChartingOverview,
+  PriceChartingSyncResult,
   HealthReport,
   InsightsAnswer,
   PulseFeed,
@@ -1120,6 +1123,23 @@ export const api = {
     /** Catalog coverage by game (cards/sets, pHash %, price sources). */
     catalog: async (): Promise<CatalogCoverage> =>
       toCatalogCoverage(await apiFetch(ENDPOINTS.admin.catalog)),
+    /** PriceCharting tier detection + fallback chain + mirror status. */
+    pricecharting: {
+      overview: async (): Promise<PriceChartingOverview> =>
+        toPriceChartingOverview(await apiFetch(ENDPOINTS.admin.pricecharting)),
+      /** Force a fresh capability probe (after a plan up/downgrade). */
+      probe: async (): Promise<PriceChartingOverview> =>
+        toPriceChartingOverview(
+          await apiFetch(ENDPOINTS.admin.pricechartingProbe, {
+            method: "POST",
+          }),
+        ),
+      /** Trigger a Legendary bulk CSV sync. */
+      sync: async (): Promise<PriceChartingSyncResult> =>
+        apiFetch<PriceChartingSyncResult>(ENDPOINTS.admin.pricechartingSync, {
+          method: "POST",
+        }),
+    },
     /** Card/Set data lineage — which provider feeds each field + price fallback. */
     cardTree: async (): Promise<CardTree> =>
       (await apiFetch(ENDPOINTS.admin.cardTree)) as CardTree,
@@ -1252,7 +1272,9 @@ export const api = {
         ),
       email: {
         templates: async (): Promise<EmailTemplatesReport> =>
-          toEmailTemplatesReport(await apiFetch(ENDPOINTS.admin.emailTemplates)),
+          toEmailTemplatesReport(
+            await apiFetch(ENDPOINTS.admin.emailTemplates),
+          ),
         template: async (key: string): Promise<EmailTemplateRender> =>
           apiFetch(ENDPOINTS.admin.emailTemplate(key)),
         test: async (template: string): Promise<EmailTestResult> =>

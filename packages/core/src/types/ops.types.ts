@@ -302,3 +302,60 @@ export interface AuditParams {
   page?: number;
   pageSize?: number;
 }
+
+// ── PriceCharting tier & fallback ────────────────────────────────────────────
+
+export type PriceChartingTier = "legendary" | "premium" | "collector" | "none";
+
+export interface PriceChartingCapabilities {
+  configured: boolean;
+  apiOk: boolean;
+  gradedFields: boolean;
+  csvOk: boolean;
+  probedAt: string | null;
+  note: string;
+  tier: PriceChartingTier;
+}
+
+export interface PriceChartingStrategy {
+  key: string;
+  label: string;
+  description: string;
+}
+
+export interface PriceChartingRung {
+  tier: PriceChartingTier;
+  label: string;
+  requirement: string;
+  strategy: PriceChartingStrategy;
+  active: boolean;
+}
+
+export interface PriceChartingMirror {
+  ready: boolean;
+  rows: number;
+  syncedAt: string | null;
+}
+
+export interface PriceChartingGradeMapEntry {
+  field: string;
+  grade: string;
+}
+
+/** The dev-portal "PriceCharting tier & fallback" view. */
+export interface PriceChartingOverview {
+  configured: boolean;
+  capabilities: PriceChartingCapabilities;
+  tier: { key: PriceChartingTier; label: string };
+  strategy: PriceChartingStrategy;
+  fallbackChain: PriceChartingRung[];
+  gradeMap: PriceChartingGradeMapEntry[];
+  mirror: PriceChartingMirror;
+}
+
+/** Result of a Legendary bulk CSV sync. */
+export interface PriceChartingSyncResult {
+  ok: boolean;
+  rows: number;
+  reason?: string;
+}

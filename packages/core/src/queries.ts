@@ -41,6 +41,8 @@ import type {
   EnvReport,
   IntegrationsReport,
   HealthReport,
+  PriceChartingOverview,
+  PriceChartingSyncResult,
   RevenueSummary,
   CardTree,
   CatalogCoverage,
@@ -1525,6 +1527,37 @@ export const useAdminIntegrations = (probe = false, enabled = true) =>
     { enabled, staleTime: probe ? 0 : 60_000 },
   );
 
+/** PriceCharting tier, capabilities, fallback chain & mirror status. */
+export const useAdminPriceCharting = (enabled = true) =>
+  useApiQuery<PriceChartingOverview>(
+    ["admin-pricecharting"],
+    api.admin.pricecharting.overview,
+    { enabled, staleTime: 60_000 },
+  );
+
+/** Force a fresh capability probe, then refresh the overview cache. */
+export const useAdminPriceChartingProbe = () => {
+  const qc = useQueryClient();
+  return useApiMutation<PriceChartingOverview, void>(
+    () => api.admin.pricecharting.probe(),
+    {
+      onSuccess: (data) => qc.setQueryData(["admin-pricecharting"], data),
+    },
+  );
+};
+
+/** Trigger a Legendary bulk CSV sync, then refetch the overview. */
+export const useAdminPriceChartingSync = () => {
+  const qc = useQueryClient();
+  return useApiMutation<PriceChartingSyncResult, void>(
+    () => api.admin.pricecharting.sync(),
+    {
+      onSuccess: () =>
+        void qc.invalidateQueries({ queryKey: ["admin-pricecharting"] }),
+    },
+  );
+};
+
 /** Email template gallery + provider status. */
 export const useAdminEmailTemplates = (enabled = true) =>
   useApiQuery<EmailTemplatesReport>(
@@ -1556,15 +1589,17 @@ export const useAdminAnnouncementPreview = () =>
 
 /** Deliver a composed announcement — mode "test" (to yourself) or "send". */
 export const useAdminAnnouncementSend = () =>
-  useApiMutation<AnnouncementSendResult, { draft: AnnouncementDraft; mode: "test" | "send" }>(
-    ({ draft, mode }) => api.admin.ops.email.announce(draft, mode),
-  );
+  useApiMutation<
+    AnnouncementSendResult,
+    { draft: AnnouncementDraft; mode: "test" | "send" }
+  >(({ draft, mode }) => api.admin.ops.email.announce(draft, mode));
 
 /** Send a one-to-one support message — mode "test" (to yourself) or "send". */
 export const useAdminSupportSend = () =>
-  useApiMutation<SupportSendResult, { draft: SupportDraft; mode: "test" | "send" }>(
-    ({ draft, mode }) => api.admin.ops.email.support(draft, mode),
-  );
+  useApiMutation<
+    SupportSendResult,
+    { draft: SupportDraft; mode: "test" | "send" }
+  >(({ draft, mode }) => api.admin.ops.email.support(draft, mode));
 
 /** Email delivery log — every send, queue → delivered/bounced. */
 export const useAdminEmailLog = (params?: EmailLogParams, enabled = true) =>
@@ -1584,7 +1619,9 @@ export const useAdminEmailLogEntry = (id: string | null, enabled = true) =>
 
 /** Re-send a failed email from its stored render. */
 export const useAdminEmailLogRetry = () =>
-  useApiMutation<EmailTestResult, string>((id) => api.admin.ops.email.logRetry(id));
+  useApiMutation<EmailTestResult, string>((id) =>
+    api.admin.ops.email.logRetry(id),
+  );
 
 /** Cloud Run + Cloud SQL status (graceful when GCP isn't configured). */
 export const useAdminCloud = (enabled = true) =>

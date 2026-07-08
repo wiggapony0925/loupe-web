@@ -1,0 +1,228 @@
+// PriceCharting — live tier detection + fallback-chain visualiser.
+
+.spin {
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg, 20px);
+}
+
+// ── Active-tier hero ────────────────────────────────────────────────────────
+.hero {
+  padding: var(--space-lg, 20px);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--bg-sunken);
+  border-left: 4px solid var(--ink-muted);
+}
+.tone_legendary {
+  border-left-color: var(--accent-mint);
+}
+.tone_premium {
+  border-left-color: var(--accent-blue, #4f8cff);
+}
+.tone_collector {
+  border-left-color: var(--accent-amber);
+}
+.tone_none {
+  border-left-color: var(--ink-muted);
+}
+
+.heroTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+}
+.heroKicker {
+  font-size: var(--text-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-muted);
+}
+.heroStrategy {
+  margin: var(--space-sm) 0 4px;
+  font-size: var(--text-lg, 1.15rem);
+  color: var(--ink);
+}
+.heroDesc {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--ink-dim);
+  max-width: 62ch;
+}
+
+.caps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  margin-top: var(--space-md);
+}
+.cap {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  font-size: var(--text-xs);
+  border: 1px solid var(--line);
+}
+.capOn {
+  color: var(--accent-mint);
+  border-color: color-mix(in srgb, var(--accent-mint) 40%, transparent);
+  background: color-mix(in srgb, var(--accent-mint) 12%, transparent);
+}
+.capOff {
+  color: var(--ink-muted);
+}
+.note {
+  margin: var(--space-md) 0 0;
+  font-size: var(--text-xs);
+  color: var(--ink-muted);
+  font-family: var(--font-mono);
+}
+
+// ── Sections ────────────────────────────────────────────────────────────────
+.section {
+  padding: var(--space-lg, 20px);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--bg-base);
+}
+.sectionTitle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: var(--text-md);
+  color: var(--ink);
+}
+.sectionHint {
+  margin: 4px 0 var(--space-md);
+  font-size: var(--text-sm);
+  color: var(--ink-dim);
+  max-width: 64ch;
+}
+
+// ── Fallback chain ──────────────────────────────────────────────────────────
+.chain {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+.rung {
+  padding: var(--space-md);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--bg-sunken);
+  opacity: 0.72;
+}
+.rungActive {
+  opacity: 1;
+  border-color: var(--accent-mint);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent-mint) 40%, transparent);
+}
+.rungHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+}
+.rungLabel {
+  font-weight: 600;
+  color: var(--ink);
+  font-size: var(--text-sm);
+}
+.rungReq {
+  font-size: var(--text-xs);
+  color: var(--ink-muted);
+  font-family: var(--font-mono);
+}
+.rungDesc {
+  margin: 6px 0 0;
+  font-size: var(--text-sm);
+  color: var(--ink-dim);
+}
+
+// ── Mirror ──────────────────────────────────────────────────────────────────
+.mirror {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-lg, 20px);
+}
+.mirrorStat {
+  display: flex;
+  flex-direction: column;
+}
+.mirrorNum {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+.mirrorLabel {
+  font-size: var(--text-xs);
+  color: var(--ink-muted);
+}
+.mirrorMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.mirrorSynced {
+  font-size: var(--text-xs);
+  color: var(--ink-dim);
+}
+.syncNote {
+  font-size: var(--text-xs);
+  color: var(--accent-mint);
+}
+
+// ── Grade map ───────────────────────────────────────────────────────────────
+.gradeMap {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: var(--space-sm);
+}
+.gradeRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--bg-sunken);
+}
+.gradeField {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--ink-dim);
+}
+.gradeArrow {
+  color: var(--ink-muted);
+}
+.gradeName {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--ink);
+  margin-left: auto;
+}
+
+.footnote {
+  font-size: var(--text-xs);
+  color: var(--ink-muted);
+  text-align: right;
+  margin: 0;
+}

@@ -10,6 +10,7 @@ export { AdminEmail } from "./AdminEmail/AdminEmail";
 export { AdminAudit } from "./AdminAudit/AdminAudit";
 export { AdminRevenue } from "./AdminRevenue/AdminRevenue";
 export { AdminCatalog } from "./AdminCatalog/AdminCatalog";
+export { AdminPriceCharting } from "./AdminPriceCharting/AdminPriceCharting";
 export { AdminScanner } from "./AdminScanner/AdminScanner";
 export { AdminCards } from "./AdminCards/AdminCards";
 export { AdminCardTree } from "./AdminCardTree/AdminCardTree";
