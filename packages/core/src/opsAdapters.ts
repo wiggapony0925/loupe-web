@@ -33,6 +33,9 @@ import type {
   GradeReviewRow,
   HealthCheck,
   HealthReport,
+  PriceChartingCapabilities,
+  PriceChartingOverview,
+  PriceChartingRung,
   PulseFeed,
   ScannerStats,
   ScannerTrend,
@@ -136,6 +139,63 @@ export function toIntegrationsReport(
         detail: i.detail,
       }),
     ),
+  };
+}
+
+interface RawPriceChartingOverview {
+  configured: boolean;
+  capabilities: {
+    configured: boolean;
+    api_ok: boolean;
+    graded_fields: boolean;
+    csv_ok: boolean;
+    probed_at: string | null;
+    note: string;
+    tier: PriceChartingCapabilities["tier"];
+  };
+  tier: { key: PriceChartingCapabilities["tier"]; label: string };
+  strategy: { key: string; label: string; description: string };
+  fallback_chain: {
+    tier: PriceChartingCapabilities["tier"];
+    label: string;
+    requirement: string;
+    strategy: { key: string; label: string; description: string };
+    active: boolean;
+  }[];
+  grade_map: { field: string; grade: string }[];
+  mirror: { ready: boolean; rows: number; synced_at: string | null };
+}
+export function toPriceChartingOverview(
+  r: RawPriceChartingOverview,
+): PriceChartingOverview {
+  return {
+    configured: r.configured,
+    capabilities: {
+      configured: r.capabilities.configured,
+      apiOk: r.capabilities.api_ok,
+      gradedFields: r.capabilities.graded_fields,
+      csvOk: r.capabilities.csv_ok,
+      probedAt: r.capabilities.probed_at,
+      note: r.capabilities.note,
+      tier: r.capabilities.tier,
+    },
+    tier: r.tier,
+    strategy: r.strategy,
+    fallbackChain: r.fallback_chain.map(
+      (rung): PriceChartingRung => ({
+        tier: rung.tier,
+        label: rung.label,
+        requirement: rung.requirement,
+        strategy: rung.strategy,
+        active: rung.active,
+      }),
+    ),
+    gradeMap: r.grade_map,
+    mirror: {
+      ready: r.mirror.ready,
+      rows: r.mirror.rows,
+      syncedAt: r.mirror.synced_at,
+    },
   };
 }
 
@@ -738,7 +798,9 @@ export function toScanHistoryPage(r: RawScanHistoryPage): ScanHistoryPage {
   };
 }
 
-export function toScanHistoryDetail(r: RawScanHistoryDetail): ScanHistoryDetail {
+export function toScanHistoryDetail(
+  r: RawScanHistoryDetail,
+): ScanHistoryDetail {
   return {
     ...toScanHistoryItem(r),
     ocrFullText: r.ocr_full_text,

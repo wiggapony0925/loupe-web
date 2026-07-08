@@ -170,6 +170,14 @@ export const ADMIN_PAGES: AdminPage[] = [
     flag: "admin_catalog",
   },
   {
+    path: "pricecharting",
+    component: "AdminPriceCharting",
+    label: "PriceCharting",
+    hint: "Tier & fallback",
+    group: "Catalog & product",
+    flag: "admin_pricecharting",
+  },
+  {
     path: "cards",
     component: "AdminCards",
     label: "Card data",

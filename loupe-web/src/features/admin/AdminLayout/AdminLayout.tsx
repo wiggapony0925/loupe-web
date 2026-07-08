@@ -29,6 +29,7 @@ import {
   Network,
   Plug,
   Mail,
+  Coins,
   type LucideIcon,
 } from "lucide-react";
 import { useAdminFlags } from "@loupe/core";
@@ -74,6 +75,7 @@ const ICONS: Record<string, LucideIcon> = {
   flags: ToggleRight,
   users: Users,
   catalog: Library,
+  pricecharting: Coins,
   cards: Search,
   "card-tree": Network,
   grades: ShieldCheck,

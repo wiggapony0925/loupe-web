@@ -73,7 +73,10 @@ export const ENDPOINTS = {
       const qs = q.toString();
       return `${V1}/cards/${id}/nearby-listings${qs ? `?${qs}` : ""}`;
     },
-    comps: (id: string, opts?: { days?: number; grade?: string; house?: string }) => {
+    comps: (
+      id: string,
+      opts?: { days?: number; grade?: string; house?: string },
+    ) => {
       const q = new URLSearchParams();
       if (opts?.days) q.set("days", String(opts.days));
       if (opts?.grade) q.set("grade", opts.grade);
@@ -214,6 +217,9 @@ export const ENDPOINTS = {
     revenue: `${V1}/admin/revenue`,
     // Catalog & product.
     catalog: `${V1}/admin/catalog`,
+    pricecharting: `${V1}/admin/pricecharting`,
+    pricechartingProbe: `${V1}/admin/pricecharting/probe`,
+    pricechartingSync: `${V1}/admin/pricecharting/sync`,
     scanner: `${V1}/admin/scanner`,
     scannerTrend: `${V1}/admin/scanner/trend`,
     scannerHistory: `${V1}/admin/scanner/history`,
