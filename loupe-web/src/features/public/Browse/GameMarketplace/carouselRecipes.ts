@@ -89,8 +89,11 @@ export function recipeToRailSpec(r: CarouselRecipe, label: string): RailSpec {
 }
 
 // ──────────────────────────────────────────────────────────────────────────
-// Curated strategy pool — the always-on shelves the rotation samples from.
-// (The AI generator adds more of these at runtime; see composeGameRails.)
+// Offline fallback pool — the backend `/v1/public/carousels` is now the source
+// of truth for the recipe pool (see composeGameRails). This local copy is kept
+// ONLY so the storefront is never bare on a cold load / when the endpoint is
+// unreachable; the moment the endpoint answers, its recipes take over. Keep it
+// in sync with the backend `_CURATED_POOL` (carousel_service.py).
 // ──────────────────────────────────────────────────────────────────────────
 export const CURATED_RECIPES: CarouselRecipe[] = [
   {
@@ -198,14 +201,21 @@ function shuffle<T>(arr: readonly T[], seed: number): T[] {
 
 /**
  * Compose the ordered rails for a game: stable "anchor" shelves plus a
- * seed-shuffled sample of the strategy pool, so the storefront varies per
- * visit like a real marketplace. `aiRecipes` (from the AI generator) are mixed
- * into the rotating pool when present.
+ * seed-shuffled sample of the recipe pool, so the storefront varies per visit
+ * like a real marketplace.
+ *
+ * The pool is **backend-owned**: `recipes` comes from `/v1/public/carousels`
+ * (the curated pool, upgraded to AI when a model is configured) and is the
+ * single source of truth both web and mobile render. `CURATED_RECIPES` is used
+ * only as an offline fallback when the endpoint hasn't answered yet
+ * (`recipes === undefined`) so the storefront is never bare. An explicit empty
+ * array from the backend (catalog-only games) means "no rotating shelves" — the
+ * structural anchors below carry the storefront.
  */
 export function composeGameRails(
   label: string,
   seed: number,
-  opts: { aiRecipes?: CarouselRecipe[]; rotatingCount?: number } = {},
+  opts: { recipes?: CarouselRecipe[]; rotatingCount?: number } = {},
 ): RailSpec[] {
   const rotatingCount = opts.rotatingCount ?? 5;
 
@@ -220,8 +230,13 @@ export function composeGameRails(
     minItems: 4,
   };
 
-  // Rotating middle: a varied sample of curated + AI strategies.
-  const pool = [...CURATED_RECIPES, ...(opts.aiRecipes ?? [])];
+  // Rotating middle: a varied sample of the backend-owned recipe pool (curated
+  // or AI). Fall back to the local pool whenever the endpoint hasn't given us a
+  // non-empty pool — the cold-load window, an unreachable endpoint, or an older
+  // backend still serving an empty set — so the priced storefront is never bare.
+  // (Catalog-only games get [] from the backend AND self-hide the local value
+  // rails, so the net render is the same either way.)
+  const pool = opts.recipes?.length ? opts.recipes : CURATED_RECIPES;
   const picked = shuffle(pool, seed)
     .slice(0, rotatingCount)
     .map((r) => recipeToRailSpec(r, label));
