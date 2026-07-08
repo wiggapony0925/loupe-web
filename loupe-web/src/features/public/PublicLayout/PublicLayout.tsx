@@ -98,38 +98,45 @@ export function PublicLayout() {
         }
       />
 
-      <FeatureGate flag="promo_banner">
-        <div className={styles["public__promo"]}>
-          ✨ New: track your whole collection as a portfolio.{" "}
-          <Link to="/signup">Create your free account →</Link>
-        </div>
-      </FeatureGate>
+      {/* Promo + category nav are storefront chrome — hidden in the native
+          embed (the app owns navigation; these would be escape hatches into
+          the rest of the web app). */}
+      {!embedded && (
+        <FeatureGate flag="promo_banner">
+          <div className={styles["public__promo"]}>
+            ✨ New: track your whole collection as a portfolio.{" "}
+            <Link to="/signup">Create your free account →</Link>
+          </div>
+        </FeatureGate>
+      )}
 
-      <nav className={styles["public__nav"]}>
-        <Link to="/cards" className={styles["public__nav-item"]}>
-          All Cards
-        </Link>
-        {CATEGORIES.map((c) => (
-          <Link key={c.game} to={`/cards?game=${c.game}`} className={styles["public__nav-item"]}>
-            {c.label}
+      {!embedded && (
+        <nav className={styles["public__nav"]}>
+          <Link to="/cards" className={styles["public__nav-item"]}>
+            All Cards
           </Link>
-        ))}
-        <Link to="/sets" className={styles["public__nav-item"]}>
-          Sets
-        </Link>
-        <Link to="/sealed" className={styles["public__nav-item"]}>
-          Sealed
-        </Link>
-        <Link to="/scan" className={styles["public__nav-item"]}>
-          Scan
-        </Link>
-        <Link to="/grade" className={styles["public__nav-item"]}>
-          Grade
-        </Link>
-        <Link to="/scanner" className={styles["public__nav-item"]}>
-          Scanner
-        </Link>
-      </nav>
+          {CATEGORIES.map((c) => (
+            <Link key={c.game} to={`/cards?game=${c.game}`} className={styles["public__nav-item"]}>
+              {c.label}
+            </Link>
+          ))}
+          <Link to="/sets" className={styles["public__nav-item"]}>
+            Sets
+          </Link>
+          <Link to="/sealed" className={styles["public__nav-item"]}>
+            Sealed
+          </Link>
+          <Link to="/scan" className={styles["public__nav-item"]}>
+            Scan
+          </Link>
+          <Link to="/grade" className={styles["public__nav-item"]}>
+            Grade
+          </Link>
+          <Link to="/scanner" className={styles["public__nav-item"]}>
+            Scanner
+          </Link>
+        </nav>
+      )}
 
       <main className={styles["public__main"]} data-scroll-root>
         <Outlet />
