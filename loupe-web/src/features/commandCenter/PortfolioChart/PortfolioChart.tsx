@@ -2,11 +2,9 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ScanLine, TrendingUp } from "lucide-react";
 import { usePortfolioHistory } from "@loupe/core";
+import { useActiveCollection } from "@/providers/ActiveCollectionProvider";
 import { Panel, Button } from "@/components";
-import {
-  MarketChart,
-  type RangeKey,
-} from "@/components/MarketChart/MarketChart";
+import { MarketChart, type RangeKey } from "@/components/MarketChart/MarketChart";
 import { formatMoney } from "@/lib/format";
 import styles from "./PortfolioChart.module.scss";
 
@@ -22,7 +20,8 @@ const RANGES: RangeKey[] = ["1W", "1M", "3M", "1Y", "ALL"];
 export function PortfolioChart() {
   const navigate = useNavigate();
   const [range, setRange] = useState<RangeKey>("1Y");
-  const { data, isLoading } = usePortfolioHistory(range);
+  const { collectionId } = useActiveCollection();
+  const { data, isLoading } = usePortfolioHistory(range, collectionId);
   const points = data?.points ?? [];
   const hasData = points.length > 1;
 
@@ -55,24 +54,11 @@ export function PortfolioChart() {
     <Panel padding="lg" raised className={styles.portfolio}>
       <div className={styles.empty}>
         {/* Ghost chart behind the copy — signals "your value line lands here". */}
-        <svg
-          className={styles.ghost}
-          viewBox="0 0 600 200"
-          preserveAspectRatio="none"
-          aria-hidden
-        >
+        <svg className={styles.ghost} viewBox="0 0 600 200" preserveAspectRatio="none" aria-hidden>
           <defs>
             <linearGradient id="pf-ghost" x1="0" y1="0" x2="0" y2="1">
-              <stop
-                offset="0%"
-                stopColor="var(--accent-mint)"
-                stopOpacity="0.12"
-              />
-              <stop
-                offset="100%"
-                stopColor="var(--accent-mint)"
-                stopOpacity="0"
-              />
+              <stop offset="0%" stopColor="var(--accent-mint)" stopOpacity="0.12" />
+              <stop offset="100%" stopColor="var(--accent-mint)" stopOpacity="0" />
             </linearGradient>
           </defs>
           <path
@@ -92,28 +78,20 @@ export function PortfolioChart() {
 
         <div className={styles.emptyContent}>
           {isLoading ? (
-            <span className={styles.emptyLoading}>
-              Loading your collection…
-            </span>
+            <span className={styles.emptyLoading}>Loading your collection…</span>
           ) : (
             <>
               <span className={styles.emptyIcon} aria-hidden>
                 <TrendingUp size={24} />
               </span>
               <span className={styles.emptyEyebrow}>Your collection</span>
-              <h3 className={styles.emptyTitle}>
-                Track your cards like a portfolio
-              </h3>
+              <h3 className={styles.emptyTitle}>Track your cards like a portfolio</h3>
               <p className={styles.emptyText}>
-                Scan or add graded cards to your vault and watch your
-                collection&rsquo;s value move over time — charted right here,
-                like a stock ticker.
+                Scan or add graded cards to your vault and watch your collection&rsquo;s value move
+                over time — charted right here, like a stock ticker.
               </p>
               <div className={styles.emptyActions}>
-                <Button
-                  leadingIcon={<ScanLine size={16} />}
-                  onClick={() => navigate("/scan")}
-                >
+                <Button leadingIcon={<ScanLine size={16} />} onClick={() => navigate("/scan")}>
                   Scan a card
                 </Button>
                 <Button variant="secondary" onClick={() => navigate("/cards")}>

@@ -153,7 +153,9 @@ export const ENDPOINTS = {
   },
   collections: {
     list: `${V1}/collections`,
+    overview: `${V1}/collections/overview`,
     create: `${V1}/collections`,
+    merge: (id: string) => `${V1}/collections/${id}/merge`,
     items: (id: string) => `${V1}/collections/${id}/items`,
   },
   watchlist: {

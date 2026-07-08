@@ -11,6 +11,7 @@ import { SealedCard } from "@/features/public/Sealed/SealedCard/SealedCard";
 import {
   Carousel,
   CurrencySwitcher,
+  PortfolioSwitcher,
   ShopCard,
   Skeleton,
   NoteCard,
@@ -46,14 +47,11 @@ export function CommandCenter() {
 
   const featured = trending.data?.[0];
   const go = (id: string) => navigate(`/cards/${encodeURIComponent(id)}`);
-  const firstName =
-    user?.display_name?.split(" ")[0] || user?.email?.split("@")[0] || "back";
+  const firstName = user?.display_name?.split(" ")[0] || user?.email?.split("@")[0] || "back";
 
   const tiles = (rows: CardSummary[] | undefined, loading: boolean) =>
     loading
-      ? Array.from({ length: 8 }).map((_, i) => (
-          <Skeleton key={i} height={300} radius={14} />
-        ))
+      ? Array.from({ length: 8 }).map((_, i) => <Skeleton key={i} height={300} radius={14} />)
       : (rows ?? []).map((c) => (
           <ShopCard
             key={c.id}
@@ -68,16 +66,8 @@ export function CommandCenter() {
 
   const sealedTiles = (rows: SealedProduct[] | undefined, loading: boolean) =>
     loading
-      ? Array.from({ length: 8 }).map((_, i) => (
-          <Skeleton key={i} height={300} radius={14} />
-        ))
-      : (rows ?? []).map((p) => (
-          <SealedCard
-            key={p.id}
-            product={p}
-            owned={ownedIds.has(p.id)}
-          />
-        ));
+      ? Array.from({ length: 8 }).map((_, i) => <Skeleton key={i} height={300} radius={14} />)
+      : (rows ?? []).map((p) => <SealedCard key={p.id} product={p} owned={ownedIds.has(p.id)} />);
 
   const seeAll = (to: string) => (
     <Link to={to} className={styles.seeall}>
@@ -93,12 +83,11 @@ export function CommandCenter() {
           <h1 className={styles.greeting}>Welcome back, {firstName}.</h1>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          {/* Active portfolio — scopes the whole dashboard (backend-driven). */}
+          <PortfolioSwitcher />
           {/* Display currency — profile-synced, so mobile follows. */}
           <CurrencySwitcher />
-          <Button
-            trailingIcon={<ArrowRight size={16} />}
-            onClick={() => navigate("/cards")}
-          >
+          <Button trailingIcon={<ArrowRight size={16} />} onClick={() => navigate("/cards")}>
             Browse all cards
           </Button>
         </div>
@@ -110,11 +99,7 @@ export function CommandCenter() {
           title="Couldn't load the market"
           message="The backend is unreachable right now. Please try again."
           action={
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() => window.location.reload()}
-            >
+            <Button variant="secondary" size="sm" onClick={() => window.location.reload()}>
               Retry
             </Button>
           }

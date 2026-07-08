@@ -53,8 +53,18 @@ function SetProgressCard({
         <span className={complete ? styles.pctDone : styles.pct}>{pct}%</span>
       </div>
 
-      <div className={styles.track} role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}>
-        <span className={styles.fill} style={{ width: `${pct}%` }} data-done={complete || undefined} />
+      <div
+        className={styles.track}
+        role="progressbar"
+        aria-valuenow={pct}
+        aria-valuemin={0}
+        aria-valuemax={100}
+      >
+        <span
+          className={styles.fill}
+          style={{ width: `${pct}%` }}
+          data-done={complete || undefined}
+        />
       </div>
 
       <div className={styles.stats}>
@@ -81,9 +91,7 @@ function SetProgressCard({
                 <CardThumb src={m.imageUrl ?? ""} alt={m.name} size="sm" />
               </button>
             ))}
-            {missing.length > 4 && (
-              <span className={styles.more}>+{missing.length - 4}</span>
-            )}
+            {missing.length > 4 && <span className={styles.more}>+{missing.length - 4}</span>}
           </div>
         </div>
       )}

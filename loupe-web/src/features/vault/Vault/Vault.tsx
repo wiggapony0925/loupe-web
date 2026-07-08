@@ -1,12 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Pencil } from "lucide-react";
-import {
-  useAnalyticsOverview,
-  useGrades,
-  useSealedHoldings,
-  type GradedCard,
-} from "@loupe/core";
+import { useAnalyticsOverview, useGrades, useSealedHoldings, type GradedCard } from "@loupe/core";
 import {
   Panel,
   Stat,
@@ -22,6 +17,7 @@ import {
 import { CollectionForm, gradeLabel } from "@/features/collection";
 import { SealedHoldings } from "@/features/public/Sealed";
 import { ProUsageBanner } from "@/pro";
+import { useActiveCollection } from "@/providers/ActiveCollectionProvider";
 import { formatMoney } from "@/lib/format";
 import styles from "./Vault.module.scss";
 
@@ -34,16 +30,16 @@ const SORTS: FilterOption[] = [
   { label: "Grade: Low to High", value: "grade_asc" },
 ];
 
-const usd = (n?: number) =>
-  n === undefined ? "—" : formatMoney({ amount: n, currency: "USD" });
+const usd = (n?: number) => (n === undefined ? "—" : formatMoney({ amount: n, currency: "USD" }));
 
 /** The Vault — the signed-in user's graded/owned cards (live via /v1/grades). */
 export function Vault() {
   const navigate = useNavigate();
+  const { collectionId } = useActiveCollection();
   const [sort, setSort] = useState<Sort>("value_desc");
   const [editing, setEditing] = useState<GradedCard | null>(null);
-  const { data: cards, isLoading } = useGrades({ sort, limit: 60 });
-  const { data: overview } = useAnalyticsOverview();
+  const { data: cards, isLoading } = useGrades({ sort, limit: 60, collectionId });
+  const { data: overview } = useAnalyticsOverview(collectionId);
   const { data: sealed } = useSealedHoldings({ sort: "value_desc" });
   const stats = overview?.stats;
   const items = cards ?? [];
@@ -56,14 +52,9 @@ export function Vault() {
   const collectionValue = (stats?.totalValueUsd ?? 0) + sealedTotal;
 
   // Cost-basis P/L over holdings that have a recorded purchase price.
-  const withCost = items.filter(
-    (c) => c.purchasePriceUsd != null && c.purchasePriceUsd > 0,
-  );
+  const withCost = items.filter((c) => c.purchasePriceUsd != null && c.purchasePriceUsd > 0);
   const totalCost = withCost.reduce((s, c) => s + (c.purchasePriceUsd ?? 0), 0);
-  const totalCostVal = withCost.reduce(
-    (s, c) => s + (c.estimatedValueUsd ?? 0),
-    0,
-  );
+  const totalCostVal = withCost.reduce((s, c) => s + (c.estimatedValueUsd ?? 0), 0);
   const pnl = totalCostVal - totalCost;
   const pnlPct = totalCost > 0 ? (pnl / totalCost) * 100 : 0;
 
@@ -85,27 +76,18 @@ export function Vault() {
       {stats && (
         <Panel padding="lg" raised className={styles.summary}>
           <Stat label="Collection value" value={usd(collectionValue)} />
-          {sealedTotal > 0 && (
-            <Stat label="Sealed" value={usd(sealedTotal)} />
-          )}
+          {sealedTotal > 0 && <Stat label="Sealed" value={usd(sealedTotal)} />}
           {withCost.length > 0 && (
             <Stat
               label="Total P/L"
               value={
-                <Delta
-                  percent={pnlPct}
-                  money={{ amount: pnl, currency: "USD" }}
-                  variant="arrow"
-                />
+                <Delta percent={pnlPct} money={{ amount: pnl, currency: "USD" }} variant="arrow" />
               }
             />
           )}
           <Stat label="Cards" value={stats.holdings.toLocaleString()} />
           <Stat label="Sets" value={stats.uniqueSets.toLocaleString()} />
-          <Stat
-            label="Avg grade"
-            value={stats.avgGrade ? stats.avgGrade.toFixed(1) : "—"}
-          />
+          <Stat label="Avg grade" value={stats.avgGrade ? stats.avgGrade.toFixed(1) : "—"} />
         </Panel>
       )}
 
@@ -134,11 +116,7 @@ export function Vault() {
           title="Your vault is empty"
           message="Browse the market and tap “Add to collection” on any card to start tracking what you own — with live valuations and P/L. You can also scan cards in the Loupe mobile app."
           action={
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() => navigate("/cards")}
-            >
+            <Button variant="secondary" size="sm" onClick={() => navigate("/cards")}>
               Browse the market
             </Button>
           }
@@ -150,24 +128,14 @@ export function Vault() {
               <button
                 type="button"
                 className={styles.card__open}
-                onClick={() =>
-                  navigate(`/cards/${encodeURIComponent(c.cardId)}`)
-                }
+                onClick={() => navigate(`/cards/${encodeURIComponent(c.cardId)}`)}
               >
                 <span className={styles.media}>
-                  <CardThumb
-                    src={c.cardImageUrl ?? ""}
-                    alt={c.cardName ?? "Card"}
-                    size="lg"
-                  />
+                  <CardThumb src={c.cardImageUrl ?? ""} alt={c.cardName ?? "Card"} size="lg" />
                   <span className={styles.gradeBadge}>
-                    <Badge tone="purple">
-                      {gradeLabel(c.house, c.grade, c.condition)}
-                    </Badge>
+                    <Badge tone="purple">{gradeLabel(c.house, c.grade, c.condition)}</Badge>
                   </span>
-                  {c.copies && c.copies > 1 && (
-                    <span className={styles.copies}>×{c.copies}</span>
-                  )}
+                  {c.copies && c.copies > 1 && <span className={styles.copies}>×{c.copies}</span>}
                 </span>
                 <span className={styles.name}>{c.cardName ?? "Card"}</span>
                 {(c.cardSetName || c.cardNumber) && (
@@ -178,9 +146,7 @@ export function Vault() {
                   </span>
                 )}
                 <span className={styles.valueRow}>
-                  <span className={styles.value}>
-                    {usd(c.estimatedValueUsd)}
-                  </span>
+                  <span className={styles.value}>{usd(c.estimatedValueUsd)}</span>
                   {cardPnlPct(c) !== null && (
                     <Delta percent={cardPnlPct(c) as number} variant="arrow" />
                   )}

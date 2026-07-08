@@ -8,6 +8,7 @@ import {
   type AnalyticsMoverRow,
   type AnalyticsSetIndex,
 } from "@loupe/core";
+import { useActiveCollection } from "@/providers/ActiveCollectionProvider";
 import {
   Panel,
   Stat,
@@ -29,8 +30,9 @@ const usd = (n: number) => formatMoney({ amount: n, currency: "USD" });
 
 /** Performance analytics for the user's collection — one /v1/analytics/overview round-trip. */
 export function Analytics() {
-  const { data, isLoading, isError, refetch } = useAnalyticsOverview();
-  const history = usePortfolioHistory("1Y");
+  const { collectionId } = useActiveCollection();
+  const { data, isLoading, isError, refetch } = useAnalyticsOverview(collectionId);
+  const history = usePortfolioHistory("1Y", collectionId);
   const navigate = useNavigate();
   const open = (id: string) => navigate(`/cards/${encodeURIComponent(id)}`);
 
@@ -67,13 +69,17 @@ export function Analytics() {
     );
   }
 
-  const { stats, kpis, gradeDistribution, yearDistribution, setIndexes, movers, concentration } = data;
+  const { stats, kpis, gradeDistribution, yearDistribution, setIndexes, movers, concentration } =
+    data;
   const empty = stats.holdings === 0;
   const yearDelta = history.data?.deltaPct;
 
   const gradeBars: BarDatum[] = gradeDistribution.map((b) => ({ label: b.bucket, value: b.count }));
   const gradeTotal = gradeDistribution.reduce((s, b) => s + b.count, 0);
-  const decadeBars: BarDatum[] = yearDistribution.map((b) => ({ label: `${b.decade}s`, value: b.valueUsd }));
+  const decadeBars: BarDatum[] = yearDistribution.map((b) => ({
+    label: `${b.decade}s`,
+    value: b.valueUsd,
+  }));
   const decadeTotal = yearDistribution.reduce((s, b) => s + b.valueUsd, 0);
   const allocation: DonutDatum[] = setIndexes
     .filter((s) => s.totalValueUsd > 0)
@@ -166,7 +172,11 @@ export function Analytics() {
       </div>
 
       {/* Set indexes */}
-      <Section eyebrow="Markets" title="Set indexes" subtitle="How your value is weighted across sets.">
+      <Section
+        eyebrow="Markets"
+        title="Set indexes"
+        subtitle="How your value is weighted across sets."
+      >
         {setIndexes.length === 0 ? (
           <EmptyHint text="No sets yet — add cards to see how each set is weighted." />
         ) : (
@@ -281,7 +291,9 @@ function Concentration({ conc }: { conc: AnalyticsConcentration }) {
   return (
     <div className={styles.conc}>
       <div className={styles.alloc} aria-hidden>
-        {segs.map((s, i) => s.w > 0 && <span key={i} className={s.cls} style={{ width: `${s.w}%` }} />)}
+        {segs.map(
+          (s, i) => s.w > 0 && <span key={i} className={s.cls} style={{ width: `${s.w}%` }} />,
+        )}
       </div>
       <div className={styles.concStats}>
         <Stat label="Top 1" value={`${Math.round(top1)}%`} />
@@ -306,7 +318,10 @@ function SetIndexRow({ row }: { row: AnalyticsSetIndex }) {
           {row.count} cards · {row.sharePct.toFixed(0)}%
         </span>
         <span className={styles.setBarTrack}>
-          <span className={styles.setBarFill} style={{ width: `${Math.min(100, row.sharePct)}%` }} />
+          <span
+            className={styles.setBarFill}
+            style={{ width: `${Math.min(100, row.sharePct)}%` }}
+          />
         </span>
       </div>
       <div className={styles.setRight}>

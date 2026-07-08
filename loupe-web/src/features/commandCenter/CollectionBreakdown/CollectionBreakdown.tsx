@@ -5,6 +5,7 @@ import {
   type AnalyticsGradeBucket,
   type AnalyticsConcentration,
 } from "@loupe/core";
+import { useActiveCollection } from "@/providers/ActiveCollectionProvider";
 import { Panel } from "@/components";
 import { formatMoney } from "@/lib/format";
 import styles from "./CollectionBreakdown.module.scss";
@@ -18,7 +19,8 @@ import styles from "./CollectionBreakdown.module.scss";
  * Self-hides for empty accounts.
  */
 export function CollectionBreakdown() {
-  const { data } = useAnalyticsOverview();
+  const { collectionId } = useActiveCollection();
+  const { data } = useAnalyticsOverview(collectionId);
   const stats = data?.stats;
   if (!data || !stats || stats.holdings === 0) return null;
 
@@ -95,7 +97,9 @@ function Concentration({ conc }: { conc: AnalyticsConcentration }) {
   return (
     <div className={styles.conc}>
       <div className={styles.allocBar} aria-hidden>
-        {segs.map((s, i) => s.w > 0 && <span key={i} className={s.cls} style={{ width: `${s.w}%` }} />)}
+        {segs.map(
+          (s, i) => s.w > 0 && <span key={i} className={s.cls} style={{ width: `${s.w}%` }} />,
+        )}
       </div>
       <div className={styles.concStats}>
         <span className={styles.concStat}>
