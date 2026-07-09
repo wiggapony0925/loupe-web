@@ -15,6 +15,8 @@ export interface User {
 /** Per-user settings from `GET /v1/me/settings` (snake_case wire shape, like {@link User}). */
 export interface UserSettings {
   currency: string;
+  /** Active portfolio (collection) id; null = the "All" view. Shared across mobile + web. */
+  active_collection_id: string | null;
   theme: "system" | "light" | "dark";
   live_sync_enabled: boolean;
   push_notifications_enabled: boolean;
@@ -26,6 +28,8 @@ export interface UserSettings {
 /** Body for `PATCH /v1/me/settings` — omitted fields are left unchanged. */
 export interface UserSettingsUpdate {
   currency?: string;
+  /** Send `null` to clear back to the "All" view; omit to leave unchanged. */
+  active_collection_id?: string | null;
   theme?: "system" | "light" | "dark";
   live_sync_enabled?: boolean;
   push_notifications_enabled?: boolean;
