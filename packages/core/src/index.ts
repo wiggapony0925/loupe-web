@@ -54,6 +54,7 @@ export {
   usePublicTrending,
   usePublicBrowse,
   usePublicCarousels,
+  usePublicCarouselsResolved,
   usePublicSparklines,
   usePriceHistory,
   useMarket,

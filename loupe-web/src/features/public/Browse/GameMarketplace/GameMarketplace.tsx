@@ -1,8 +1,8 @@
-import { useEffect, useMemo, useState } from "react";
-import { Shuffle, Sparkles } from "lucide-react";
-import { usePublicCarousels } from "@loupe/core";
-import { composeGameRails } from "./carouselRecipes";
-import { MarketplaceRail } from "./MarketplaceRail";
+import { Sparkles } from "lucide-react";
+import { usePublicCarouselsResolved } from "@loupe/core";
+import { MarketplaceRail, ResolvedRailView } from "./MarketplaceRail";
+import { ShopCardSkeleton } from "@/components";
+import type { RailSpec } from "./railCatalog";
 import styles from "./GameMarketplace.module.scss";
 
 const GAME_LABELS: Record<string, string> = {
@@ -17,12 +17,13 @@ const GAME_LABELS: Record<string, string> = {
  * Per-game marketplace — a storefront of game-scoped discovery carousels above
  * the full catalog grid.
  *
- * The shelves aren't a fixed list: a momentum anchor leads, then a
- * **seed-shuffled sample of a strategy pool** (see carouselRecipes), bookended
- * by catalog + sets + sealed anchors — so the storefront varies every visit
- * like a real marketplace instead of showing the same rails forever. Every
- * shelf self-hides when its slice is thin, so the same engine serves a
- * data-rich game and a catalog-only one. The Shuffle button rerolls the mix.
+ * The carousels are **backend-resolved**: `/v1/public/carousels/resolved`
+ * returns the exact rails to show, each already filled with cards (a trending
+ * anchor + curated/AI value & rarity rails + an explore rail), with empty rails
+ * dropped server-side. The web just paints them — the same payload mobile
+ * renders — so the marketplace shows the identical carousels everywhere with
+ * zero client-side filtering. Two structural rails the resolver doesn't own
+ * (Shop sets, Sealed products — different data) close the storefront.
  */
 export function GameMarketplace({
   game,
@@ -33,43 +34,50 @@ export function GameMarketplace({
 }) {
   const label = GAME_LABELS[game] ?? "cards";
 
-  // Fresh shuffle per game + per visit; the Shuffle button rerolls on demand.
-  const [seed, setSeed] = useState(() => Math.floor(Math.random() * 2 ** 31));
-  useEffect(() => {
-    setSeed(Math.floor(Math.random() * 2 ** 31));
-  }, [game]);
+  const { data: resolved, isLoading } = usePublicCarouselsResolved(game);
+  const rails = resolved?.rails ?? [];
+  const aiOn = resolved?.source === "ai" && rails.length > 0;
 
-  // The backend owns the recipe pool: `/v1/public/carousels` returns the
-  // curated pool, upgraded to AI shelves (cached daily) when a model is
-  // configured. `carousels` is `undefined` until it answers — the rail engine
-  // then falls back to its local pool only for that cold-load window so the
-  // storefront is never bare. This is the single source of truth mobile shares.
-  const { data: carousels } = usePublicCarousels(game);
-  const recipes = carousels?.carousels;
-  const aiOn = carousels?.source === "ai" && (recipes?.length ?? 0) > 0;
-
-  const rails = useMemo(
-    () => composeGameRails(label, seed, { recipes }),
-    [label, seed, recipes],
-  );
+  // Structural rails the resolver doesn't produce (they're not card lists);
+  // rendered through the existing rail engine after the resolved card rails.
+  const structural: RailSpec[] = [
+    {
+      kind: "sets",
+      id: "sets",
+      title: `Shop ${label} sets`,
+      subtitle: `Browse ${label} by set — every release, with live card counts.`,
+      minItems: 1,
+    },
+    {
+      kind: "sealed",
+      id: "sealed",
+      title: `Sealed ${label} products`,
+      subtitle: "Booster boxes, ETBs, and bundles — tracked like singles.",
+      minItems: 1,
+    },
+  ];
 
   return (
     <>
-      <div className={styles.toolbar}>
-        {aiOn && (
+      {aiOn && (
+        <div className={styles.toolbar}>
           <span className={styles.aiBadge}>
             <Sparkles size={13} /> AI-curated
           </span>
-        )}
-        <button
-          type="button"
-          className={styles.shuffle}
-          onClick={() => setSeed(Math.floor(Math.random() * 2 ** 31))}
-        >
-          <Shuffle size={15} /> Shuffle carousels
-        </button>
-      </div>
-      {rails.map((spec) => (
+        </div>
+      )}
+      {isLoading ? (
+        <div style={{ display: "flex", gap: 12, overflow: "hidden" }}>
+          {Array.from({ length: 6 }).map((_, i) => (
+            <ShopCardSkeleton key={i} />
+          ))}
+        </div>
+      ) : (
+        rails.map((rail) => (
+          <ResolvedRailView key={rail.id} rail={rail} onCard={onCard} />
+        ))
+      )}
+      {structural.map((spec) => (
         <MarketplaceRail
           key={spec.id}
           game={game}

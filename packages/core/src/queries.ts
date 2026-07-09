@@ -88,6 +88,7 @@ import type {
   CardSparkline,
   CardSummary,
   CarouselResponse,
+  ResolvedCarousels,
   CardValuation,
   MarketSnapshot,
   NearbyListing,
@@ -226,6 +227,15 @@ export const usePublicCarousels = (game: string) =>
     ["public-carousels", game],
     () => api.cards.publicCarousels(game),
     { staleTime: 30 * 60_000 },
+  );
+
+/** A game's carousels ALREADY resolved into cards server-side — the single
+ *  source of truth both web and mobile render (no client-side filtering). */
+export const usePublicCarouselsResolved = (game: string) =>
+  useApiQuery<ResolvedCarousels>(
+    ["public-carousels-resolved", game],
+    () => api.cards.publicCarouselsResolved(game),
+    { staleTime: 10 * 60_000 },
   );
 
 /** Real price history for a card. `range` is a backend bucket
