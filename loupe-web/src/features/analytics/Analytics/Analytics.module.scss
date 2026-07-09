@@ -249,3 +249,44 @@
     color: var(--ink);
   }
 }
+
+// Set-index logo + "show more" toggle (collapse-after-4).
+.setLogo {
+  width: 40px;
+  height: 24px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.setLogoFallback {
+  width: 40px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ink-muted);
+  flex-shrink: 0;
+}
+
+.setToggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  padding: var(--space-md);
+  border: 0;
+  background: transparent;
+  color: var(--accent-mint);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  cursor: pointer;
+
+  &:hover {
+    background: color-mix(in srgb, var(--accent-mint) 8%, transparent);
+  }
+}
+
+.setToggleChevUp {
+  transform: rotate(180deg);
+}
