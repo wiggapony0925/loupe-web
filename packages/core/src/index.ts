@@ -92,6 +92,7 @@ export {
   useWatchlist,
   useAddToWatchlist,
   useAnalyticsOverview,
+  useCollectionsOverview,
   useHomeFeed,
   useReports,
   useUpcomingReports,

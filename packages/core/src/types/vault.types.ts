@@ -20,10 +20,37 @@ export interface GradedCard {
 }
 
 export interface GradesParams {
-  sort?: "value_desc" | "value_asc" | "grade_desc" | "grade_asc";
+  sort?:
+    | "value_desc"
+    | "value_asc"
+    | "grade_desc"
+    | "grade_asc"
+    | "name_asc"
+    | "name_desc"
+    | "number_asc"
+    | "number_desc"
+    | "recent"
+    | "oldest";
   limit?: number;
   cursor?: number;
   house?: string;
+  gradedOnly?: boolean;
+  rawOnly?: boolean;
+  watchlist?: boolean;
+  /** Scope to one collection (omit for the whole vault / "All"). */
+  collectionId?: string | null;
+}
+
+/** One row of the portfolio switcher (`GET /v1/collections/overview`). */
+export interface CollectionSummary {
+  /** null for the synthetic "All" entry (everything owned; never deletable). */
+  id: string | null;
+  name: string;
+  color: string | null;
+  cardCount: number;
+  totalValueUsd: number;
+  isAll: boolean;
+  deletable: boolean;
 }
 
 /** Grading house. `loupe` = ungraded/raw (uses `condition` instead of a slab grade). */

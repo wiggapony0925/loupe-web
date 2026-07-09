@@ -110,6 +110,7 @@ import type {
   FeatureFlagUpdateInput,
   FeatureFlagUpsertInput,
   FlagMap,
+  CollectionSummary,
   GradedCard,
   GradesParams,
   HomeFeed,
@@ -612,12 +613,24 @@ export const useLogin = () =>
 export const useRegister = () =>
   useApiMutation<TokenPair, SignUpRequest>(api.auth.register);
 
-/** Whole-portfolio analytics (stats, set indexes, movers, distributions). */
-export const useAnalyticsOverview = (enabled = true) =>
+/** Whole-portfolio analytics (stats, set indexes, movers, distributions),
+ *  scoped to the active collection (omit for the whole vault). */
+export const useAnalyticsOverview = (
+  collectionId?: string | null,
+  enabled = true,
+) =>
   useApiQuery<AnalyticsOverview>(
-    ["analytics-overview"],
-    api.analytics.overview,
+    ["analytics-overview", collectionId ?? "all"],
+    () => api.analytics.overview(collectionId),
     { enabled, staleTime: 60_000 },
+  );
+
+/** The portfolio switcher: "All" + each collection with counts + value. */
+export const useCollectionsOverview = (enabled = true) =>
+  useApiQuery<CollectionSummary[]>(
+    ["collections-overview"],
+    api.collections.overview,
+    { enabled, staleTime: 30_000 },
   );
 
 /** Authenticated home feed — top movers + recent scans. */
@@ -671,15 +684,21 @@ export const useWatchlist = (enabled = true) =>
     staleTime: 30_000,
   });
 
-/** The signed-in user's collection value over time (dashboard portfolio chart). */
-export const usePortfolioHistory = (range = "1Y", enabled = true) =>
+/** The signed-in user's collection value over time (dashboard portfolio chart),
+ *  scoped to the active collection. */
+export const usePortfolioHistory = (
+  range = "1Y",
+  collectionId?: string | null,
+  enabled = true,
+) =>
   useApiQuery<PortfolioHistory>(
-    ["portfolio-history", range],
-    () => api.grades.history(range),
+    ["portfolio-history", range, collectionId ?? "all"],
+    () => api.grades.history(range, collectionId),
     { enabled, staleTime: 60_000 },
   );
 
-/** The signed-in user's graded/owned cards (the Vault). */
+/** The signed-in user's graded/owned cards (the Vault). `params.collectionId`
+ *  scopes to the active portfolio. */
 export const useGrades = (params?: GradesParams, enabled = true) =>
   useApiQuery<GradedCard[]>(["grades", params], () => api.grades.list(params), {
     enabled,

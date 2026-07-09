@@ -170,6 +170,7 @@ import type {
   FeatureFlagUpsertInput,
   FlagMap,
   TestAccount,
+  CollectionSummary,
   GradedCard,
   GradesParams,
   HomeFeed,
@@ -865,8 +866,43 @@ export const api = {
       apiFetch<Recents>(ENDPOINTS.me.recents, { method: "PUT", json: payload }),
   },
   analytics: {
-    /** Whole-portfolio analytics in one round-trip (stats, movers, distributions). */
-    overview: () => apiFetch<AnalyticsOverview>(ENDPOINTS.analytics.overview),
+    /** Whole-portfolio analytics in one round-trip (stats, movers, distributions).
+     *  Pass a collectionId to scope to the active portfolio. */
+    overview: (collectionId?: string | null) =>
+      apiFetch<AnalyticsOverview>(ENDPOINTS.analytics.overview, {
+        query: { collection_id: collectionId ?? undefined },
+      }),
+  },
+  collections: {
+    /** Portfolio switcher rows: "All" + each collection with counts + value. */
+    overview: async (): Promise<CollectionSummary[]> => {
+      const rows = await apiFetch<
+        {
+          id: string | null;
+          name: string;
+          color: string | null;
+          card_count: number;
+          total_value_usd: number;
+          is_all: boolean;
+          deletable: boolean;
+        }[]
+      >(ENDPOINTS.collections.overview);
+      return (rows ?? []).map((r) => ({
+        id: r.id,
+        name: r.name,
+        color: r.color,
+        cardCount: r.card_count,
+        totalValueUsd: r.total_value_usd,
+        isAll: r.is_all,
+        deletable: r.deletable,
+      }));
+    },
+    /** Fold `sourceId` into `id` (items moved, source deleted; holdings kept). */
+    merge: (id: string, sourceId: string): Promise<void> =>
+      apiFetch(ENDPOINTS.collections.merge(id), {
+        method: "POST",
+        json: { source_id: sourceId },
+      }),
   },
   home: {
     /** Authenticated home feed — top movers + recent scans. */
@@ -944,12 +980,19 @@ export const api = {
           limit: params.limit ?? 60,
           cursor: params.cursor,
           house: params.house,
+          graded_only: params.gradedOnly || undefined,
+          raw_only: params.rawOnly || undefined,
+          watchlist: params.watchlist || undefined,
+          collection_id: params.collectionId ?? undefined,
         },
       });
       return (rows ?? []).map(toGradedCard);
     },
     /** Collection value over time (for the dashboard portfolio chart). */
-    history: async (range = "1Y"): Promise<PortfolioHistory> => {
+    history: async (
+      range = "1Y",
+      collectionId?: string | null,
+    ): Promise<PortfolioHistory> => {
       const d = await apiFetch<{
         range?: string;
         points?: Array<{ date: string; priceUsd?: number; price_usd?: number }>;
@@ -957,7 +1000,9 @@ export const api = {
         delta_usd?: number;
         deltaPct?: number;
         delta_pct?: number;
-      }>(ENDPOINTS.grades.history, { query: { range } });
+      }>(ENDPOINTS.grades.history, {
+        query: { range, collection_id: collectionId ?? undefined },
+      });
       return {
         range: d.range ?? range,
         points: (d.points ?? []).map((p) => ({

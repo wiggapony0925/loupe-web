@@ -8,6 +8,7 @@ import {
   type CardSummary,
   type RecentScanRow,
 } from "@loupe/core";
+import { useActiveCollection } from "@/providers/ActiveCollectionProvider";
 import { Panel, MetricCard, SegmentedControl, LiveSparkRow } from "@/components";
 import type { RangeKey } from "@/components/MarketChart/MarketChart";
 import { formatMoney, formatSignedMoney } from "@/lib/format";
@@ -19,10 +20,7 @@ const toCardSummary = (r: RecentScanRow): CardSummary => ({
   name: r.cardName ?? "Card",
   setName: r.cardSetName ?? "",
   imageUrl: r.cardImageUrl ?? "",
-  price:
-    r.estimatedValueUsd != null
-      ? { amount: r.estimatedValueUsd, currency: "USD" }
-      : undefined,
+  price: r.estimatedValueUsd != null ? { amount: r.estimatedValueUsd, currency: "USD" } : undefined,
 });
 
 const RANGES: { value: RangeKey; label: string }[] = [
@@ -50,8 +48,9 @@ const SINCE: Partial<Record<RangeKey, string>> = {
 export function Overview() {
   const navigate = useNavigate();
   const [range, setRange] = useState<RangeKey>("1M");
-  const history = usePortfolioHistory(range);
-  const analytics = useAnalyticsOverview();
+  const { collectionId } = useActiveCollection();
+  const history = usePortfolioHistory(range, collectionId);
+  const analytics = useAnalyticsOverview(collectionId);
   const feed = useHomeFeed({ recentScans: 10 });
 
   const stats = analytics.data?.stats;
@@ -112,11 +111,7 @@ export function Overview() {
                 Your {recent.length} most recent — live price + trend.
               </span>
             </div>
-            <button
-              type="button"
-              className={styles.scanCta}
-              onClick={() => navigate("/scan")}
-            >
+            <button type="button" className={styles.scanCta} onClick={() => navigate("/scan")}>
               <ScanLine size={15} /> Scan
             </button>
           </div>
@@ -125,26 +120,16 @@ export function Overview() {
               <LiveSparkRow
                 key={r.gradeId}
                 card={toCardSummary(r)}
-                onClick={() =>
-                  r.cardId && navigate(`/cards/${encodeURIComponent(r.cardId)}`)
-                }
+                onClick={() => r.cardId && navigate(`/cards/${encodeURIComponent(r.cardId)}`)}
               />
             ))}
           </div>
-          <button
-            type="button"
-            className={styles.viewAll}
-            onClick={() => navigate("/app/vault")}
-          >
+          <button type="button" className={styles.viewAll} onClick={() => navigate("/app/vault")}>
             View all in vault <ArrowRight size={15} />
           </button>
         </div>
       ) : (
-        <button
-          type="button"
-          className={styles.emptyScan}
-          onClick={() => navigate("/scan")}
-        >
+        <button type="button" className={styles.emptyScan} onClick={() => navigate("/scan")}>
           <ScanLine size={18} /> Scan a card to begin
         </button>
       )}

@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Eye } from "lucide-react";
 import { useGrades, useWatchlist } from "@loupe/core";
+import { useActiveCollection } from "@/providers/ActiveCollectionProvider";
 import { Panel, CardThumb, GradeBadge, Badge, Button } from "@/components";
 import { formatMoney } from "@/lib/format";
 import styles from "./RightRail.module.scss";
@@ -14,7 +15,8 @@ import styles from "./RightRail.module.scss";
  */
 export function RightRail() {
   const navigate = useNavigate();
-  const vault = useGrades({ sort: "value_desc", limit: 6 });
+  const { collectionId } = useActiveCollection();
+  const vault = useGrades({ sort: "value_desc", limit: 6, collectionId });
   const watchlist = useWatchlist();
   const go = (id: string) => navigate(`/cards/${encodeURIComponent(id)}`);
 

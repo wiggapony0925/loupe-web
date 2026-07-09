@@ -1,10 +1,7 @@
 import { useMemo } from "react";
 import { TrendingDown, TrendingUp } from "lucide-react";
-import {
-  useAnalyticsOverview,
-  usePublicSparklines,
-  type AnalyticsMoverRow,
-} from "@loupe/core";
+import { useAnalyticsOverview, usePublicSparklines, type AnalyticsMoverRow } from "@loupe/core";
+import { useActiveCollection } from "@/providers/ActiveCollectionProvider";
 import { Panel, CardThumb, Sparkline, Delta } from "@/components";
 import { cx } from "@/lib/cx";
 import { formatMoney, formatSignedMoney } from "@/lib/format";
@@ -18,22 +15,19 @@ import styles from "./TopMovers.module.scss";
  * request covers every visible row.
  */
 export function TopMovers({ onCard }: { onCard: (id: string) => void }) {
-  const { data } = useAnalyticsOverview();
+  const { collectionId } = useActiveCollection();
+  const { data } = useAnalyticsOverview(collectionId);
   const gainers = useMemo(() => data?.movers.gainers ?? [], [data]);
   const losers = useMemo(() => data?.movers.losers ?? [], [data]);
 
   const ids = useMemo(
-    () =>
-      [...gainers, ...losers]
-        .map((m) => m.cardId)
-        .filter((id): id is string => Boolean(id)),
+    () => [...gainers, ...losers].map((m) => m.cardId).filter((id): id is string => Boolean(id)),
     [gainers, losers],
   );
   const { data: sparks } = usePublicSparklines(ids, ids.length > 0);
   const sparkMap = useMemo(() => {
     const m = new Map<string, number[]>();
-    for (const s of sparks ?? [])
-      if (s.points.length > 1) m.set(s.cardId, s.points);
+    for (const s of sparks ?? []) if (s.points.length > 1) m.set(s.cardId, s.points);
     return m;
   }, [sparks]);
 
@@ -100,8 +94,7 @@ function MoverColumn({
           // Derive the absolute 1Y move from the % and the current value so the
           // row reads like a stock ("+$3.57  +31.26%"). Skip when the prior
           // price was ~0 (pct = -100 would divide by zero).
-          const abs =
-            pct > -100 ? m.valueUsd - m.valueUsd / (1 + pct / 100) : undefined;
+          const abs = pct > -100 ? m.valueUsd - m.valueUsd / (1 + pct / 100) : undefined;
           return (
             <li key={m.gradeId}>
               <button
@@ -111,11 +104,7 @@ function MoverColumn({
               >
                 <span className={styles.rank}>{i + 1}</span>
                 <span className={styles.thumb}>
-                  <CardThumb
-                    src={m.cardImageUrl ?? ""}
-                    alt={m.cardName ?? "Card"}
-                    size="sm"
-                  />
+                  <CardThumb src={m.cardImageUrl ?? ""} alt={m.cardName ?? "Card"} size="sm" />
                 </span>
                 <span className={styles.meta}>
                   <span className={styles.name}>{m.cardName ?? "Card"}</span>
@@ -123,13 +112,7 @@ function MoverColumn({
                 </span>
                 {spark && (
                   <span className={styles.sparkWrap}>
-                    <Sparkline
-                      data={spark}
-                      width={64}
-                      height={28}
-                      fill
-                      strokeWidth={1.75}
-                    />
+                    <Sparkline data={spark} width={64} height={28} fill strokeWidth={1.75} />
                   </span>
                 )}
                 <span className={styles.right}>

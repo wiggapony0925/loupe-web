@@ -6,6 +6,7 @@ import { ThemeProvider } from "@/theme";
 import { AuthProvider } from "@/auth/AuthProvider";
 import { ProProvider } from "@/pro";
 import { DisplayCurrencyProvider } from "@/providers/DisplayCurrencyProvider";
+import { ActiveCollectionProvider } from "@/providers/ActiveCollectionProvider";
 import { ConfirmProvider, TooltipProvider } from "@/components";
 import { reportError } from "@/observability/sentry";
 
@@ -91,9 +92,11 @@ export function AppProviders({ children }: { children: ReactNode }) {
         <AuthProvider>
           <ProProvider>
             <DisplayCurrencyProvider>
-              <ConfirmProvider>
-                <TooltipProvider delayDuration={250}>{children}</TooltipProvider>
-              </ConfirmProvider>
+              <ActiveCollectionProvider>
+                <ConfirmProvider>
+                  <TooltipProvider delayDuration={250}>{children}</TooltipProvider>
+                </ConfirmProvider>
+              </ActiveCollectionProvider>
             </DisplayCurrencyProvider>
           </ProProvider>
         </AuthProvider>

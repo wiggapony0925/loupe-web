@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { ArrowUpRight } from "lucide-react";
 import { useAnalyticsOverview } from "@loupe/core";
+import { useActiveCollection } from "@/providers/ActiveCollectionProvider";
 import { Panel, BarChart, type BarDatum } from "@/components";
 import { formatCompactMoney } from "@/lib/format";
 import styles from "./ValueBySet.module.scss";
@@ -18,10 +19,9 @@ function shortSet(name: string): string {
  */
 export function ValueBySet() {
   const navigate = useNavigate();
-  const { data } = useAnalyticsOverview();
-  const sets = (data?.setIndexes ?? [])
-    .filter((s) => s.totalValueUsd > 0)
-    .slice(0, 8);
+  const { collectionId } = useActiveCollection();
+  const { data } = useAnalyticsOverview(collectionId);
+  const sets = (data?.setIndexes ?? []).filter((s) => s.totalValueUsd > 0).slice(0, 8);
   if (sets.length === 0) return null;
 
   const total = sets.reduce((sum, s) => sum + s.totalValueUsd, 0);
@@ -35,15 +35,9 @@ export function ValueBySet() {
       <div className={styles.head}>
         <div className={styles.headText}>
           <h2 className={styles.title}>Value by set</h2>
-          <span className={styles.sub}>
-            Where your collection&rsquo;s value sits.
-          </span>
+          <span className={styles.sub}>Where your collection&rsquo;s value sits.</span>
         </div>
-        <button
-          type="button"
-          className={styles.link}
-          onClick={() => navigate("/app/analytics")}
-        >
+        <button type="button" className={styles.link} onClick={() => navigate("/app/analytics")}>
           Analytics <ArrowUpRight size={14} />
         </button>
       </div>
