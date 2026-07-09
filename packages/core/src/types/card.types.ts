@@ -97,6 +97,29 @@ export interface CarouselResponse {
   carousels: CarouselRecipe[];
 }
 
+/**
+ * A carousel ALREADY resolved into cards server-side. Unlike a recipe, this
+ * needs no client compilation — the backend ran the price/rarity/sort/limit
+ * lens and dropped empty rails, so web and mobile render the exact same
+ * carousels. Mirrors the backend `ResolvedRail`.
+ */
+export interface ResolvedRail {
+  id: string;
+  title: string;
+  subtitle: string;
+  /** "cards" = a priced discovery rail; "catalog" = a browse rail (may be unpriced). */
+  kind: "cards" | "catalog";
+  cards: CardSummary[];
+}
+
+/** A game's ready-to-render carousels — the single source of truth both
+ *  clients render. Empty rails are already dropped server-side. */
+export interface ResolvedCarousels {
+  game: string;
+  source: "ai" | "curated";
+  rails: ResolvedRail[];
+}
+
 /** A compact trend series for a list-row sparkline (Robinhood/StockX style). */
 export interface CardSparkline {
   cardId: string;

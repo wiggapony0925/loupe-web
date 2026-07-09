@@ -12,6 +12,7 @@ import {
   usePublicBrowse,
   usePublicSets,
   type CardSet,
+  type ResolvedRail,
 } from "@loupe/core";
 import { Carousel, ShopCard, ShopCardSkeleton, Skeleton } from "@/components";
 import { SealedRail } from "../SealedRail/SealedRail";
@@ -49,6 +50,36 @@ export function MarketplaceRail({
         />
       );
   }
+}
+
+/**
+ * A rail whose cards were ALREADY resolved by the backend
+ * (`/v1/public/carousels/resolved`). No fetch, no client lens, no self-hide —
+ * the backend dropped empty rails, so this just paints the cards. Both web and
+ * mobile render from the same resolved payload → identical carousels.
+ */
+export function ResolvedRailView({
+  rail,
+  onCard,
+}: {
+  rail: ResolvedRail;
+  onCard: (id: string) => void;
+}) {
+  return (
+    <Carousel title={rail.title} subtitle={rail.subtitle}>
+      {rail.cards.map((c) => (
+        <ShopCard
+          key={c.id}
+          imageUrl={c.imageUrl}
+          title={c.name}
+          subtitle={c.setName}
+          price={c.price}
+          tag={c.rarity}
+          onClick={() => onCard(c.id)}
+        />
+      ))}
+    </Carousel>
+  );
 }
 
 /** A card rail: fetch a server slice, apply the spec's client lens, self-hide. */

@@ -150,6 +150,7 @@ import type {
   CardSparkline,
   CardSummary,
   CarouselResponse,
+  ResolvedCarousels,
   MarketSnapshot,
   NearbyListing,
   PortfolioHistory,
@@ -439,6 +440,35 @@ export const api = {
         query: { game },
         skipAuth: true,
       });
+    },
+    /** Carousels ALREADY resolved into cards server-side — the recipe pool run
+     *  against the shelf/catalog, empty rails dropped. Both clients render this
+     *  identically (no client-side filtering). */
+    publicCarouselsResolved: async (
+      game: string,
+    ): Promise<ResolvedCarousels> => {
+      const d = await apiFetch<{
+        game: string;
+        source: "ai" | "curated";
+        rails: {
+          id: string;
+          title: string;
+          subtitle: string;
+          kind: "cards" | "catalog";
+          cards: ApiCard[];
+        }[];
+      }>(ENDPOINTS.public.carouselsResolved, { query: { game }, skipAuth: true });
+      return {
+        game: d.game,
+        source: d.source,
+        rails: (d.rails ?? []).map((r) => ({
+          id: r.id,
+          title: r.title,
+          subtitle: r.subtitle,
+          kind: r.kind,
+          cards: (r.cards ?? []).map(toCardSummary),
+        })),
+      };
     },
     /** Batch mini price series keyed by card id — for list-row sparklines. */
     sparklines: async (
