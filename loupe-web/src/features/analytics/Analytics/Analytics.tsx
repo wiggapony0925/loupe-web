@@ -1,6 +1,6 @@
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
-import { Award, Layers, Sparkles, Wallet } from "lucide-react";
+import { Award, ChevronDown, Layers, Sparkles, Wallet } from "lucide-react";
 import {
   useAnalyticsOverview,
   usePortfolioHistory,
@@ -35,6 +35,7 @@ export function Analytics() {
   const history = usePortfolioHistory("1Y", collectionId);
   const navigate = useNavigate();
   const open = (id: string) => navigate(`/cards/${encodeURIComponent(id)}`);
+  const [showAllSets, setShowAllSets] = useState(false);
 
   if (isError) {
     return (
@@ -181,9 +182,25 @@ export function Analytics() {
           <EmptyHint text="No sets yet — add cards to see how each set is weighted." />
         ) : (
           <Panel padding="none" raised className={styles.list}>
-            {setIndexes.map((s) => (
+            {(showAllSets ? setIndexes : setIndexes.slice(0, 4)).map((s) => (
               <SetIndexRow key={s.setName} row={s} />
             ))}
+            {setIndexes.length > 4 && (
+              <button
+                type="button"
+                className={styles.setToggle}
+                onClick={() => setShowAllSets((v) => !v)}
+                aria-expanded={showAllSets}
+              >
+                {showAllSets
+                  ? "Show less"
+                  : `Show ${setIndexes.length - 4} more sets`}
+                <ChevronDown
+                  size={15}
+                  className={showAllSets ? styles.setToggleChevUp : undefined}
+                />
+              </button>
+            )}
           </Panel>
         )}
       </Section>
@@ -312,6 +329,18 @@ function Concentration({ conc }: { conc: AnalyticsConcentration }) {
 function SetIndexRow({ row }: { row: AnalyticsSetIndex }) {
   return (
     <div className={styles.setRow}>
+      {row.setLogoUrl ? (
+        <img
+          src={row.setLogoUrl}
+          alt=""
+          className={styles.setLogo}
+          loading="lazy"
+        />
+      ) : (
+        <span className={styles.setLogoFallback} aria-hidden>
+          <Layers size={13} />
+        </span>
+      )}
       <div className={styles.setMain}>
         <span className={styles.setName}>{row.setName}</span>
         <span className={styles.setMeta}>

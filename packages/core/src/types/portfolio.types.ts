@@ -35,6 +35,7 @@ export interface AnalyticsKpis {
 
 export interface AnalyticsSetIndex {
   setName: string;
+  setLogoUrl: string | null;
   count: number;
   totalValueUsd: number;
   sharePct: number;
