@@ -927,6 +927,65 @@ export const api = {
         deletable: r.deletable,
       }));
     },
+    /** Create a named portfolio. */
+    create: (input: { name: string; color?: string | null }): Promise<{ id: string }> =>
+      apiFetch<{ id: string }>(ENDPOINTS.collections.create, {
+        method: "POST",
+        json: { name: input.name, color: input.color ?? undefined },
+      }),
+    /** Rename / recolor a portfolio. */
+    update: (
+      id: string,
+      input: { name?: string; color?: string | null },
+    ): Promise<void> =>
+      apiFetch(ENDPOINTS.collections.item(id), {
+        method: "PATCH",
+        json: input,
+      }),
+    /** Delete a portfolio (holdings stay in the vault / "All"). */
+    remove: (id: string): Promise<void> =>
+      apiFetch(ENDPOINTS.collections.item(id), {
+        method: "DELETE",
+      }),
+    /** Add one holding to a collection. */
+    addItem: (id: string, gradedCardId: string): Promise<void> =>
+      apiFetch(ENDPOINTS.collections.items(id), {
+        method: "POST",
+        json: { graded_card_id: gradedCardId },
+      }),
+    /** Remove one holding from a collection. */
+    removeItem: (id: string, gradedCardId: string): Promise<void> =>
+      apiFetch(ENDPOINTS.collections.items(id) + `/${gradedCardId}`, {
+        method: "DELETE",
+      }),
+    /** Bulk-add holdings to a collection (idempotent). */
+    bulkAddItems: (
+      id: string,
+      gradedCardIds: string[],
+    ): Promise<{ added: number; removed: number }> =>
+      apiFetch(ENDPOINTS.collections.itemsBulk(id), {
+        method: "POST",
+        json: { graded_card_ids: gradedCardIds },
+      }),
+    /** Bulk-remove holdings from a collection. */
+    bulkRemoveItems: (
+      id: string,
+      gradedCardIds: string[],
+    ): Promise<{ added: number; removed: number }> =>
+      apiFetch(ENDPOINTS.collections.itemsBulkRemove(id), {
+        method: "POST",
+        json: { graded_card_ids: gradedCardIds },
+      }),
+    /** Move holdings from ``sourceId`` into ``id``. */
+    transferItems: (
+      id: string,
+      sourceId: string,
+      gradedCardIds: string[],
+    ): Promise<{ added: number; removed: number }> =>
+      apiFetch(ENDPOINTS.collections.itemsTransfer(id), {
+        method: "POST",
+        json: { source_id: sourceId, graded_card_ids: gradedCardIds },
+      }),
     /** Fold `sourceId` into `id` (items moved, source deleted; holdings kept). */
     merge: (id: string, sourceId: string): Promise<void> =>
       apiFetch(ENDPOINTS.collections.merge(id), {

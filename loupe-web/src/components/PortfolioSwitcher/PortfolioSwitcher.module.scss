@@ -43,8 +43,8 @@
   top: calc(100% + 6px);
   right: 0;
   z-index: 40;
-  min-width: 260px;
-  max-height: 360px;
+  min-width: 280px;
+  max-height: 420px;
   overflow-y: auto;
   padding: 6px;
   border-radius: 14px;
@@ -53,19 +53,42 @@
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18);
 }
 
+.menuHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 10px 10px;
+}
+
+.menuTitle {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+}
+
+.manageBtn {
+  border: 0;
+  background: transparent;
+  color: var(--accent-mint);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 2px 4px;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
 .row {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 4px;
   width: 100%;
-  padding: 9px 10px;
-  border: 0;
   border-radius: 9px;
-  background: transparent;
-  color: var(--ink);
-  font-size: 13px;
-  text-align: left;
-  cursor: pointer;
 
   &:hover {
     background: color-mix(in srgb, var(--accent-mint) 10%, transparent);
@@ -74,6 +97,51 @@
 
 .rowActive {
   background: color-mix(in srgb, var(--accent-mint) 14%, transparent);
+}
+
+.rowMain {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+  padding: 9px 10px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--ink);
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.rowActions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding-right: 6px;
+}
+
+.iconBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ink-muted);
+  cursor: pointer;
+
+  &:hover {
+    background: var(--bg-base);
+    color: var(--ink);
+  }
+}
+
+.iconBtnDanger:hover {
+  color: var(--accent-rose, #e11d48);
 }
 
 .dot {
@@ -102,4 +170,100 @@
 .check {
   color: var(--accent-mint);
   flex-shrink: 0;
+}
+
+.createRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  margin-top: 4px;
+  padding: 10px;
+  border: 1px dashed var(--line);
+  border-radius: 9px;
+  background: transparent;
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+
+  &:hover {
+    border-color: var(--accent-mint);
+    background: color-mix(in srgb, var(--accent-mint) 8%, transparent);
+  }
+}
+
+.prompt {
+  margin-top: 8px;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: var(--bg-base);
+}
+
+.promptTitle {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--ink);
+}
+
+.promptHint {
+  margin: 4px 0 10px;
+  font-size: 12px;
+  color: var(--ink-muted);
+  line-height: 1.4;
+}
+
+.promptInput {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: var(--bg-elevated);
+  color: var(--ink);
+  font-size: 14px;
+  outline: none;
+
+  &:focus {
+    border-color: var(--accent-mint);
+  }
+}
+
+.promptError {
+  margin: 8px 0 0;
+  font-size: 12px;
+  color: var(--accent-rose, #e11d48);
+}
+
+.promptActions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.promptCancel,
+.promptSubmit {
+  flex: 1;
+  padding: 9px 12px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.promptCancel {
+  border: 1px solid var(--line);
+  background: var(--bg-elevated);
+  color: var(--ink);
+}
+
+.promptSubmit {
+  border: 0;
+  background: var(--accent-mint);
+  color: #fff;
+}
+
+.promptSubmitDanger {
+  background: var(--accent-rose, #e11d48);
 }

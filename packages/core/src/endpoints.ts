@@ -156,8 +156,12 @@ export const ENDPOINTS = {
     list: `${V1}/collections`,
     overview: `${V1}/collections/overview`,
     create: `${V1}/collections`,
+    item: (id: string) => `${V1}/collections/${id}`,
     merge: (id: string) => `${V1}/collections/${id}/merge`,
     items: (id: string) => `${V1}/collections/${id}/items`,
+    itemsBulk: (id: string) => `${V1}/collections/${id}/items/bulk`,
+    itemsBulkRemove: (id: string) => `${V1}/collections/${id}/items/bulk-remove`,
+    itemsTransfer: (id: string) => `${V1}/collections/${id}/items/transfer`,
   },
   watchlist: {
     list: `${V1}/watchlist`,

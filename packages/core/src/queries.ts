@@ -643,6 +643,154 @@ export const useCollectionsOverview = (enabled = true) =>
     { enabled, staleTime: 30_000 },
   );
 
+/** Create a named portfolio. Invalidates the switcher list. */
+export function useCreateCollection(
+  options?: Omit<
+    UseMutationOptions<{ id: string }, ApiError, { name: string; color?: string | null }>,
+    "mutationFn"
+  >,
+) {
+  const qc = useQueryClient();
+  return useApiMutation<{ id: string }, { name: string; color?: string | null }>(
+    (input) => api.collections.create(input),
+    {
+      ...options,
+      onSuccess: (...args) => {
+        void qc.invalidateQueries({ queryKey: ["collections-overview"] });
+        options?.onSuccess?.(...args);
+      },
+    },
+  );
+}
+
+/** Rename / recolor a portfolio. */
+export function useUpdateCollection(
+  options?: Omit<
+    UseMutationOptions<
+      void,
+      ApiError,
+      { id: string; name?: string; color?: string | null }
+    >,
+    "mutationFn"
+  >,
+) {
+  const qc = useQueryClient();
+  return useApiMutation<void, { id: string; name?: string; color?: string | null }>(
+    ({ id, ...input }) => api.collections.update(id, input),
+    {
+      ...options,
+      onSuccess: (...args) => {
+        void qc.invalidateQueries({ queryKey: ["collections-overview"] });
+        options?.onSuccess?.(...args);
+      },
+    },
+  );
+}
+
+/** Delete a portfolio (holdings remain in the vault / "All"). */
+export function useDeleteCollection(
+  options?: Omit<UseMutationOptions<void, ApiError, string>, "mutationFn">,
+) {
+  const qc = useQueryClient();
+  return useApiMutation<void, string>((id) => api.collections.remove(id), {
+    ...options,
+    onSuccess: (...args) => {
+      void qc.invalidateQueries({ queryKey: ["collections-overview"] });
+      options?.onSuccess?.(...args);
+    },
+  });
+}
+
+function invalidateCollectionMembership(qc: ReturnType<typeof useQueryClient>) {
+  void qc.invalidateQueries({ queryKey: ["collections-overview"] });
+  void qc.invalidateQueries({ queryKey: ["grades"] });
+  void qc.invalidateQueries({ queryKey: ["analytics-overview"] });
+}
+
+/** Bulk-add holdings to a collection. */
+export function useBulkAddToCollection(
+  options?: Omit<
+    UseMutationOptions<
+      { added: number; removed: number },
+      ApiError,
+      { collectionId: string; gradedCardIds: string[] }
+    >,
+    "mutationFn"
+  >,
+) {
+  const qc = useQueryClient();
+  return useApiMutation<
+    { added: number; removed: number },
+    { collectionId: string; gradedCardIds: string[] }
+  >(
+    ({ collectionId, gradedCardIds }) =>
+      api.collections.bulkAddItems(collectionId, gradedCardIds),
+    {
+      ...options,
+      onSuccess: (...args) => {
+        invalidateCollectionMembership(qc);
+        options?.onSuccess?.(...args);
+      },
+    },
+  );
+}
+
+/** Bulk-remove holdings from a collection. */
+export function useBulkRemoveFromCollection(
+  options?: Omit<
+    UseMutationOptions<
+      { added: number; removed: number },
+      ApiError,
+      { collectionId: string; gradedCardIds: string[] }
+    >,
+    "mutationFn"
+  >,
+) {
+  const qc = useQueryClient();
+  return useApiMutation<
+    { added: number; removed: number },
+    { collectionId: string; gradedCardIds: string[] }
+  >(
+    ({ collectionId, gradedCardIds }) =>
+      api.collections.bulkRemoveItems(collectionId, gradedCardIds),
+    {
+      ...options,
+      onSuccess: (...args) => {
+        invalidateCollectionMembership(qc);
+        options?.onSuccess?.(...args);
+      },
+    },
+  );
+}
+
+/** Transfer holdings from one collection into another. */
+export function useTransferBetweenCollections(
+  options?: Omit<
+    UseMutationOptions<
+      { added: number; removed: number },
+      ApiError,
+      { targetId: string; sourceId: string; gradedCardIds: string[] }
+    >,
+    "mutationFn"
+  >,
+) {
+  const qc = useQueryClient();
+  return useApiMutation<
+    { added: number; removed: number },
+    { targetId: string; sourceId: string; gradedCardIds: string[] }
+  >(
+    ({ targetId, sourceId, gradedCardIds }) =>
+      api.collections.transferItems(targetId, sourceId, gradedCardIds),
+    {
+      ...options,
+      onSuccess: (...args) => {
+        invalidateCollectionMembership(qc);
+        options?.onSuccess?.(...args);
+      },
+    },
+  );
+}
+
 /** Authenticated home feed — top movers + recent scans. */
 export const useHomeFeed = (
   params?: { topMovers?: number; recentScans?: number },
