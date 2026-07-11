@@ -137,6 +137,7 @@ import type {
   User,
   UserSettings,
   UserSettingsUpdate,
+  VaultSummary,
   WaitlistEntry,
   WaitlistJoinInput,
   WaitlistJoined,
@@ -704,6 +705,7 @@ export function useDeleteCollection(
 function invalidateCollectionMembership(qc: ReturnType<typeof useQueryClient>) {
   void qc.invalidateQueries({ queryKey: ["collections-overview"] });
   void qc.invalidateQueries({ queryKey: ["grades"] });
+  void qc.invalidateQueries({ queryKey: ["vault-summary"] });
   void qc.invalidateQueries({ queryKey: ["analytics-overview"] });
 }
 
@@ -863,6 +865,16 @@ export const useGrades = (params?: GradesParams, enabled = true) =>
     staleTime: 30_000,
   });
 
+/** Whole-vault aggregates from `/v1/grades/summary` — the ONE source for
+ *  headline value and unrealized P/L. Never derive these by summing a
+ *  paginated `useGrades` page; mobile's home tab renders the same payload. */
+export const useVaultSummary = (collectionId?: string | null, enabled = true) =>
+  useApiQuery<VaultSummary>(
+    ["vault-summary", collectionId ?? "all"],
+    () => api.grades.summary(collectionId),
+    { enabled, staleTime: 60_000 },
+  );
+
 /** Pin a public card (composite id) to the watchlist — resolves then adds. */
 export const useAddToWatchlist = (
   options?: Omit<
@@ -891,6 +903,7 @@ export const useResolvedCardId = (upstreamId: string, enabled = true) =>
  *  the vault list, the portfolio analytics, and the home feed. */
 function invalidateGradeCaches(qc: ReturnType<typeof useQueryClient>) {
   void qc.invalidateQueries({ queryKey: ["grades"] });
+  void qc.invalidateQueries({ queryKey: ["vault-summary"] });
   void qc.invalidateQueries({ queryKey: ["analytics-overview"] });
   void qc.invalidateQueries({ queryKey: ["home-feed"] });
 }

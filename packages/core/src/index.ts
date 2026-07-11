@@ -105,6 +105,7 @@ export {
   useUpcomingReports,
   useGenerateReport,
   useGrades,
+  useVaultSummary,
   usePortfolioHistory,
   useAddGrade,
   useUpdateGrade,

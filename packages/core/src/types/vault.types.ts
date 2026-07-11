@@ -41,6 +41,33 @@ export interface GradesParams {
   collectionId?: string | null;
 }
 
+/** Whole-vault aggregates (`GET /v1/grades/summary`) — the backend-computed
+ *  headline numbers. Always spans every holding in scope, never a page
+ *  slice; mobile's home tab renders the exact same payload. Cost-basis
+ *  fields are null when no card has a recorded purchase price. */
+export interface VaultSummary {
+  totalValueUsd: number;
+  cardCount: number;
+  avgGrade: number | null;
+  avgAccuracy: number | null;
+  totalCostUsd: number | null;
+  costBasisCardCount: number;
+  unrealizedPnlUsd: number | null;
+  unrealizedPnlPct: number | null;
+  uniqueCardCount: number;
+  loupeGradedCount: number;
+  availableSets: string[];
+  availableTags: string[];
+  /** Unopened sealed rollup (qty × value / cost) — zeros when the summary
+   *  is collection-scoped (collections contain cards only). Optional until
+   *  every deployed backend ships them. */
+  sealedValueUsd?: number;
+  sealedCostUsd?: number;
+  sealedHoldingCount?: number;
+  /** THE canonical headline "collection value": cards + unopened sealed. */
+  combinedValueUsd?: number;
+}
+
 /** One row of the portfolio switcher (`GET /v1/collections/overview`). */
 export interface CollectionSummary {
   /** null for the synthetic "All" entry (everything owned; never deletable). */

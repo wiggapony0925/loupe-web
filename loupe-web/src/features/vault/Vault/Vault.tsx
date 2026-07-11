@@ -1,7 +1,13 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Pencil } from "lucide-react";
-import { useAnalyticsOverview, useGrades, useSealedHoldings, type GradedCard } from "@loupe/core";
+import {
+  useAnalyticsOverview,
+  useGrades,
+  useSealedHoldings,
+  useVaultSummary,
+  type GradedCard,
+} from "@loupe/core";
 import {
   Panel,
   Stat,
@@ -40,23 +46,27 @@ export function Vault() {
   const [editing, setEditing] = useState<GradedCard | null>(null);
   const { data: cards, isLoading } = useGrades({ sort, limit: 60, collectionId });
   const { data: overview } = useAnalyticsOverview(collectionId);
+  const { data: summary } = useVaultSummary(collectionId);
   const { data: sealed } = useSealedHoldings({ sort: "value_desc" });
   const stats = overview?.stats;
   const items = cards ?? [];
 
-  // Sealed product value (qty × estimated value) folds into the headline total.
-  const sealedTotal = (sealed ?? []).reduce(
+  // Headline value + P/L come from `/v1/grades/summary` — backend-computed
+  // over the WHOLE vault (the same payload mobile's home tab renders), never
+  // summed from the 60-card page this screen happens to have loaded. The
+  // backend also defines "collection value" (cards + unopened sealed) via
+  // `combinedValueUsd`; the client-side sealed reduce is only a fallback
+  // until every deployed backend ships the sealed fields.
+  const sealedFallback = (sealed ?? []).reduce(
     (sum, h) => sum + (h.estimatedValue?.amount ?? 0) * (h.quantity ?? 1),
     0,
   );
-  const collectionValue = (stats?.totalValueUsd ?? 0) + sealedTotal;
-
-  // Cost-basis P/L over holdings that have a recorded purchase price.
-  const withCost = items.filter((c) => c.purchasePriceUsd != null && c.purchasePriceUsd > 0);
-  const totalCost = withCost.reduce((s, c) => s + (c.purchasePriceUsd ?? 0), 0);
-  const totalCostVal = withCost.reduce((s, c) => s + (c.estimatedValueUsd ?? 0), 0);
-  const pnl = totalCostVal - totalCost;
-  const pnlPct = totalCost > 0 ? (pnl / totalCost) * 100 : 0;
+  const sealedTotal = summary?.sealedValueUsd ?? sealedFallback;
+  const collectionValue =
+    summary?.combinedValueUsd ??
+    (summary?.totalValueUsd ?? stats?.totalValueUsd ?? 0) + sealedTotal;
+  const pnl = summary?.unrealizedPnlUsd ?? null;
+  const pnlPct = summary?.unrealizedPnlPct ?? null;
 
   /** Per-card gain/loss % vs purchase price (null when no cost basis). */
   const cardPnlPct = (c: GradedCard): number | null =>
@@ -77,7 +87,7 @@ export function Vault() {
         <Panel padding="lg" raised className={styles.summary}>
           <Stat label="Collection value" value={usd(collectionValue)} />
           {sealedTotal > 0 && <Stat label="Sealed" value={usd(sealedTotal)} />}
-          {withCost.length > 0 && (
+          {pnl != null && pnlPct != null && (
             <Stat
               label="Total P/L"
               value={

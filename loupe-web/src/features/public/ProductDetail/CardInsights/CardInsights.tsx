@@ -9,6 +9,7 @@ import {
   TrendingUp,
 } from "lucide-react";
 import {
+  useCardAnalytics,
   useCardComps,
   useCardListings,
   useGrades,
@@ -37,14 +38,6 @@ function formatRelative(iso: string | null | undefined): string | null {
   return `${Math.round(days / 365)}y ago`;
 }
 
-function stdev(values: number[]): number {
-  if (values.length < 2) return 0;
-  const mean = values.reduce((a, b) => a + b, 0) / values.length;
-  const variance =
-    values.reduce((a, b) => a + (b - mean) ** 2, 0) / values.length;
-  return Math.sqrt(variance);
-}
-
 function findGrade(snapshot: MarketSnapshot, house: string, gradeLabel: string) {
   const block = snapshot.houses.find((b) => b.house === house);
   return block?.grades.find((g) => g.gradeLabel === gradeLabel);
@@ -62,24 +55,17 @@ export function QuickStats({
   snapshot: MarketSnapshot | null | undefined;
   cardId: string;
 }) {
+  // Spread / volatility / liquidity come from the backend
+  // `/v1/cards/{id}/analytics` — the SAME payload CardAnalyticsPanel and
+  // mobile's CardQuickStats render (React Query dedupes), so every surface
+  // shows identical figures and the client never re-derives them.
+  const { data: analytics } = useCardAnalytics(cardId);
+  // Comps are only the last-sale fallback now — never re-aggregated.
   const { data: comps } = useCardComps(cardId, { days: 90 });
 
-  const raw = snapshot?.summary.raw?.amount ?? null;
-  const psa10 = snapshot?.summary.popTop?.amount ?? null;
-  const spread = raw && psa10 && raw > 0 ? psa10 / raw : null;
-
-  const ninety = snapshot?.history?.["90d"]?.points ?? [];
-  const prices = ninety.map((p) => p.price);
-  const mean = prices.length
-    ? prices.reduce((a, b) => a + b, 0) / prices.length
-    : 0;
-  const vol = prices.length > 1 && mean > 0 ? (stdev(prices) / mean) * 100 : null;
-
-  const cutoff = Date.now() - 30 * 86_400_000;
-  const last30 = (comps ?? []).filter((c) => {
-    const t = new Date(c.soldAt).getTime();
-    return !Number.isNaN(t) && t >= cutoff;
-  }).length;
+  const spread = analytics?.gradePremium ?? null;
+  const vol = analytics?.volatilityPct ?? null;
+  const last30 = analytics?.liquidity30d ?? 0;
 
   const lastSaleRel = formatRelative(
     snapshot?.summary.lastSaleAt ?? comps?.[0]?.soldAt ?? null,

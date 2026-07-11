@@ -205,6 +205,7 @@ import type {
   User,
   UserSettings,
   UserSettingsUpdate,
+  VaultSummary,
   WaitlistEntry,
   WaitlistJoinInput,
   WaitlistJoined,
@@ -1077,6 +1078,12 @@ export const api = {
       });
       return (rows ?? []).map(toGradedCard);
     },
+    /** Whole-vault aggregates (headline value, cost basis, unrealized P/L).
+     *  Wire is already camelCase — same payload mobile's home tab renders. */
+    summary: (collectionId?: string | null): Promise<VaultSummary> =>
+      apiFetch<VaultSummary>(ENDPOINTS.grades.summary, {
+        query: { collection_id: collectionId ?? undefined },
+      }),
     /** Collection value over time (for the dashboard portfolio chart). */
     history: async (
       range = "1Y",
