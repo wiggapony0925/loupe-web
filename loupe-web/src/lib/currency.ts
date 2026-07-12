@@ -62,6 +62,46 @@ export function getCurrency(code: string): CurrencyMeta {
   return BY_CODE[code] ?? BY_CODE.USD!;
 }
 
+/** Server catalog entry (`/v1/market/fx/rates` → `currencies[]`). */
+export interface ServerCurrencyEntry {
+  code: string;
+  name: string;
+  symbol: string;
+  flag: string;
+  kind: CurrencyKind;
+  decimals: number;
+}
+
+/**
+ * Provider-only: merge the backend currency catalog over the static table.
+ * The backend is the source of truth for names/symbols/decimals AND for
+ * which codes exist — a currency added server-side lights up here without
+ * a release. The static `CURRENCIES` snapshot above is first-paint /
+ * offline fallback only.
+ */
+export function installServerCurrencies(entries: ServerCurrencyEntry[]): void {
+  for (const e of entries) {
+    if (!e?.code) continue;
+    const existing = BY_CODE[e.code];
+    const merged: CurrencyMeta = {
+      code: e.code,
+      name: e.name,
+      symbol: e.symbol,
+      flag: e.flag,
+      kind: e.kind,
+      decimals: e.decimals,
+      // Rate still comes from the live rates table (or static fallback).
+      ratePerUsd: existing?.ratePerUsd ?? 1,
+    };
+    if (existing) {
+      Object.assign(existing, merged);
+    } else {
+      BY_CODE[e.code] = merged;
+      CURRENCIES.push(merged);
+    }
+  }
+}
+
 /** True when the catalog can actually format this code. */
 export function isSupportedCurrency(code: string): boolean {
   return Boolean(BY_CODE[code]);

@@ -50,6 +50,10 @@ export interface AnalyticsMoverRow {
   setName: string | null;
   valueUsd: number;
   changePct1y: number;
+  /** Absolute 1Y move (USD) from the same history baseline as the % —
+   *  render this, never back-derive dollars from the %. Optional until
+   *  every deployed backend ships it. */
+  changeUsd1y?: number | null;
 }
 
 export interface AnalyticsConcentration {

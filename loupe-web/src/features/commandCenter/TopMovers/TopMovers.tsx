@@ -91,10 +91,12 @@ function MoverColumn({
         {rows.map((m, i) => {
           const spark = m.cardId ? sparkMap.get(m.cardId) : undefined;
           const pct = m.changePct1y ?? 0;
-          // Derive the absolute 1Y move from the % and the current value so the
-          // row reads like a stock ("+$3.57  +31.26%"). Skip when the prior
-          // price was ~0 (pct = -100 would divide by zero).
-          const abs = pct > -100 ? m.valueUsd - m.valueUsd / (1 + pct / 100) : undefined;
+          // Absolute 1Y move comes from the backend (same history baseline
+          // as the %). The derivation from pct is only a fallback for
+          // backends that predate `changeUsd1y` — delete it after deploy.
+          const abs =
+            m.changeUsd1y ??
+            (pct > -100 ? m.valueUsd - m.valueUsd / (1 + pct / 100) : undefined);
           return (
             <li key={m.gradeId}>
               <button

@@ -152,6 +152,13 @@ export const ENDPOINTS = {
     history: `${V1}/grades/history`,
     item: (id: string) => `${V1}/grades/${id}`,
   },
+  /** WebSocket push channels (append `?token=<jwt>`; frames use the
+   *  universal `{type, ts, request_id, data}` envelope). */
+  ws: {
+    scans: "/ws/scans",
+    /** Live `price.tick` frames for the cards the user owns. */
+    prices: "/ws/prices",
+  },
   collections: {
     list: `${V1}/collections`,
     overview: `${V1}/collections/overview`,

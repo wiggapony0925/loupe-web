@@ -27,10 +27,12 @@ import { useAuth } from "@/auth/AuthProvider";
 import {
   getActiveDisplayCurrency,
   getCurrency,
+  installServerCurrencies,
   isSupportedCurrency,
   setActiveDisplayCurrency,
   setLiveFxRates,
   type CurrencyMeta,
+  type ServerCurrencyEntry,
 } from "@/lib/currency";
 
 interface DisplayCurrencyValue {
@@ -53,12 +55,19 @@ export function DisplayCurrencyProvider({ children }: { children: ReactNode }) {
   const fx = useQuery({
     queryKey: ["fx", "rates"],
     queryFn: () =>
-      apiFetch<{ rates: Record<string, number> }>("/v1/market/fx/rates"),
+      apiFetch<{
+        rates: Record<string, number>;
+        currencies?: ServerCurrencyEntry[];
+      }>("/v1/market/fx/rates"),
     staleTime: 6 * 60 * 60 * 1000,
     gcTime: 24 * 60 * 60 * 1000,
     retry: 2,
   });
   useEffect(() => {
+    // Catalog first so a server-added currency exists before its rate lands.
+    if (fx.data?.currencies?.length) {
+      installServerCurrencies(fx.data.currencies);
+    }
     const rates = fx.data?.rates;
     if (rates && Object.keys(rates).length > 0) {
       setLiveFxRates(rates);
