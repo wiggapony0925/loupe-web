@@ -62,6 +62,31 @@ function Pnl({
  * `/ownership` endpoint is deployed (the query error simply yields no data) —
  * so it degrades cleanly everywhere.
  */
+/** Compact "C 9.5 · CR 9 · E 9.5 · S 10" line from the subgrades blob.
+ *  Tolerates both flat numbers and the richer `{ score }` object shape.
+ *  Mirrors mobile's CardOwnershipSection so both clients show sub-scores. */
+function subgradeLine(sg: Record<string, unknown> | null | undefined): string | null {
+  if (!sg) return null;
+  const AXES: Array<[string, string]> = [
+    ["centering", "C"],
+    ["corners", "CR"],
+    ["edges", "E"],
+    ["surface", "S"],
+  ];
+  const bits: string[] = [];
+  for (const [key, label] of AXES) {
+    const raw = sg[key];
+    const n =
+      typeof raw === "number"
+        ? raw
+        : typeof (raw as { score?: unknown } | null)?.score === "number"
+          ? (raw as { score: number }).score
+          : null;
+    if (n != null && Number.isFinite(n)) bits.push(`${label} ${n}`);
+  }
+  return bits.length ? bits.join(" · ") : null;
+}
+
 export function OwnershipPanel({ cardId }: { cardId: string }) {
   const { user } = useAuth();
   const { data } = useCardHoldings(cardId, Boolean(user));
@@ -122,6 +147,9 @@ export function OwnershipPanel({ cardId }: { cardId: string }) {
                   )}
                   {h.daysHeld != null && (
                     <span className={styles.tag}>{h.daysHeld}d held</span>
+                  )}
+                  {subgradeLine(h.subgrades) && (
+                    <span className={styles.tag}>{subgradeLine(h.subgrades)}</span>
                   )}
                 </div>
               </div>

@@ -23,6 +23,7 @@ export { AdminConsole } from "./AdminConsole/AdminConsole";
 export { AdminApiInspector } from "./AdminApiInspector/AdminApiInspector";
 export { AdminUsers } from "./AdminUsers/AdminUsers";
 export { AdminFlags } from "./AdminFlags/AdminFlags";
+export { AdminCarousels } from "./AdminCarousels/AdminCarousels";
 export { AdminPro } from "./AdminPro/AdminPro";
 export { AdminAnnounce } from "./AdminAnnounce/AdminAnnounce";
 export { AdminSimulator } from "./AdminSimulator/AdminSimulator";

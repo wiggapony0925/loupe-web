@@ -94,7 +94,14 @@ export const ENDPOINTS = {
   },
   /** Card sets — public catalog list + user-scoped completion progress. */
   sets: {
-    list: (tcg?: string) => `${V1}/sets${tcg ? `?tcg=${tcg}` : ""}`,
+    /** `sort=newest` = release-date desc, backend-defined (undated sets last). */
+    list: (tcg?: string, sort?: "newest") => {
+      const q = new URLSearchParams();
+      if (tcg) q.set("tcg", tcg);
+      if (sort) q.set("sort", sort);
+      const qs = q.toString();
+      return `${V1}/sets${qs ? `?${qs}` : ""}`;
+    },
     progress: `${V1}/sets/progress`,
   },
   /** Sealed-product catalog (public) + the user's sealed holdings (auth). */
@@ -205,6 +212,15 @@ export const ENDPOINTS = {
   /** Admin developer-portal surface (requires an admin user). */
   admin: {
     metrics: `${V1}/admin/metrics`,
+    /** Carousel registry control room (file + overrides + AI shelves). */
+    carousels: {
+      root: `${V1}/admin/carousels`,
+      ai: `${V1}/admin/carousels/ai`,
+      regenerate: (game: string) =>
+        `${V1}/admin/carousels/regenerate?game=${encodeURIComponent(game)}`,
+      item: (id: string) => `${V1}/admin/carousels/${encodeURIComponent(id)}`,
+      reset: (id: string) => `${V1}/admin/carousels/${encodeURIComponent(id)}/reset`,
+    },
     // Operations — read-only observability.
     health: `${V1}/admin/health`,
     dbTables: `${V1}/admin/database/tables`,

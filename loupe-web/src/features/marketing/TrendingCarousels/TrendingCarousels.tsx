@@ -85,8 +85,10 @@ export function TrendingCarousels() {
 
       {(sealed.isLoading || (sealed.data?.length ?? 0) > 0) && (
         <Carousel
-          title="Sealed products"
-          subtitle="Booster boxes, Elite Trainer Boxes, and bundles — tracked like singles."
+          // Truthful label: the catalog search is newest-release-first, so the
+          // rail genuinely shows NEW sealed products, not "popular" ones.
+          title="New sealed products"
+          subtitle="The latest booster boxes, Elite Trainer Boxes, and bundles — tracked like singles."
           itemWidth="210px"
           animation={true}
           action={seeAllSealed}

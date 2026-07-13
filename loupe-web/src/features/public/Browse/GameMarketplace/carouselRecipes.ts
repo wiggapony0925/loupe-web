@@ -251,11 +251,13 @@ export function composeGameRails(
     limit: 20,
     minItems: 4,
   };
+  // Truthful label: the rail IS newest-release-first (backend `sort=newest`),
+  // so say so — "Shop sets" undersold the one thing the ordering promises.
   const sets: RailSpec = {
     kind: "sets",
     id: "sets",
-    title: `Shop ${label} sets`,
-    subtitle: `Browse ${label} by set — every release, with live card counts.`,
+    title: `Newest ${label} sets`,
+    subtitle: `The latest ${label} releases first — see all for every set, with live card counts.`,
     minItems: 1,
   };
   const sealed: RailSpec = {

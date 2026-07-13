@@ -141,7 +141,10 @@ import type {
   RevenueSummary,
   SubscribeResult,
   GoogleSignInRequest,
+  AdminCarouselsView,
   CardAnalytics,
+  CardCert,
+  CardPopulation,
   CardAttributes,
   CardOwnership,
   CardListing,
@@ -212,6 +215,8 @@ import type {
   WaitlistStats,
   WaitlistStatus,
   WatchlistItem,
+  CarouselRecipeCreate,
+  CarouselRecipeUpdate,
 } from "./types";
 
 interface RawIdentifyCandidate {
@@ -558,6 +563,56 @@ export const api = {
       );
       return toCardAttributes(d);
     },
+    /** Population report + verified certs, from ONE canonical fetch. Public. */
+    canonicalExtras: async (
+      id: string,
+    ): Promise<{ population: CardPopulation; certs: CardCert[] }> => {
+      const d = await apiFetch<{
+        population?: {
+          rows?: Array<{
+            source?: string;
+            house?: string;
+            grade?: string;
+            population?: number;
+            pop_higher?: number | null;
+          }>;
+          total?: number;
+          by_house?: Record<string, number>;
+        };
+        certs?: Array<{
+          house?: string;
+          cert_number?: string;
+          grade?: string | null;
+          subject?: string | null;
+          year?: string | null;
+          brand?: string | null;
+          verified_at?: string | null;
+        }>;
+      }>(ENDPOINTS.cards.canonical(id), { skipAuth: true });
+      const pop = d.population;
+      return {
+        population: {
+          rows: (pop?.rows ?? []).map((r) => ({
+            source: r.source ?? "",
+            house: r.house ?? "",
+            grade: r.grade ?? "",
+            population: r.population ?? 0,
+            popHigher: r.pop_higher ?? null,
+          })),
+          total: pop?.total ?? 0,
+          byHouse: pop?.by_house ?? {},
+        },
+        certs: (d.certs ?? []).map((c) => ({
+          house: c.house ?? "",
+          certNumber: c.cert_number ?? "",
+          grade: c.grade ?? null,
+          subject: c.subject ?? null,
+          year: c.year ?? null,
+          brand: c.brand ?? null,
+          verifiedAt: c.verified_at ?? null,
+        })),
+      };
+    },
     /** The signed-in user's ownership of this card (copies + cost/value/P-L). */
     ownership: async (id: string): Promise<CardOwnership> => {
       const d = await apiFetch<Parameters<typeof toCardOwnership>[0]>(
@@ -628,10 +683,12 @@ export const api = {
     },
   },
   sets: {
-    /** Public catalog list of sets for a game (logos, counts, release dates). */
-    list: async (tcg?: string): Promise<CardSet[]> => {
+    /** Public catalog list of sets for a game (logos, counts, release dates).
+     *  `sort: "newest"` asks the backend for release-date-desc ordering; the
+     *  id-dedupe below is insertion-ordered, so that ordering survives it. */
+    list: async (tcg?: string, sort?: "newest"): Promise<CardSet[]> => {
       const d = await apiFetch<{ results?: Parameters<typeof toCardSet>[0][] }>(
-        ENDPOINTS.sets.list(tcg),
+        ENDPOINTS.sets.list(tcg, sort),
         { skipAuth: true },
       );
       // Some providers (e.g. ygoprodeck) split one set code across dozens of
@@ -1602,6 +1659,39 @@ export const api = {
           status: r.status,
         };
       },
+    },
+    /** Carousel registry control room. Wire is camelCase — no adapters. */
+    carousels: {
+      overview: (): Promise<AdminCarouselsView> =>
+        apiFetch<AdminCarouselsView>(ENDPOINTS.admin.carousels.root),
+      setAiEnabled: (enabled: boolean): Promise<AdminCarouselsView> =>
+        apiFetch<AdminCarouselsView>(ENDPOINTS.admin.carousels.ai, {
+          method: "PUT",
+          json: { enabled },
+        }),
+      regenerate: (game: string): Promise<unknown> =>
+        apiFetch(ENDPOINTS.admin.carousels.regenerate(game), { method: "POST" }),
+      create: (input: CarouselRecipeCreate): Promise<AdminCarouselsView> =>
+        apiFetch<AdminCarouselsView>(ENDPOINTS.admin.carousels.root, {
+          method: "POST",
+          json: input,
+        }),
+      update: (
+        id: string,
+        patch: CarouselRecipeUpdate,
+      ): Promise<AdminCarouselsView> =>
+        apiFetch<AdminCarouselsView>(ENDPOINTS.admin.carousels.item(id), {
+          method: "PUT",
+          json: patch,
+        }),
+      reset: (id: string): Promise<AdminCarouselsView> =>
+        apiFetch<AdminCarouselsView>(ENDPOINTS.admin.carousels.reset(id), {
+          method: "POST",
+        }),
+      remove: (id: string): Promise<AdminCarouselsView> =>
+        apiFetch<AdminCarouselsView>(ENDPOINTS.admin.carousels.item(id), {
+          method: "DELETE",
+        }),
     },
     flags: {
       list: async (): Promise<FeatureFlag[]> => {

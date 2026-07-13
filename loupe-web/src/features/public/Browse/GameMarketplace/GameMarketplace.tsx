@@ -40,12 +40,18 @@ export function GameMarketplace({
 
   // Structural rails the resolver doesn't produce (they're not card lists);
   // rendered through the existing rail engine after the resolved card rails.
+  // Sets carry release dates only for the big three games; the derived
+  // catalogs (One Piece/Digimon) are undated, so a "Newest" label would be
+  // untruthful there — they keep the neutral "Shop sets" title.
+  const datedSets = ["pokemon", "magic", "yugioh"].includes(game);
   const structural: RailSpec[] = [
     {
       kind: "sets",
       id: "sets",
-      title: `Shop ${label} sets`,
-      subtitle: `Browse ${label} by set — every release, with live card counts.`,
+      title: datedSets ? `Newest ${label} sets` : `Shop ${label} sets`,
+      subtitle: datedSets
+        ? `The latest ${label} releases first — see all for every set, with live card counts.`
+        : `Browse ${label} by set — every release, with live card counts.`,
       minItems: 1,
     },
     {

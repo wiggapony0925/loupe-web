@@ -1,0 +1,169 @@
+// Carousel control room — registry rows + per-game AI panel.
+
+.aiSwitch {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+.aiLabel {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.games {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: var(--space-md);
+}
+.game {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  padding: var(--space-md);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--bg-elevated);
+}
+.game__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.game__label {
+  font-weight: 700;
+  color: var(--ink);
+}
+.game__counts {
+  font-size: var(--text-xs);
+  color: var(--ink-dim);
+}
+
+.tableHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: var(--space-lg);
+}
+.rows {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+  padding: var(--space-md);
+  background: var(--bg-elevated);
+  & + & {
+    border-top: 1px solid var(--line);
+  }
+  &[data-removed] {
+    opacity: 0.55;
+  }
+}
+.row__main {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.row__title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+  color: var(--ink);
+}
+.row__id {
+  font-family: var(--font-mono, monospace);
+  font-size: var(--text-xs);
+  color: var(--ink-dim);
+}
+.row__sub {
+  font-size: var(--text-sm);
+  color: var(--ink-muted);
+}
+.row__lens {
+  font-size: var(--text-xs);
+  color: var(--ink-dim);
+}
+.row__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  flex-shrink: 0;
+}
+
+.aiShelves {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--space-md);
+}
+.aiList {
+  margin: 0;
+  padding-left: 1.1em;
+  font-size: var(--text-sm);
+  color: var(--ink-muted);
+  li + li {
+    margin-top: 4px;
+  }
+}
+
+.raw {
+  margin-top: var(--space-lg);
+  summary {
+    cursor: pointer;
+    font-size: var(--text-sm);
+    font-weight: 600;
+    color: var(--ink-muted);
+  }
+  pre {
+    margin-top: var(--space-sm);
+    padding: var(--space-md);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: var(--bg-elevated);
+    font-size: 12px;
+    max-height: 420px;
+    overflow: auto;
+  }
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+.formRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-md);
+}
+.select {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--ink);
+  select {
+    padding: 8px 10px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--bg-elevated);
+    color: var(--ink);
+  }
+}
+.formActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-sm);
+}
