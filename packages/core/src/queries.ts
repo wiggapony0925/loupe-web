@@ -80,6 +80,8 @@ import type {
   BlogPost,
   BlogPostInput,
   CardAnalytics,
+  CardCert,
+  CardPopulation,
   CardAttributes,
   CardOwnership,
   CardListing,
@@ -151,6 +153,9 @@ import type {
   WaitlistStats,
   WaitlistStatus,
   WatchlistItem,
+  AdminCarouselsView,
+  CarouselRecipeCreate,
+  CarouselRecipeUpdate,
 } from "./types";
 
 /** Generic query hook — pass a key, a fetcher, and optional React Query options. */
@@ -407,6 +412,28 @@ export const useCardAttributes = (id: string) =>
     { enabled: Boolean(id), staleTime: 300_000 },
   );
 
+/** Population + certs from one canonical fetch (shared query key, so
+ *  the two selector hooks below cost a single request per card). */
+const useCanonicalExtras = (id: string) =>
+  useApiQuery<{ population: CardPopulation; certs: CardCert[] }>(
+    ["card-canonical-extras", id],
+    () => api.cards.canonicalExtras(id),
+    { enabled: Boolean(id), staleTime: 300_000 },
+  );
+
+/** Graded-population report for a card (public) — PSA/CGC/BGS counts by
+ *  grade from the canonical document. */
+export const useCardPopulation = (id: string) => {
+  const q = useCanonicalExtras(id);
+  return { ...q, data: q.data?.population };
+};
+
+/** Verified grading certs for a card (public; PSA today). */
+export const useCardCerts = (id: string) => {
+  const q = useCanonicalExtras(id);
+  return { ...q, data: q.data?.certs };
+};
+
 /** The signed-in user's ownership of one card (copies + cost/value/P-L).
  *  Pass `enabled=false` when signed out — the endpoint requires auth. */
 export const useCardHoldings = (id: string, enabled = true) =>
@@ -432,12 +459,14 @@ export const useSetProgress = (enabled = true) =>
     staleTime: 300_000,
   });
 
-/** Public catalog list of sets for a game. */
-export const usePublicSets = (tcg: string, enabled = true) =>
-  useApiQuery<CardSet[]>(["sets-list", tcg], () => api.sets.list(tcg), {
-    enabled,
-    staleTime: 600_000,
-  });
+/** Public catalog list of sets for a game. `sort: "newest"` = backend-defined
+ *  release-date-desc ordering (the "Newest sets" rail feed). */
+export const usePublicSets = (tcg: string, enabled = true, sort?: "newest") =>
+  useApiQuery<CardSet[]>(
+    ["sets-list", tcg, sort ?? "catalog"],
+    () => api.sets.list(tcg, sort),
+    { enabled, staleTime: 600_000 },
+  );
 
 /* ── Sealed products + holdings ──────────────────────────────────────── */
 
@@ -1593,6 +1622,75 @@ export const useFeatureFlag = (key: string, fallback = true): boolean => {
   const { data } = usePublicFlags();
   if (!data || !(key in data)) return fallback;
   return data[key] ?? fallback;
+};
+
+/** Carousel registry control room — one call renders the whole page. */
+export const useAdminCarousels = (enabled = true) =>
+  useApiQuery<AdminCarouselsView>(
+    ["admin-carousels"],
+    api.admin.carousels.overview,
+    { enabled },
+  );
+
+/** Shared onSuccess: every mutation returns the fresh view — install it. */
+const _installCarousels =
+  (qc: ReturnType<typeof useQueryClient>) => (view: AdminCarouselsView) => {
+    qc.setQueryData(["admin-carousels"], view);
+  };
+
+export const useSetCarouselAi = () => {
+  const qc = useQueryClient();
+  return useApiMutation<AdminCarouselsView, boolean>(
+    (enabled) => api.admin.carousels.setAiEnabled(enabled),
+    { onSuccess: _installCarousels(qc) },
+  );
+};
+
+export const useUpdateCarousel = () => {
+  const qc = useQueryClient();
+  return useApiMutation<
+    AdminCarouselsView,
+    { id: string; patch: CarouselRecipeUpdate }
+  >(({ id, patch }) => api.admin.carousels.update(id, patch), {
+    onSuccess: _installCarousels(qc),
+  });
+};
+
+export const useCreateCarousel = () => {
+  const qc = useQueryClient();
+  return useApiMutation<AdminCarouselsView, CarouselRecipeCreate>(
+    (input) => api.admin.carousels.create(input),
+    { onSuccess: _installCarousels(qc) },
+  );
+};
+
+export const useResetCarousel = () => {
+  const qc = useQueryClient();
+  return useApiMutation<AdminCarouselsView, string>(
+    (id) => api.admin.carousels.reset(id),
+    { onSuccess: _installCarousels(qc) },
+  );
+};
+
+export const useDeleteCarousel = () => {
+  const qc = useQueryClient();
+  return useApiMutation<AdminCarouselsView, string>(
+    (id) => api.admin.carousels.remove(id),
+    { onSuccess: _installCarousels(qc) },
+  );
+};
+
+/** Force a fresh AI design pass for one game, then refetch the view. */
+export const useRegenerateCarousels = () => {
+  const qc = useQueryClient();
+  return useApiMutation<unknown, string>(
+    (game) => api.admin.carousels.regenerate(game),
+    {
+      onSuccess: () => {
+        void qc.invalidateQueries({ queryKey: ["admin-carousels"] });
+      },
+    },
+  );
 };
 
 /** All flags (admin view). */

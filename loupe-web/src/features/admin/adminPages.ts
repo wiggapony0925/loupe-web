@@ -149,6 +149,14 @@ export const ADMIN_PAGES: AdminPage[] = [
     hint: "Toggle micro-apps",
     group: "Monetization",
   },
+  {
+    path: "carousels",
+    component: "AdminCarousels",
+    label: "Carousels",
+    hint: "Registry + AI shelves",
+    group: "Monetization",
+    flag: "admin_carousels",
+  },
 
   // ── People ──
   {

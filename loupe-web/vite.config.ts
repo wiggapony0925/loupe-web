@@ -36,6 +36,12 @@ export default defineConfig({
         target: API_TARGET,
         changeOrigin: true,
         secure: true
+      },
+      "/ws": {
+        target: API_TARGET,
+        changeOrigin: true,
+        secure: true,
+        ws: true
       }
     }
   },

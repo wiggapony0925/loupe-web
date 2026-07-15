@@ -36,6 +36,7 @@ import { RelatedPrints } from "./RelatedPrints/RelatedPrints";
 import { MarketSignals, QuickStats, CostBasisStrip } from "./CardInsights/CardInsights";
 import { OwnershipPanel } from "./OwnershipPanel/OwnershipPanel";
 import { CardAnalyticsPanel } from "./CardAnalyticsPanel/CardAnalyticsPanel";
+import { PopulationPanel } from "./PopulationPanel/PopulationPanel";
 import { GradedPrices } from "./GradedPrices/GradedPrices";
 import { RecentSold } from "./RecentSold/RecentSold";
 import { ActiveAlerts, SetProgressForCard } from "./CardContext/CardContext";
@@ -384,6 +385,10 @@ export function ProductDetail() {
       {/* Derived market analytics — market cap, momentum, volatility, grade
           premium, ATH/ATL, liquidity. Server-composed; hidden until it loads. */}
       <CardAnalyticsPanel cardId={card.id} />
+
+      {/* Population report — graded copies by house/grade; hidden when the
+          backend had no pop source for this card. */}
+      <PopulationPanel cardId={card.id} />
 
       <section className={styles.product__section}>
         <div className={styles.product__chart}>

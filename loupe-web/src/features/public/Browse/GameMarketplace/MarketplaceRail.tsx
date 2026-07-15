@@ -179,7 +179,7 @@ function CatalogMarketRail({
   );
 }
 
-/** "Shop <game> sets" — newest-first set tiles that drill into a set's cards. */
+/** "Newest <game> sets" — newest-first set tiles that drill into a set's cards. */
 function SetMarketRail({
   game,
   spec,
@@ -188,9 +188,11 @@ function SetMarketRail({
   spec: Extract<RailSpec, { kind: "sets" }>;
 }) {
   const navigate = useNavigate();
-  const { data: sets, isLoading } = usePublicSets(game);
-  // Newest sets first (collectors care most about recent releases), capped to a
-  // rail-sized slice — the full list lives in the Sets explorer via "See all".
+  // Ordering is backend-defined (`sort=newest`); the local sort below only
+  // covers older backends that ignore the param — against a current one it's
+  // a no-op. Capped to a rail-sized slice; the full list lives in the Sets
+  // explorer via "See all".
+  const { data: sets, isLoading } = usePublicSets(game, true, "newest");
   const ordered = [...(sets ?? [])]
     .sort((a, b) => (b.releaseDate ?? "").localeCompare(a.releaseDate ?? ""))
     .slice(0, 20);
@@ -232,9 +234,23 @@ function setCode(name: string): string | null {
   return code ? code.toUpperCase().replace(/\s+/, "-") : null;
 }
 
+/** "2024/11/08" or "2024-11-08" → "Nov 2024" — on a newest-first rail the
+ *  month is what makes recency legible, not just the year. */
+function releaseLabel(raw: string | null | undefined): string | null {
+  if (!raw) return null;
+  const [y, m] = raw.replace(/\//g, "-").split("-").map(Number);
+  if (!y) return null;
+  if (!m || m < 1 || m > 12) return String(y);
+  const month = new Date(Date.UTC(y, m - 1)).toLocaleString("en-US", {
+    month: "short",
+    timeZone: "UTC",
+  });
+  return `${month} ${y}`;
+}
+
 function SetTile({ set, onClick }: { set: CardSet; onClick: () => void }) {
   const [imgOk, setImgOk] = useState(Boolean(set.imageUrl));
-  const yr = /(\d{4})/.exec(set.releaseDate ?? "")?.[1] ?? null;
+  const released = releaseLabel(set.releaseDate);
   const code = setCode(set.name);
   return (
     <button type="button" className={styles.setTile} onClick={onClick}>
@@ -256,7 +272,7 @@ function SetTile({ set, onClick }: { set: CardSet; onClick: () => void }) {
       </span>
       <span className={styles.setName}>{set.name}</span>
       <span className={styles.setMeta}>
-        {[set.totalCards ? `${set.totalCards} cards` : null, yr]
+        {[released, set.totalCards ? `${set.totalCards} cards` : null]
           .filter(Boolean)
           .join(" · ") || "Set"}
       </span>

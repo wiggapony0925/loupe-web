@@ -3,7 +3,8 @@ import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client
 import { createSyncStoragePersister } from "@tanstack/query-sync-storage-persister";
 import { lazy, Suspense, useState, type ReactNode } from "react";
 import { ThemeProvider } from "@/theme";
-import { AuthProvider } from "@/auth/AuthProvider";
+import { AuthProvider, useAuth } from "@/auth/AuthProvider";
+import { usePriceFeed } from "@/hooks/usePriceFeed";
 import { ProProvider } from "@/pro";
 import { DisplayCurrencyProvider } from "@/providers/DisplayCurrencyProvider";
 import { ActiveCollectionProvider } from "@/providers/ActiveCollectionProvider";
@@ -11,6 +12,13 @@ import { ConfirmProvider, TooltipProvider } from "@/components";
 import { reportError } from "@/observability/sentry";
 
 const DAY_MS = 1000 * 60 * 60 * 24;
+
+/** Opens the live /ws/prices socket while signed in (renders nothing). */
+function PriceFeedBridge() {
+  const { isAuthed } = useAuth();
+  usePriceFeed(isAuthed);
+  return null;
+}
 
 // React Query inspector — dev-only. The lazy import is gated on `import.meta.env.DEV`
 // so it compiles to `() => null` and is tree-shaken out of the production bundle.
@@ -94,7 +102,10 @@ export function AppProviders({ children }: { children: ReactNode }) {
             <DisplayCurrencyProvider>
               <ActiveCollectionProvider>
                 <ConfirmProvider>
-                  <TooltipProvider delayDuration={250}>{children}</TooltipProvider>
+                  <TooltipProvider delayDuration={250}>
+                    <PriceFeedBridge />
+                    {children}
+                  </TooltipProvider>
                 </ConfirmProvider>
               </ActiveCollectionProvider>
             </DisplayCurrencyProvider>

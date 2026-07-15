@@ -383,6 +383,33 @@ export interface CardTypeModifier {
   value?: string | null;
 }
 
+/** A verified grading cert from the canonical document (PSA today). */
+export interface CardCert {
+  house: string;
+  certNumber: string;
+  grade: string | null;
+  subject: string | null;
+  year: string | null;
+  brand: string | null;
+  verifiedAt: string | null;
+}
+
+/** One population row from the canonical document (per house + grade). */
+export interface CardPopulationRow {
+  source: string;
+  house: string;
+  grade: string;
+  population: number;
+  popHigher: number | null;
+}
+
+/** Graded-population report (`/cards/:id/canonical` → `population`). */
+export interface CardPopulation {
+  rows: CardPopulationRow[];
+  total: number;
+  byHouse: Record<string, number>;
+}
+
 export interface CardAttributes {
   tcg: string;
   name: string;
