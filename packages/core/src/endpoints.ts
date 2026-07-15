@@ -32,6 +32,8 @@ export const ENDPOINTS = {
     recents: `${V1}/me/recents`,
   },
   home: { feed: `${V1}/home/feed` },
+  /** Remote app configuration — server-driven flags, rails, AI limits. */
+  appConfig: `${V1}/app/config`,
   analytics: { overview: `${V1}/analytics/overview` },
   /** Auto-generated monthly/yearly PDF portfolio statements. */
   reports: {
@@ -44,6 +46,8 @@ export const ENDPOINTS = {
   },
   cards: {
     search: `${V1}/cards/search`,
+    /** AI "describe it" search — Loupe Pro, auth required (402 → paywall). */
+    searchAi: `${V1}/cards/search/ai`,
     trending: `${V1}/cards/trending`,
     resolve: `${V1}/cards/resolve`,
     item: (id: string) => `${V1}/cards/${id}`,
@@ -143,6 +147,8 @@ export const ENDPOINTS = {
     browse: `${V1}/public/browse`,
     carousels: `${V1}/public/carousels`,
     carouselsResolved: `${V1}/public/carousels/resolved`,
+    /** One carousel EXPANDED (`?id&game&page&page_size`) — "view more". */
+    carouselRail: `${V1}/public/carousels/rail`,
     sparklines: `${V1}/public/sparklines`,
   },
   grades: {
@@ -231,6 +237,12 @@ export const ENDPOINTS = {
     revenue: `${V1}/admin/revenue`,
     // Catalog & product.
     catalog: `${V1}/admin/catalog`,
+    carousels: `${V1}/admin/carousels`,
+    carousel: (id: string) => `${V1}/admin/carousels/${encodeURIComponent(id)}`,
+    carouselReset: (id: string) =>
+      `${V1}/admin/carousels/${encodeURIComponent(id)}/reset`,
+    carouselsAi: `${V1}/admin/carousels/ai`,
+    carouselsRegenerate: `${V1}/admin/carousels/regenerate`,
     pricecharting: `${V1}/admin/pricecharting`,
     pricechartingProbe: `${V1}/admin/pricecharting/probe`,
     pricechartingSync: `${V1}/admin/pricecharting/sync`,

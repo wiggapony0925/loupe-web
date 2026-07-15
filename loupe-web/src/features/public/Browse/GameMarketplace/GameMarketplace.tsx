@@ -28,9 +28,12 @@ const GAME_LABELS: Record<string, string> = {
 export function GameMarketplace({
   game,
   onCard,
+  onViewMore,
 }: {
   game: string;
   onCard: (id: string) => void;
+  /** "View more" on a resolved rail — expands the shelf (`?rail=<id>`). */
+  onViewMore?: (railId: string) => void;
 }) {
   const label = GAME_LABELS[game] ?? "cards";
 
@@ -74,7 +77,12 @@ export function GameMarketplace({
         </div>
       ) : (
         rails.map((rail) => (
-          <ResolvedRailView key={rail.id} rail={rail} onCard={onCard} />
+          <ResolvedRailView
+            key={rail.id}
+            rail={rail}
+            onCard={onCard}
+            onViewMore={onViewMore ? () => onViewMore(rail.id) : undefined}
+          />
         ))
       )}
       {structural.map((spec) => (

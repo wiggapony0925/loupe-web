@@ -7,6 +7,7 @@ export * from "./blog.types";
 export * from "./card.types";
 export * from "./cardAdmin.types";
 export * from "./careers.types";
+export * from "./carouselAdmin.types";
 export * from "./catalog.types";
 export * from "./config.types";
 export * from "./engagement.types";

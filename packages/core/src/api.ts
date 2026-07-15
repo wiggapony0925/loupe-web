@@ -80,7 +80,14 @@ import type {
   AdminCardDetail,
   AdminCardPage,
   AdminCardsParams,
+  AdminCarouselRecipe,
+  AdminCarouselsView,
+  AiSearchAnswer,
+  AppRemoteConfig,
+  CarouselRailPage,
   AdminPriceSnapshot,
+  CarouselRecipeCreate,
+  CarouselRecipeUpdate,
   AuditFacets,
   AuditPage,
   AuditParams,
@@ -470,6 +477,64 @@ export const api = {
           cards: (r.cards ?? []).map(toCardSummary),
         })),
       };
+    },
+    /** One carousel EXPANDED — full paginated contents ("view more"). */
+    publicCarouselRail: async (params: {
+      game: string;
+      id: string;
+      page?: number;
+      pageSize?: number;
+    }): Promise<CarouselRailPage> => {
+      const d = await apiFetch<{
+        game: string;
+        id: string;
+        title: string;
+        subtitle: string;
+        kind: "cards" | "catalog";
+        page: number;
+        page_size: number;
+        total: number;
+        cards: ApiCard[];
+      }>(ENDPOINTS.public.carouselRail, {
+        query: {
+          game: params.game,
+          id: params.id,
+          page: params.page,
+          page_size: params.pageSize,
+        },
+        skipAuth: true,
+      });
+      return {
+        game: d.game,
+        id: d.id,
+        title: d.title,
+        subtitle: d.subtitle,
+        kind: d.kind,
+        page: d.page,
+        pageSize: d.page_size,
+        total: d.total,
+        cards: (d.cards ?? []).map(toCardSummary),
+      };
+    },
+    /** Loupe Pro AI "describe it" search (auth; a 402 opens the paywall).
+     *  `tcg` is the active game tag — the user's description preference. */
+    searchAi: async (
+      q: string,
+      limit = 24,
+      tcg?: string,
+    ): Promise<AiSearchAnswer> => {
+      const d = await apiFetch<{
+        query: string;
+        message: string | null;
+        candidates: string[];
+        game: string | null;
+        results: ApiCard[];
+        total: number;
+        source: "ai" | "fallback";
+      }>(ENDPOINTS.cards.searchAi, {
+        query: { q, limit, tcg: tcg && tcg !== "all" ? tcg : undefined },
+      });
+      return { ...d, results: (d.results ?? []).map(toCardSummary) };
     },
     /** Batch mini price series keyed by card id — for list-row sparklines. */
     sparklines: async (
@@ -1247,6 +1312,9 @@ export const api = {
         await apiFetch(ENDPOINTS.waitlist.stats, { skipAuth: true }),
       ),
   },
+  /** Remote app configuration (server-driven flags, rails, AI limits). */
+  appConfig: (): Promise<AppRemoteConfig> =>
+    apiFetch<AppRemoteConfig>(ENDPOINTS.appConfig, { skipAuth: true }),
   /** Public feature-flag map — `{key: enabled}`. No auth (web + mobile gate on it). */
   flags: async (): Promise<FlagMap> =>
     (await apiFetch<FlagMap>(ENDPOINTS.flags, { skipAuth: true })) ?? {},
@@ -1264,6 +1332,46 @@ export const api = {
     /** Catalog coverage by game (cards/sets, pHash %, price sources). */
     catalog: async (): Promise<CatalogCoverage> =>
       toCatalogCoverage(await apiFetch(ENDPOINTS.admin.catalog)),
+    /** Carousel registry — live operator control over every marketplace shelf. */
+    carousels: {
+      overview: (): Promise<AdminCarouselsView> =>
+        apiFetch<AdminCarouselsView>(ENDPOINTS.admin.carousels),
+      /** Partial edit / enable-disable toggle for one recipe. */
+      update: (
+        id: string,
+        input: CarouselRecipeUpdate,
+      ): Promise<AdminCarouselRecipe> =>
+        apiFetch<AdminCarouselRecipe>(ENDPOINTS.admin.carousel(id), {
+          method: "PUT",
+          json: input,
+        }),
+      /** Add an operator-authored recipe. */
+      create: (input: CarouselRecipeCreate): Promise<AdminCarouselRecipe> =>
+        apiFetch<AdminCarouselRecipe>(ENDPOINTS.admin.carousels, {
+          method: "POST",
+          json: input,
+        }),
+      /** Delete a recipe (file recipes are tombstoned, restorable via reset). */
+      remove: (id: string): Promise<void> =>
+        apiFetch<void>(ENDPOINTS.admin.carousel(id), { method: "DELETE" }),
+      /** Restore a file recipe to its checked-in state. */
+      reset: (id: string): Promise<AdminCarouselRecipe> =>
+        apiFetch<AdminCarouselRecipe>(ENDPOINTS.admin.carouselReset(id), {
+          method: "POST",
+        }),
+      /** AI kill switch — off pins every game to the curated registry. */
+      setAi: (enabled: boolean): Promise<AdminCarouselsView> =>
+        apiFetch<AdminCarouselsView>(ENDPOINTS.admin.carouselsAi, {
+          method: "PUT",
+          json: { enabled },
+        }),
+      /** Force a fresh AI design pass for a game (synchronous). */
+      regenerate: (game: string): Promise<CarouselResponse> =>
+        apiFetch<CarouselResponse>(ENDPOINTS.admin.carouselsRegenerate, {
+          method: "POST",
+          query: { game },
+        }),
+    },
     /** PriceCharting tier detection + fallback chain + mirror status. */
     pricecharting: {
       overview: async (): Promise<PriceChartingOverview> =>

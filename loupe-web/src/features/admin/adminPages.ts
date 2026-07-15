@@ -170,6 +170,14 @@ export const ADMIN_PAGES: AdminPage[] = [
     flag: "admin_catalog",
   },
   {
+    path: "carousels",
+    component: "AdminCarousels",
+    label: "Carousels",
+    hint: "Storefront shelves",
+    group: "Catalog & product",
+    flag: "admin_carousels",
+  },
+  {
     path: "pricecharting",
     component: "AdminPriceCharting",
     label: "PriceCharting",

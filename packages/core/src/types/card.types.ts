@@ -120,6 +120,38 @@ export interface ResolvedCarousels {
   rails: ResolvedRail[];
 }
 
+/**
+ * One carousel EXPANDED into its full paginated contents ("view more") —
+ * `GET /v1/public/carousels/rail`. The recipe lens runs server-side over the
+ * deep pool with a real `total`; `cards` are already adapted summaries.
+ */
+export interface CarouselRailPage {
+  game: string;
+  id: string;
+  title: string;
+  subtitle: string;
+  kind: "cards" | "catalog";
+  page: number;
+  pageSize: number;
+  total: number;
+  cards: CardSummary[];
+}
+
+/**
+ * The Loupe Pro AI "describe it" search answer (`GET /v1/cards/search/ai`).
+ * `message` is the assistant's one-liner for the chat bubble; null with
+ * `source:"fallback"` means the model was unavailable — plain results only.
+ */
+export interface AiSearchAnswer {
+  query: string;
+  message: string | null;
+  candidates: string[];
+  game: string | null;
+  results: CardSummary[];
+  total: number;
+  source: "ai" | "fallback";
+}
+
 /** A compact trend series for a list-row sparkline (Robinhood/StockX style). */
 export interface CardSparkline {
   cardId: string;

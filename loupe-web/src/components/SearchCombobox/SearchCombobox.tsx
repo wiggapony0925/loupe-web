@@ -23,6 +23,7 @@ import { formatMoney } from "@/lib/format";
 import { cx } from "@/lib/cx";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { useClickOutside } from "@/hooks/useClickOutside";
+import { useAiSearchLimits } from "@loupe/core";
 import styles from "./SearchCombobox.module.scss";
 
 const CATEGORIES = [
@@ -77,6 +78,8 @@ export function SearchCombobox({
     CATEGORIES[0],
   );
   const [query, setQuery] = useState(initialQuery);
+  // Backend-served description cap (offline fallback baked into the hook).
+  const { queryMaxChars } = useAiSearchLimits();
   // Debounced so suggestions don't fire a request per keystroke.
   const debounced = useDebouncedValue(query.trim(), 220);
   const [open, setOpen] = useState(false);
@@ -228,6 +231,7 @@ export function SearchCombobox({
             className={styles.combo__input}
             type="text"
             placeholder="Search 130,000+ cards…"
+            maxLength={queryMaxChars}
             value={query}
             onChange={(e) => {
               setQuery(e.target.value);

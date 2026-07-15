@@ -20,6 +20,8 @@ export interface PlanFeatures {
   unlimited_alerts: boolean;
   statements: boolean;
   pro_badge: boolean;
+  /** Semantic "describe it" AI search — a Pro capability. */
+  ai_search?: boolean;
 }
 
 export interface Entitlements {

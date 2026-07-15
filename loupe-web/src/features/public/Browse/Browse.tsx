@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { RailResults } from "./RailResults";
+import { AiSearchCallout } from "./AiSearchCallout";
 import { LayoutGrid, List, Table2 } from "lucide-react";
 import {
   usePublicBrowse,
@@ -71,8 +73,11 @@ const GAME_LABELS: Record<string, string> = {
  * The client does no derivation.
  */
 export function Browse() {
-  const [params] = useSearchParams();
+  const [params, setParams] = useSearchParams();
   const query = params.get("q") ?? "";
+  // A carousel's "view more" (?rail=…) — the shelf expanded to its full,
+  // truly-paginated contents.
+  const railParam = params.get("rail");
   const gameParam = params.get("game");
   const game = gameParam ?? "pokemon"; // browse landing default
   // Set drilldown (from the Sets explorer): scope the browse to one set.
@@ -162,6 +167,24 @@ export function Browse() {
     setPage(1);
   };
 
+  // ── Shelf expanded (?game=…&rail=…) — carousel "view more" ──
+  if (railParam && !isSearch) {
+    return (
+      <div className={styles.browse}>
+        <RailResults
+          game={game}
+          railId={railParam}
+          onCard={(id) => navigate(`/cards/${encodeURIComponent(id)}`)}
+          onClear={() => {
+            const next = new URLSearchParams(params);
+            next.delete("rail");
+            setParams(next);
+          }}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className={styles.browse}>
       {/* Landing (/cards) — cross-game discovery: a "Best from <game>" rail per
@@ -183,6 +206,11 @@ export function Browse() {
           <GameMarketplace
             game={game}
             onCard={(id) => navigate(`/cards/${encodeURIComponent(id)}`)}
+            onViewMore={(railId) => {
+              const next = new URLSearchParams(params);
+              next.set("rail", railId);
+              setParams(next);
+            }}
           />
         </section>
       )}
@@ -393,6 +421,21 @@ export function Browse() {
             <Pagination page={page} pageCount={pageCount} onChange={setPage} />
           </div>
         </>
+      )}
+
+      {/* The described-card path — "red lizard with fire" — for signed-in
+          users; Loupe Pro runs it, free accounts get the paywall story. */}
+      {isSearch && (
+        <AiSearchCallout
+          query={query}
+          tcg={searchTcg}
+          onCard={(id) => navigate(`/cards/${encodeURIComponent(id)}`)}
+          onPickCandidate={(name) => {
+            const next = new URLSearchParams(params);
+            next.set("q", name);
+            setParams(next);
+          }}
+        />
       )}
         </>
       )}

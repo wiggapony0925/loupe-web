@@ -50,3 +50,16 @@ export interface AnnouncementUpdate {
   cta_label?: string | null;
   cta_href?: string | null;
 }
+
+
+/**
+ * `GET /v1/app/config` — server-driven client configuration. Only the fields
+ * the web reads are typed; treat everything as optional so an older backend
+ * never breaks the client (baked-in fallbacks apply).
+ */
+export interface AppRemoteConfig {
+  flags?: Record<string, boolean>;
+  /** AI "describe it" search limits — change the backend constant and every
+   *  client picks it up on the next config refresh, no release. */
+  aiSearch?: { queryMaxChars: number; messageMaxChars: number };
+}

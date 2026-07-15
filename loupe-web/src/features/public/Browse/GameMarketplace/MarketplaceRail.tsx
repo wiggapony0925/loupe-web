@@ -61,12 +61,30 @@ export function MarketplaceRail({
 export function ResolvedRailView({
   rail,
   onCard,
+  onViewMore,
 }: {
   rail: ResolvedRail;
   onCard: (id: string) => void;
+  /** Expand this shelf to its full paginated contents ("view more"). */
+  onViewMore?: () => void;
 }) {
   return (
-    <Carousel title={rail.title} subtitle={rail.subtitle}>
+    <Carousel
+      title={rail.title}
+      subtitle={rail.subtitle}
+      action={
+        onViewMore ? (
+          <button
+            type="button"
+            className={styles.viewMore}
+            onClick={onViewMore}
+            aria-label={`View every card on ${rail.title}`}
+          >
+            View more ›
+          </button>
+        ) : undefined
+      }
+    >
       {rail.cards.map((c) => (
         <ShopCard
           key={c.id}

@@ -111,6 +111,13 @@ import type {
   FeatureFlagUpdateInput,
   FeatureFlagUpsertInput,
   FlagMap,
+  AdminCarouselRecipe,
+  AdminCarouselsView,
+  AiSearchAnswer,
+  AppRemoteConfig,
+  CarouselRailPage,
+  CarouselRecipeCreate,
+  CarouselRecipeUpdate,
   CollectionSummary,
   GradedCard,
   GradesParams,
@@ -238,6 +245,66 @@ export const usePublicCarouselsResolved = (game: string) =>
     () => api.cards.publicCarouselsResolved(game),
     { staleTime: 10 * 60_000 },
   );
+
+/** One carousel EXPANDED — the "view more" behind a rail, truly paginated. */
+export const useCarouselRail = (
+  params: { game: string; railId: string; page: number; pageSize?: number },
+  enabled = true,
+) =>
+  useApiQuery<CarouselRailPage>(
+    [
+      "public-carousel-rail",
+      params.game,
+      params.railId,
+      params.page,
+      params.pageSize ?? 24,
+    ],
+    () =>
+      api.cards.publicCarouselRail({
+        game: params.game,
+        id: params.railId,
+        page: params.page,
+        pageSize: params.pageSize ?? 24,
+      }),
+    { enabled: enabled && params.railId.length > 0, staleTime: 5 * 60_000 },
+  );
+
+/** Offline fallback for the AI description limit — the LIVE value rides
+ *  `/v1/app/config` (`useAiSearchLimits`), so a backend change reaches every
+ *  client on the next config refresh, no release. */
+export const AI_QUERY_MAX_CHARS = 200;
+
+/** Server-driven client configuration (flags, AI limits). Cached long —
+ *  it changes on backend deploys, not user actions. */
+export const useAppConfig = () =>
+  useApiQuery<AppRemoteConfig>(["app-config"], api.appConfig, {
+    staleTime: 30 * 60_000,
+    retry: 1,
+  });
+
+/** The backend-served AI search limits (baked-in fallbacks while offline). */
+export const useAiSearchLimits = (): { queryMaxChars: number } => {
+  const { data } = useAppConfig();
+  return { queryMaxChars: data?.aiSearch?.queryMaxChars ?? AI_QUERY_MAX_CHARS };
+};
+
+/** Loupe Pro AI "describe it" search — on demand only (the model costs money).
+ *  A 402 surfaces via `error`; the caller opens the paywall (ai_search). */
+export const useAiSearch = (q: string, asked: boolean, game?: string) => {
+  const { queryMaxChars } = useAiSearchLimits();
+  const trimmed = q.trim().slice(0, queryMaxChars);
+  // The active game tag rides along as the description's preference.
+  const tcg = game && game !== "all" ? game : undefined;
+  return useApiQuery<AiSearchAnswer>(
+    ["ai-search", trimmed, tcg ?? "all"],
+    () => api.cards.searchAi(trimmed, 24, tcg),
+    {
+      enabled: asked && trimmed.length >= 3,
+      staleTime: 30 * 60_000,
+      retry: false,
+    },
+  );
+};
 
 /** Real price history for a card. `range` is a backend bucket
  *  (`7d|30d|90d|1y|all`); omit for the default window. Keyed by range so
@@ -1669,6 +1736,106 @@ export const useUpsertFlag = (
     },
   });
 };
+
+// ── Admin: carousel registry ──
+
+/** The carousel registry — file + live overrides + latest AI shelves. */
+export const useAdminCarousels = (enabled = true) =>
+  useApiQuery<AdminCarouselsView>(
+    ["admin-carousels"],
+    api.admin.carousels.overview,
+    { enabled },
+  );
+
+function invalidateCarousels(qc: ReturnType<typeof useQueryClient>) {
+  void qc.invalidateQueries({ queryKey: ["admin-carousels"] });
+  // Edits change what the public storefront serves.
+  void qc.invalidateQueries({ queryKey: ["public-carousels"] });
+  void qc.invalidateQueries({ queryKey: ["public-carousels-resolved"] });
+}
+
+/** Wrap a carousel mutation so every write refreshes the registry view. */
+const useCarouselMutation = <TData, TVars>(
+  mutationFn: (vars: TVars) => Promise<TData>,
+  options?: Omit<UseMutationOptions<TData, ApiError, TVars>, "mutationFn">,
+) => {
+  const qc = useQueryClient();
+  return useApiMutation<TData, TVars>(mutationFn, {
+    ...options,
+    onSuccess: (...a) => {
+      invalidateCarousels(qc);
+      options?.onSuccess?.(...a);
+    },
+  });
+};
+
+/** Toggle / edit one recipe (partial update). */
+export const useUpdateCarousel = (
+  options?: Omit<
+    UseMutationOptions<
+      AdminCarouselRecipe,
+      ApiError,
+      { id: string; input: CarouselRecipeUpdate }
+    >,
+    "mutationFn"
+  >,
+) =>
+  useCarouselMutation(
+    ({ id, input }: { id: string; input: CarouselRecipeUpdate }) =>
+      api.admin.carousels.update(id, input),
+    options,
+  );
+
+/** Add an operator-authored recipe. */
+export const useCreateCarousel = (
+  options?: Omit<
+    UseMutationOptions<AdminCarouselRecipe, ApiError, CarouselRecipeCreate>,
+    "mutationFn"
+  >,
+) =>
+  useCarouselMutation(
+    (input: CarouselRecipeCreate) => api.admin.carousels.create(input),
+    options,
+  );
+
+/** Delete a recipe (file recipes tombstone; restore them via reset). */
+export const useDeleteCarousel = (
+  options?: Omit<UseMutationOptions<void, ApiError, string>, "mutationFn">,
+) =>
+  useCarouselMutation((id: string) => api.admin.carousels.remove(id), options);
+
+/** Restore a file recipe to its checked-in state. */
+export const useResetCarousel = (
+  options?: Omit<
+    UseMutationOptions<AdminCarouselRecipe, ApiError, string>,
+    "mutationFn"
+  >,
+) =>
+  useCarouselMutation((id: string) => api.admin.carousels.reset(id), options);
+
+/** AI kill switch — off pins every game to the curated registry. */
+export const useSetCarouselAi = (
+  options?: Omit<
+    UseMutationOptions<AdminCarouselsView, ApiError, boolean>,
+    "mutationFn"
+  >,
+) =>
+  useCarouselMutation(
+    (enabled: boolean) => api.admin.carousels.setAi(enabled),
+    options,
+  );
+
+/** Force a fresh AI design pass for one game (synchronous). */
+export const useRegenerateCarousels = (
+  options?: Omit<
+    UseMutationOptions<CarouselResponse, ApiError, string>,
+    "mutationFn"
+  >,
+) =>
+  useCarouselMutation(
+    (game: string) => api.admin.carousels.regenerate(game),
+    options,
+  );
 
 // ── Admin: operations (read-only observability) ──
 

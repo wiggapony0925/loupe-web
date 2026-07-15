@@ -20,6 +20,7 @@ export type PaywallReason =
   | "statements"
   | "alerts"
   | "analytics"
+  | "ai_search"
   | "generic";
 
 interface ProValue {
