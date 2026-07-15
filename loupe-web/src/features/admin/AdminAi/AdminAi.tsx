@@ -243,6 +243,37 @@ export function AdminAi() {
                 ))}
               </div>
             )}
+            {detail.results.length > 0 && (
+              <>
+                <h3 className={styles.detail__more}>
+                  What they saw ({detail.resultCount} result
+                  {detail.resultCount === 1 ? "" : "s"})
+                </h3>
+                <div className={styles.shown}>
+                  {detail.results.map((card, i) => (
+                    <div key={card.id ?? i} className={styles.shown__card}>
+                      {card.imageUrl ? (
+                        <img
+                          className={styles.shown__art}
+                          src={card.imageUrl}
+                          alt={card.name ?? "card"}
+                          loading="lazy"
+                        />
+                      ) : (
+                        <div className={styles.shown__art} aria-hidden />
+                      )}
+                      <span className={styles.shown__name}>{card.name ?? "—"}</span>
+                      <span className={styles.shown__meta}>
+                        {card.setName ?? ""}
+                        {card.price != null
+                          ? `${card.setName ? " · " : ""}$${card.price.toLocaleString()}`
+                          : ""}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
             <dl className={styles.detail__facts}>
               <div>
                 <dt>Asker</dt>

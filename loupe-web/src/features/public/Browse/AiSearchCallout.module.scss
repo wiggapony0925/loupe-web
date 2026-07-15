@@ -140,6 +140,22 @@
     color: var(--ink-dim);
   }
 
+  // Thumbs row pinned to the bottom of the AI message itself.
+  &__rate {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: var(--space-sm);
+    padding-top: var(--space-sm);
+    border-top: 1px dashed color-mix(in srgb, var(--accent-mint) 20%, transparent);
+  }
+
+  &__rateLabel {
+    font-size: var(--text-xs);
+    color: var(--ink-dim);
+    margin-right: 2px;
+  }
+
   &__chip {
     padding: 3px 10px;
     font-size: var(--text-xs);

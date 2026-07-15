@@ -187,3 +187,38 @@
   font-weight: 600;
   color: var(--ink-dim);
 }
+
+// "What they saw" — the exact shelf the user got under the bubble.
+.shown {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  gap: var(--space-sm);
+}
+
+.shown__card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.shown__art {
+  width: 100%;
+  aspect-ratio: 63 / 88;
+  object-fit: contain;
+  border-radius: 8px;
+  background: var(--bg-sunken);
+}
+
+.shown__name {
+  font-size: var(--text-xs);
+  font-weight: 700;
+  color: var(--ink);
+  @include truncate;
+}
+
+.shown__meta {
+  font-size: 10px;
+  color: var(--ink-faint);
+  @include truncate;
+}

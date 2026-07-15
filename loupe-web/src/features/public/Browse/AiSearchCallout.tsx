@@ -80,6 +80,13 @@ export function AiSearchCallout({
   };
 
   const answer = asked && allowed ? ai.data : undefined;
+
+  const rate = (v: "up" | "down") => {
+    if (!answer?.askId) return;
+    setVerdict(v);
+    feedback.mutate({ askId: answer.askId, verdict: v });
+    notify.success("Thanks for the feedback — it makes Loupe AI sharper.", 2600);
+  };
   const showBubble = Boolean(answer?.message && (answer?.results.length ?? 0) > 0);
 
   if (!asked || locked) {
@@ -152,6 +159,33 @@ export function AiSearchCallout({
               ))}
             </div>
           )}
+          {/* Thumbs live ON the message — every AI summary can be rated. */}
+          {answer.askId && (
+            <div className={styles.bubble__rate} role="group" aria-label="Was this answer right?">
+              <span className={styles.bubble__rateLabel}>
+                {verdict ? "Thanks for the feedback" : "Did Loupe AI get it right?"}
+              </span>
+              <button
+                type="button"
+                className={styles.answer__thumb}
+                data-active={verdict === "up" || undefined}
+                aria-label="Loupe AI got it right"
+                onClick={() => rate("up")}
+              >
+                <ThumbsUp size={13} />
+              </button>
+              <button
+                type="button"
+                className={styles.answer__thumb}
+                data-active={verdict === "down" || undefined}
+                data-down
+                aria-label="Loupe AI missed"
+                onClick={() => rate("down")}
+              >
+                <ThumbsDown size={13} />
+              </button>
+            </div>
+          )}
         </div>
       </div>
       <div className={styles.answer__cards}>
@@ -172,39 +206,8 @@ export function AiSearchCallout({
           </div>
         ))}
       </div>
-      {/* ── Footer: thumbs verdict + honesty line + retry (the Notion AI pattern) ── */}
+      {/* ── Footer: honesty line + retry (the Notion AI pattern) ── */}
       <div className={styles.answer__footer}>
-        {answer.askId && (
-          <div className={styles.answer__thumbs} role="group" aria-label="Was this answer right?">
-            <button
-              type="button"
-              className={styles.answer__thumb}
-              data-active={verdict === "up" || undefined}
-              aria-label="Loupe AI got it right"
-              onClick={() => {
-                setVerdict("up");
-                feedback.mutate({ askId: answer.askId as string, verdict: "up" });
-                notify.success("Thanks for the feedback — it makes Loupe AI sharper.", 2600);
-              }}
-            >
-              <ThumbsUp size={13} />
-            </button>
-            <button
-              type="button"
-              className={styles.answer__thumb}
-              data-active={verdict === "down" || undefined}
-              data-down
-              aria-label="Loupe AI missed"
-              onClick={() => {
-                setVerdict("down");
-                feedback.mutate({ askId: answer.askId as string, verdict: "down" });
-                notify.success("Thanks for the feedback — it makes Loupe AI sharper.", 2600);
-              }}
-            >
-              <ThumbsDown size={13} />
-            </button>
-          </div>
-        )}
         <span className={styles.answer__disclaimer}>
           AI can misread a description — cards and prices always come from the
           live catalog.

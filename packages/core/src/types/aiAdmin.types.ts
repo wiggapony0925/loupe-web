@@ -5,6 +5,16 @@
  * backend, so these shapes are passthrough (no adapter).
  */
 
+/** One card exactly as it appeared under an AI answer. */
+export interface AdminAiShownCard {
+  id: string | null;
+  name: string | null;
+  setName: string | null;
+  rarity: string | null;
+  imageUrl: string | null;
+  price: number | null;
+}
+
 /** One "describe it" exchange. */
 export interface AdminAiAsk {
   id: string;
@@ -17,6 +27,8 @@ export interface AdminAiAsk {
   cacheHit: boolean;
   message: string | null;
   candidates: string[];
+  /** The exact cards the user saw under the bubble (top 12). */
+  results: AdminAiShownCard[];
   resultCount: number;
   latencyMs: number | null;
   /** +1 thumbs up, -1 thumbs down, null = not rated. */
