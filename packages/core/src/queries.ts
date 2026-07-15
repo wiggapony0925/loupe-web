@@ -282,10 +282,18 @@ export const useAppConfig = () =>
     retry: 1,
   });
 
-/** The backend-served AI search limits (baked-in fallbacks while offline). */
-export const useAiSearchLimits = (): { queryMaxChars: number } => {
+/** The backend-served AI search limits + availability. `enabled` is STRICT
+ *  opt-in: an old backend, a spent API key, or a provider outage all read as
+ *  "hide the feature entirely" instead of surfacing broken states. */
+export const useAiSearchLimits = (): {
+  queryMaxChars: number;
+  enabled: boolean;
+} => {
   const { data } = useAppConfig();
-  return { queryMaxChars: data?.aiSearch?.queryMaxChars ?? AI_QUERY_MAX_CHARS };
+  return {
+    queryMaxChars: data?.aiSearch?.queryMaxChars ?? AI_QUERY_MAX_CHARS,
+    enabled: data?.aiSearch?.enabled === true,
+  };
 };
 
 /** Loupe Pro AI "describe it" search — on demand only (the model costs money).

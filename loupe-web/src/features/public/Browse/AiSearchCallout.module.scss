@@ -20,14 +20,22 @@
   font-size: var(--text-sm);
   font-weight: 700;
   color: var(--accent-mint);
-  background: color-mix(in srgb, var(--accent-mint) 7%, transparent);
+  background: linear-gradient(
+    120deg,
+    color-mix(in srgb, var(--accent-mint) 10%, transparent),
+    color-mix(in srgb, var(--accent-mint) 4%, transparent) 45%,
+    color-mix(in srgb, var(--accent-mint) 12%, transparent)
+  );
   border: 1px solid color-mix(in srgb, var(--accent-mint) 35%, transparent);
   border-radius: var(--radius-lg);
   cursor: pointer;
-  transition: background-color var(--dur-fast) var(--ease-out);
+  transition:
+    box-shadow var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out);
 
   &:hover {
-    background: color-mix(in srgb, var(--accent-mint) 13%, transparent);
+    border-color: color-mix(in srgb, var(--accent-mint) 60%, transparent);
+    box-shadow: 0 0 22px color-mix(in srgb, var(--accent-mint) 22%, transparent);
   }
 
   &__pro {
@@ -41,14 +49,33 @@
 }
 
 .bubble {
+  position: relative;
   display: flex;
   align-items: flex-start;
   gap: var(--space-md);
   margin-top: var(--space-lg);
   padding: var(--space-md) var(--space-lg);
-  border: 1px solid color-mix(in srgb, var(--accent-mint) 30%, transparent);
+  border: 1px solid transparent;
   border-radius: var(--radius-lg);
-  background: color-mix(in srgb, var(--accent-mint) 5%, var(--bg-elevated));
+  background:
+    linear-gradient(
+        color-mix(in srgb, var(--accent-mint) 5%, var(--bg-elevated)),
+        color-mix(in srgb, var(--accent-mint) 5%, var(--bg-elevated))
+      )
+      padding-box,
+    linear-gradient(
+        120deg,
+        color-mix(in srgb, var(--accent-mint) 55%, transparent),
+        color-mix(in srgb, var(--accent-mint) 12%, transparent) 40%,
+        color-mix(in srgb, var(--accent-mint) 55%, transparent) 80%
+      )
+      border-box;
+  background-size: 100% 100%, 220% 100%;
+  animation: ai-aurora 5s linear infinite;
+
+  &--thinking {
+    animation-duration: 1.8s;
+  }
 
   &__avatar {
     flex: 0 0 auto;
@@ -59,6 +86,10 @@
     border-radius: var(--radius-pill);
     color: var(--accent-mint);
     background: color-mix(in srgb, var(--accent-mint) 16%, transparent);
+
+    &--pulse {
+      animation: ai-breathe 1.4s var(--ease-out) infinite;
+    }
   }
 
   &__body {
@@ -73,7 +104,17 @@
     font-weight: 800;
     letter-spacing: 0.08em;
     text-transform: uppercase;
-    color: var(--accent-mint);
+    background: linear-gradient(
+      90deg,
+      var(--accent-mint),
+      color-mix(in srgb, var(--accent-mint) 45%, var(--ink)),
+      var(--accent-mint)
+    );
+    background-size: 200% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: ai-wordmark 3s linear infinite;
   }
 
   &__message {
@@ -129,6 +170,10 @@
     margin-top: var(--space-md);
   }
 
+  &__card {
+    animation: ai-answer-in 0.4s var(--ease-out) both;
+  }
+
   &__footer {
     display: flex;
     align-items: center;
@@ -175,8 +220,73 @@
   }
 }
 
+.dots {
+  display: inline-flex;
+  gap: 3px;
+  margin-left: 6px;
+  vertical-align: baseline;
+
+  i {
+    width: 4px;
+    height: 4px;
+    border-radius: 999px;
+    background: var(--accent-mint);
+    animation: ai-dot 1.2s ease-in-out infinite;
+
+    &:nth-child(2) {
+      animation-delay: 0.15s;
+    }
+    &:nth-child(3) {
+      animation-delay: 0.3s;
+    }
+  }
+}
+
 .miss {
   margin: var(--space-lg) 0 0;
   font-size: var(--text-xs);
   color: var(--ink-dim);
+}
+
+@keyframes ai-aurora {
+  from {
+    background-position: 0 0, 0% 0;
+  }
+  to {
+    background-position: 0 0, 220% 0;
+  }
+}
+
+@keyframes ai-breathe {
+  0%,
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent-mint) 30%, transparent);
+  }
+  50% {
+    transform: scale(1.08);
+    box-shadow: 0 0 0 7px color-mix(in srgb, var(--accent-mint) 0%, transparent);
+  }
+}
+
+@keyframes ai-wordmark {
+  from {
+    background-position: 0% 0;
+  }
+  to {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes ai-dot {
+  0%,
+  60%,
+  100% {
+    opacity: 0.25;
+    transform: translateY(0);
+  }
+  30% {
+    opacity: 1;
+    transform: translateY(-3px);
+  }
 }

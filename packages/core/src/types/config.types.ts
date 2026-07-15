@@ -59,7 +59,11 @@ export interface AnnouncementUpdate {
  */
 export interface AppRemoteConfig {
   flags?: Record<string, boolean>;
-  /** AI "describe it" search limits — change the backend constant and every
-   *  client picks it up on the next config refresh, no release. */
-  aiSearch?: { queryMaxChars: number; messageMaxChars: number };
+  /** AI "describe it" search — backend-owned limits AND the availability
+   *  kill switch (`enabled:false` = quota/outage → hide the feature). */
+  aiSearch?: {
+    enabled?: boolean;
+    queryMaxChars: number;
+    messageMaxChars: number;
+  };
 }

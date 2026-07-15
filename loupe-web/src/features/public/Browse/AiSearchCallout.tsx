@@ -33,7 +33,7 @@ export function AiSearchCallout({
 }) {
   const { user } = useAuth();
   const { allowed, locked, requirePro } = useProFeature("ai_search");
-  const { queryMaxChars } = useAiSearchLimits();
+  const { queryMaxChars, enabled: featureOn } = useAiSearchLimits();
   const [asked, setAsked] = useState(false);
   const ai = useAiSearch(query, asked && allowed, tcg);
   const nearLimit = query.length >= queryMaxChars - 20;
@@ -49,7 +49,9 @@ export function AiSearchCallout({
     }
   }, [ai.error, requirePro]);
 
-  if (!user) return null;
+  // Quota ran out / provider outage / old backend → the feature simply
+  // doesn't exist (no broken buttons, no dead ends).
+  if (!user || !featureOn) return null;
 
   const ask = () => {
     if (locked) {
@@ -81,13 +83,18 @@ export function AiSearchCallout({
 
   if (ai.isLoading) {
     return (
-      <div className={styles.bubble} aria-busy="true">
-        <span className={styles.bubble__avatar}>
+      <div className={`${styles.bubble} ${styles["bubble--thinking"]}`} aria-busy="true">
+        <span className={`${styles.bubble__avatar} ${styles["bubble__avatar--pulse"]}`}>
           <Sparkles size={15} />
         </span>
         <div className={styles.bubble__body}>
           <span className={styles.bubble__name}>Loupe AI</span>
-          <p className={styles.bubble__message}>Thinking about “{query}”…</p>
+          <p className={styles.bubble__message}>
+            Reading “{query}”
+            <span className={styles.dots} aria-hidden>
+              <i /><i /><i />
+            </span>
+          </p>
         </div>
       </div>
     );
@@ -130,16 +137,21 @@ export function AiSearchCallout({
         </div>
       </div>
       <div className={styles.answer__cards}>
-        {answer.results.slice(0, 12).map((c) => (
-          <ShopCard
+        {answer.results.slice(0, 12).map((c, i) => (
+          <div
             key={c.id}
-            imageUrl={c.imageUrl}
-            title={c.name}
-            subtitle={c.setName}
-            price={c.price}
-            tag={c.rarity}
-            onClick={() => onCard(c.id)}
-          />
+            className={styles.answer__card}
+            style={{ animationDelay: `${Math.min(i * 55, 660)}ms` }}
+          >
+            <ShopCard
+              imageUrl={c.imageUrl}
+              title={c.name}
+              subtitle={c.setName}
+              price={c.price}
+              tag={c.rarity}
+              onClick={() => onCard(c.id)}
+            />
+          </div>
         ))}
       </div>
       {/* ── Footer: honesty line + retry (the Notion AI pattern) ── */}
