@@ -248,6 +248,28 @@
   color: var(--ink-dim);
 }
 
+// Quota/outage rest state — visible and honest, never a dead button.
+.rest {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-top: var(--space-lg);
+  padding: var(--space-md) var(--space-lg);
+  font-size: var(--text-xs);
+  color: var(--ink-muted);
+  border: 1px dashed color-mix(in srgb, var(--accent-mint) 30%, transparent);
+  border-radius: var(--radius-lg);
+
+  svg {
+    flex-shrink: 0;
+    color: var(--accent-mint);
+  }
+
+  strong {
+    color: var(--ink);
+  }
+}
+
 @keyframes ai-aurora {
   from {
     background-position: 0 0, 0% 0;

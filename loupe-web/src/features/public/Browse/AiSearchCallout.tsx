@@ -11,7 +11,7 @@
  * the public page stays clean.
  */
 import { useEffect, useState } from "react";
-import { RotateCcw, Sparkles } from "lucide-react";
+import { MoonStar, RotateCcw, Sparkles } from "lucide-react";
 import { ApiError, useAiSearch, useAiSearchLimits } from "@loupe/core";
 import { ShopCard } from "@/components";
 import { useAuth } from "@/auth/AuthProvider";
@@ -49,9 +49,21 @@ export function AiSearchCallout({
     }
   }, [ai.error, requirePro]);
 
-  // Quota ran out / provider outage / old backend → the feature simply
-  // doesn't exist (no broken buttons, no dead ends).
-  if (!user || !featureOn) return null;
+  if (!user) return null;
+
+  // Quota ran out / provider outage → honest rest state (hiding the feature
+  // entirely read as "it's broken", so it stays visible and explains itself).
+  if (!featureOn) {
+    return (
+      <div className={styles.rest}>
+        <MoonStar size={15} />
+        <span>
+          <strong>Loupe AI is taking a quick break</strong> — it'll be back
+          shortly. Name search works as always.
+        </span>
+      </div>
+    );
+  }
 
   const ask = () => {
     if (locked) {
