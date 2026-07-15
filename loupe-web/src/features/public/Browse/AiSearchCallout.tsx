@@ -11,9 +11,10 @@
  * the public page stays clean.
  */
 import { useEffect, useState } from "react";
-import { MoonStar, RotateCcw, Sparkles } from "lucide-react";
-import { ApiError, useAiSearch, useAiSearchLimits } from "@loupe/core";
+import { MoonStar, RotateCcw, Sparkles, ThumbsDown, ThumbsUp } from "lucide-react";
+import { ApiError, useAiFeedback, useAiSearch, useAiSearchLimits } from "@loupe/core";
 import { ShopCard } from "@/components";
+import { notify } from "@/stores/noticeStore";
 import { useAuth } from "@/auth/AuthProvider";
 import { useProFeature } from "@/pro";
 import styles from "./AiSearchCallout.module.scss";
@@ -35,11 +36,16 @@ export function AiSearchCallout({
   const { allowed, locked, requirePro } = useProFeature("ai_search");
   const { queryMaxChars, enabled: featureOn } = useAiSearchLimits();
   const [asked, setAsked] = useState(false);
+  const [verdict, setVerdict] = useState<"up" | "down" | null>(null);
   const ai = useAiSearch(query, asked && allowed, tcg);
+  const feedback = useAiFeedback();
   const nearLimit = query.length >= queryMaxChars - 20;
 
-  // A new question resets to the ask state.
-  useEffect(() => setAsked(false), [query]);
+  // A new question resets to the ask state (and clears the old verdict).
+  useEffect(() => {
+    setAsked(false);
+    setVerdict(null);
+  }, [query]);
 
   // Server-side gate wins even if the local entitlement snapshot was stale.
   useEffect(() => {
@@ -166,8 +172,39 @@ export function AiSearchCallout({
           </div>
         ))}
       </div>
-      {/* ── Footer: honesty line + retry (the Notion AI pattern) ── */}
+      {/* ── Footer: thumbs verdict + honesty line + retry (the Notion AI pattern) ── */}
       <div className={styles.answer__footer}>
+        {answer.askId && (
+          <div className={styles.answer__thumbs} role="group" aria-label="Was this answer right?">
+            <button
+              type="button"
+              className={styles.answer__thumb}
+              data-active={verdict === "up" || undefined}
+              aria-label="Loupe AI got it right"
+              onClick={() => {
+                setVerdict("up");
+                feedback.mutate({ askId: answer.askId as string, verdict: "up" });
+                notify.success("Thanks for the feedback — it makes Loupe AI sharper.", 2600);
+              }}
+            >
+              <ThumbsUp size={13} />
+            </button>
+            <button
+              type="button"
+              className={styles.answer__thumb}
+              data-active={verdict === "down" || undefined}
+              data-down
+              aria-label="Loupe AI missed"
+              onClick={() => {
+                setVerdict("down");
+                feedback.mutate({ askId: answer.askId as string, verdict: "down" });
+                notify.success("Thanks for the feedback — it makes Loupe AI sharper.", 2600);
+              }}
+            >
+              <ThumbsDown size={13} />
+            </button>
+          </div>
+        )}
         <span className={styles.answer__disclaimer}>
           AI can misread a description — cards and prices always come from the
           live catalog.

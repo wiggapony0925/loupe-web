@@ -13,6 +13,10 @@ import {
 import { api } from "./api";
 import { ApiError } from "./client";
 import type {
+  AdminAiLogDetail,
+  AdminAiLogFilters,
+  AdminAiLogPage,
+  AdminAiOverview,
   AdminMetrics,
   AdminUser,
   AdminUserDetail,
@@ -153,9 +157,6 @@ import type {
   WaitlistStats,
   WaitlistStatus,
   WatchlistItem,
-  AdminCarouselsView,
-  CarouselRecipeCreate,
-  CarouselRecipeUpdate,
 } from "./types";
 
 /** Generic query hook — pass a key, a fetcher, and optional React Query options. */
@@ -322,6 +323,13 @@ export const useAiSearch = (q: string, asked: boolean, game?: string) => {
     },
   );
 };
+
+/** Thumbs up/down on an AI answer. Fire-and-forget from the buttons under
+ *  the bubble; the backend records it for the /admin/ai accuracy view. */
+export const useAiFeedback = () =>
+  useApiMutation<{ ok: boolean }, { askId: string; verdict: "up" | "down" }>(
+    ({ askId, verdict }) => api.cards.aiFeedback(askId, verdict),
+  );
 
 /** Real price history for a card. `range` is a backend bucket
  *  (`7d|30d|90d|1y|all`); omit for the default window. Keyed by range so
@@ -1624,74 +1632,6 @@ export const useFeatureFlag = (key: string, fallback = true): boolean => {
   return data[key] ?? fallback;
 };
 
-/** Carousel registry control room — one call renders the whole page. */
-export const useAdminCarousels = (enabled = true) =>
-  useApiQuery<AdminCarouselsView>(
-    ["admin-carousels"],
-    api.admin.carousels.overview,
-    { enabled },
-  );
-
-/** Shared onSuccess: every mutation returns the fresh view — install it. */
-const _installCarousels =
-  (qc: ReturnType<typeof useQueryClient>) => (view: AdminCarouselsView) => {
-    qc.setQueryData(["admin-carousels"], view);
-  };
-
-export const useSetCarouselAi = () => {
-  const qc = useQueryClient();
-  return useApiMutation<AdminCarouselsView, boolean>(
-    (enabled) => api.admin.carousels.setAiEnabled(enabled),
-    { onSuccess: _installCarousels(qc) },
-  );
-};
-
-export const useUpdateCarousel = () => {
-  const qc = useQueryClient();
-  return useApiMutation<
-    AdminCarouselsView,
-    { id: string; patch: CarouselRecipeUpdate }
-  >(({ id, patch }) => api.admin.carousels.update(id, patch), {
-    onSuccess: _installCarousels(qc),
-  });
-};
-
-export const useCreateCarousel = () => {
-  const qc = useQueryClient();
-  return useApiMutation<AdminCarouselsView, CarouselRecipeCreate>(
-    (input) => api.admin.carousels.create(input),
-    { onSuccess: _installCarousels(qc) },
-  );
-};
-
-export const useResetCarousel = () => {
-  const qc = useQueryClient();
-  return useApiMutation<AdminCarouselsView, string>(
-    (id) => api.admin.carousels.reset(id),
-    { onSuccess: _installCarousels(qc) },
-  );
-};
-
-export const useDeleteCarousel = () => {
-  const qc = useQueryClient();
-  return useApiMutation<AdminCarouselsView, string>(
-    (id) => api.admin.carousels.remove(id),
-    { onSuccess: _installCarousels(qc) },
-  );
-};
-
-/** Force a fresh AI design pass for one game, then refetch the view. */
-export const useRegenerateCarousels = () => {
-  const qc = useQueryClient();
-  return useApiMutation<unknown, string>(
-    (game) => api.admin.carousels.regenerate(game),
-    {
-      onSuccess: () => {
-        void qc.invalidateQueries({ queryKey: ["admin-carousels"] });
-      },
-    },
-  );
-};
 
 /** All flags (admin view). */
 export const useAdminFlags = (enabled = true) =>
@@ -2271,6 +2211,32 @@ export const useAdminPulse = (limit = 40, enabled = true) =>
     staleTime: 5_000,
     refetchInterval: 15_000,
   });
+
+// ── Admin: Loupe AI dev tool ──
+
+/** Chatbot headline stats + open conversations — polls to stay live. */
+export const useAdminAiOverview = (enabled = true) =>
+  useApiQuery<AdminAiOverview>(["admin-ai-overview"], api.admin.aiOverview, {
+    enabled,
+    staleTime: 5_000,
+    refetchInterval: 15_000,
+  });
+
+/** Filterable chatbot ask history. */
+export const useAdminAiLogs = (filters: AdminAiLogFilters = {}, enabled = true) =>
+  useApiQuery<AdminAiLogPage>(
+    ["admin-ai-logs", filters],
+    () => api.admin.aiLogs(filters),
+    { enabled, staleTime: 10_000 },
+  );
+
+/** One chatbot exchange in full + the asker's other recent asks. */
+export const useAdminAiLog = (id: string | null) =>
+  useApiQuery<AdminAiLogDetail>(
+    ["admin-ai-log", id],
+    () => api.admin.aiLog(id as string),
+    { enabled: Boolean(id), staleTime: 30_000 },
+  );
 
 /** Engagement & retention summary (active collectors, activation, funnel). */
 export const useAdminEngagement = (enabled = true) =>

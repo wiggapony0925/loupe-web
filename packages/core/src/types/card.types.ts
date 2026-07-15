@@ -150,6 +150,8 @@ export interface AiSearchAnswer {
   results: CardSummary[];
   total: number;
   source: "ai" | "fallback";
+  /** Flight-recorder id for this exchange — thumbs feedback attaches to it. */
+  askId?: string | null;
 }
 
 /** A compact trend series for a list-row sparkline (Robinhood/StockX style). */

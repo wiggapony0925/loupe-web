@@ -72,6 +72,10 @@ import {
   toScanHistoryDetail,
 } from "./opsAdapters";
 import type {
+  AdminAiLogDetail,
+  AdminAiLogFilters,
+  AdminAiLogPage,
+  AdminAiOverview,
   AdminMetrics,
   AdminUser,
   AdminUserDetail,
@@ -148,7 +152,6 @@ import type {
   RevenueSummary,
   SubscribeResult,
   GoogleSignInRequest,
-  AdminCarouselsView,
   CardAnalytics,
   CardCert,
   CardPopulation,
@@ -222,8 +225,6 @@ import type {
   WaitlistStats,
   WaitlistStatus,
   WatchlistItem,
-  CarouselRecipeCreate,
-  CarouselRecipeUpdate,
 } from "./types";
 
 interface RawIdentifyCandidate {
@@ -536,11 +537,21 @@ export const api = {
         results: ApiCard[];
         total: number;
         source: "ai" | "fallback";
+        askId?: string | null;
       }>(ENDPOINTS.cards.searchAi, {
         query: { q, limit, tcg: tcg && tcg !== "all" ? tcg : undefined },
       });
       return { ...d, results: (d.results ?? []).map(toCardSummary) };
     },
+    /** Thumbs verdict for an AI answer — feeds the /admin/ai accuracy view. */
+    aiFeedback: async (
+      askId: string,
+      verdict: "up" | "down",
+    ): Promise<{ ok: boolean }> =>
+      apiFetch<{ ok: boolean }>(ENDPOINTS.cards.searchAiFeedback, {
+        method: "POST",
+        json: { askId, verdict },
+      }),
     /** Batch mini price series keyed by card id — for list-row sparklines. */
     sparklines: async (
       ids: string[],
@@ -1463,6 +1474,25 @@ export const api = {
     /** Live activity feed — recent signups, scans, acquisitions, admin actions. */
     pulse: async (limit = 40): Promise<PulseFeed> =>
       toPulseFeed(await apiFetch(ENDPOINTS.admin.pulse, { query: { limit } })),
+    /** Loupe AI dev tool — stats + open conversations (payload passthrough). */
+    aiOverview: async (): Promise<AdminAiOverview> =>
+      apiFetch<AdminAiOverview>(ENDPOINTS.admin.aiOverview),
+    /** Loupe AI dev tool — filterable ask history. */
+    aiLogs: async (filters: AdminAiLogFilters = {}): Promise<AdminAiLogPage> =>
+      apiFetch<AdminAiLogPage>(ENDPOINTS.admin.aiLogs, {
+        query: {
+          feedback: filters.feedback,
+          source: filters.source,
+          game: filters.game,
+          userId: filters.userId,
+          q: filters.q,
+          page: filters.page,
+          pageSize: filters.pageSize,
+        },
+      }),
+    /** Loupe AI dev tool — one exchange in full + its conversation. */
+    aiLog: async (id: string): Promise<AdminAiLogDetail> =>
+      apiFetch<AdminAiLogDetail>(ENDPOINTS.admin.aiLog(id)),
     /** Engagement & retention — active collectors, activation, Pro funnel. */
     engagement: async (): Promise<EngagementSummary> =>
       toEngagementSummary(await apiFetch(ENDPOINTS.admin.engagement)),
@@ -1767,39 +1797,6 @@ export const api = {
           status: r.status,
         };
       },
-    },
-    /** Carousel registry control room. Wire is camelCase — no adapters. */
-    carousels: {
-      overview: (): Promise<AdminCarouselsView> =>
-        apiFetch<AdminCarouselsView>(ENDPOINTS.admin.carousels.root),
-      setAiEnabled: (enabled: boolean): Promise<AdminCarouselsView> =>
-        apiFetch<AdminCarouselsView>(ENDPOINTS.admin.carousels.ai, {
-          method: "PUT",
-          json: { enabled },
-        }),
-      regenerate: (game: string): Promise<unknown> =>
-        apiFetch(ENDPOINTS.admin.carousels.regenerate(game), { method: "POST" }),
-      create: (input: CarouselRecipeCreate): Promise<AdminCarouselsView> =>
-        apiFetch<AdminCarouselsView>(ENDPOINTS.admin.carousels.root, {
-          method: "POST",
-          json: input,
-        }),
-      update: (
-        id: string,
-        patch: CarouselRecipeUpdate,
-      ): Promise<AdminCarouselsView> =>
-        apiFetch<AdminCarouselsView>(ENDPOINTS.admin.carousels.item(id), {
-          method: "PUT",
-          json: patch,
-        }),
-      reset: (id: string): Promise<AdminCarouselsView> =>
-        apiFetch<AdminCarouselsView>(ENDPOINTS.admin.carousels.reset(id), {
-          method: "POST",
-        }),
-      remove: (id: string): Promise<AdminCarouselsView> =>
-        apiFetch<AdminCarouselsView>(ENDPOINTS.admin.carousels.item(id), {
-          method: "DELETE",
-        }),
     },
     flags: {
       list: async (): Promise<FeatureFlag[]> => {

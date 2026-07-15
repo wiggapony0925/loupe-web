@@ -48,6 +48,7 @@ export const ENDPOINTS = {
     search: `${V1}/cards/search`,
     /** AI "describe it" search — Loupe Pro, auth required (402 → paywall). */
     searchAi: `${V1}/cards/search/ai`,
+    searchAiFeedback: `${V1}/cards/search/ai/feedback`,
     trending: `${V1}/cards/trending`,
     resolve: `${V1}/cards/resolve`,
     item: (id: string) => `${V1}/cards/${id}`,
@@ -219,14 +220,6 @@ export const ENDPOINTS = {
   admin: {
     metrics: `${V1}/admin/metrics`,
     /** Carousel registry control room (file + overrides + AI shelves). */
-    carousels: {
-      root: `${V1}/admin/carousels`,
-      ai: `${V1}/admin/carousels/ai`,
-      regenerate: (game: string) =>
-        `${V1}/admin/carousels/regenerate?game=${encodeURIComponent(game)}`,
-      item: (id: string) => `${V1}/admin/carousels/${encodeURIComponent(id)}`,
-      reset: (id: string) => `${V1}/admin/carousels/${encodeURIComponent(id)}/reset`,
-    },
     // Operations — read-only observability.
     health: `${V1}/admin/health`,
     dbTables: `${V1}/admin/database/tables`,
@@ -278,6 +271,9 @@ export const ENDPOINTS = {
     // Tools.
     insightsStatus: `${V1}/admin/insights/status`,
     insightsAsk: `${V1}/admin/insights/ask`,
+    aiOverview: `${V1}/admin/ai/search/overview`,
+    aiLogs: `${V1}/admin/ai/search/logs`,
+    aiLog: (id: string) => `${V1}/admin/ai/search/logs/${id}`,
     // User account actions.
     userRevokeSessions: (id: string) =>
       `${V1}/admin/users/${id}/revoke-sessions`,

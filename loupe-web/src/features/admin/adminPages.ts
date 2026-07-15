@@ -178,14 +178,6 @@ export const ADMIN_PAGES: AdminPage[] = [
     flag: "admin_catalog",
   },
   {
-    path: "carousels",
-    component: "AdminCarousels",
-    label: "Carousels",
-    hint: "Storefront shelves",
-    group: "Catalog & product",
-    flag: "admin_carousels",
-  },
-  {
     path: "pricecharting",
     component: "AdminPriceCharting",
     label: "PriceCharting",
@@ -287,6 +279,14 @@ export const ADMIN_PAGES: AdminPage[] = [
   },
 
   // ── Tools ──
+  {
+    path: "ai",
+    component: "AdminAi",
+    label: "Loupe AI",
+    hint: "Chatbot logs & accuracy",
+    group: "Tools",
+    flag: "admin_ai",
+  },
   {
     path: "insights",
     component: "AdminInsights",
