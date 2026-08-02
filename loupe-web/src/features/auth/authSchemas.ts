@@ -1,4 +1,11 @@
 import { z } from "zod";
+import { PASSWORD_POLICY } from "@loupe/auth";
+
+/** The one password rule, mirroring what the backend enforces. */
+const password = z
+  .string()
+  .min(PASSWORD_POLICY.MIN, PASSWORD_POLICY.tooShort)
+  .max(PASSWORD_POLICY.MAX, PASSWORD_POLICY.tooLong);
 
 /**
  * Sign-in: the email must be well-formed; the password is only "required" — we
@@ -15,7 +22,7 @@ export type LoginValues = z.infer<typeof loginSchema>;
 export const signupSchema = z.object({
   name: z.string().trim().max(80, "That name is too long").optional(),
   email: z.string().min(1, "Email is required").email("Enter a valid email"),
-  password: z.string().min(8, "Use at least 8 characters"),
+  password,
 });
 export type SignupValues = z.infer<typeof signupSchema>;
 
@@ -28,7 +35,7 @@ export type ForgotPasswordValues = z.infer<typeof forgotPasswordSchema>;
 /** Reset password: same strength rule as signup, plus a matching confirm. */
 export const resetPasswordSchema = z
   .object({
-    password: z.string().min(8, "Use at least 8 characters"),
+    password,
     confirm: z.string().min(1, "Confirm your new password"),
   })
   .refine((v) => v.password === v.confirm, {
