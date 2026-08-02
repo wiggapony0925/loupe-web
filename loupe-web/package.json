@@ -48,6 +48,7 @@
     "@loupe/chart": "*",
     "@loupe/core": "*",
     "@loupe/grade": "*",
+    "@loupe/marketing": "*",
     "@loupe/theme": "*",
     "@loupe/tokens": "*",
     "@sentry/react": "^10.60.0",

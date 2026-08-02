@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { usePublicTrending, type CardSummary } from "@loupe/core";
+import { interleaveById, pickPopulated } from "@loupe/marketing";
 
 /**
  * A reliably *mixed* trending feed — round-robins Pokémon · Magic · Yu-Gi-Oh!
@@ -11,6 +12,9 @@ import { usePublicTrending, type CardSummary } from "@loupe/core";
  * it as a per-game fallback: prefer the requested sort, fall back to value,
  * then interleave. All queries are cached + deduped by TanStack, so sharing
  * this across the hero + carousels costs nothing extra.
+ *
+ * The fallback + interleave math lives in `@loupe/marketing` so the Expo app's
+ * `useMixedTrending` shapes its feed identically.
  */
 export function useMixedTrending(sort: "trending" | "value", perTcg = 8) {
   const pkT = usePublicTrending({ tcg: "pokemon", sort, limit: perTcg });
@@ -29,28 +33,18 @@ export function useMixedTrending(sort: "trending" | "value", perTcg = 8) {
     limit: perTcg,
   });
 
-  const data = useMemo<CardSummary[]>(() => {
-    const pick = (primary?: CardSummary[], fallback?: CardSummary[]) =>
-      primary && primary.length > 0 ? primary : (fallback ?? []);
-    const lists = [
-      pick(pkT.data, pkV.data),
-      pick(mgT.data, mgV.data),
-      pick(ygT.data, ygV.data),
-    ];
-    const out: CardSummary[] = [];
-    const seen = new Set<string>();
-    const max = Math.max(0, ...lists.map((l) => l.length));
-    for (let i = 0; i < max; i++) {
-      for (const list of lists) {
-        const card = list[i];
-        if (card && !seen.has(card.id)) {
-          seen.add(card.id);
-          out.push(card);
-        }
-      }
-    }
-    return out;
-  }, [pkT.data, mgT.data, ygT.data, pkV.data, mgV.data, ygV.data]);
+  const data = useMemo<CardSummary[]>(
+    () =>
+      interleaveById(
+        [
+          pickPopulated(pkT.data, pkV.data),
+          pickPopulated(mgT.data, mgV.data),
+          pickPopulated(ygT.data, ygV.data),
+        ],
+        (c) => c.id,
+      ),
+    [pkT.data, mgT.data, ygT.data, pkV.data, mgV.data, ygV.data],
+  );
 
   return {
     data,

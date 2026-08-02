@@ -12,6 +12,7 @@ import {
   Wallet,
 } from "lucide-react";
 import { usePriceHistory } from "@loupe/core";
+import { HERO } from "@loupe/marketing";
 import {
   Button,
   ThemeToggle,
@@ -63,24 +64,20 @@ export function MarketingLanding() {
           <AuroraField variant="hero" />
         </div>
         <div className={styles.heroText}>
-          <p className={styles.eyebrow}>Loupe · Forensic Card Intelligence</p>
+          <p className={styles.eyebrow}>{HERO.eyebrow}</p>
           <h1 className={styles.headline}>
-            Your cards are an asset.
+            {HERO.headline[0]}
             <br />
-            Trade them like one.
+            {HERO.headline[1]}
           </h1>
-          <p className={styles.sub}>
-            Track every card like a position. Real-time prices, grade-aware
-            valuations, and a vault that tracks your collection like a portfolio
-            — on the web and in your pocket.
-          </p>
+          <p className={styles.sub}>{HERO.sub}</p>
           <div className={styles.ctas}>
             <Button
               size="lg"
               trailingIcon={<ArrowRight size={18} />}
               onClick={() => navigate("/cards")}
             >
-              Browse cards
+              {HERO.ctaPrimary}
             </Button>
             {user ? (
               <Button
@@ -96,7 +93,7 @@ export function MarketingLanding() {
                 variant="secondary"
                 onClick={() => navigate("/signup")}
               >
-                Get started — free
+                {HERO.ctaSecondary}
               </Button>
             )}
           </div>
