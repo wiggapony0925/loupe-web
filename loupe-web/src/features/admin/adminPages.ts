@@ -109,6 +109,14 @@ export const ADMIN_PAGES: AdminPage[] = [
     flag: "admin_email",
   },
   {
+    path: "notifications",
+    component: "AdminNotifications",
+    label: "Notifications",
+    hint: "Push & inbox",
+    group: "Operations",
+    flag: "admin_notifications",
+  },
+  {
     path: "audit",
     component: "AdminAudit",
     label: "Audit log",

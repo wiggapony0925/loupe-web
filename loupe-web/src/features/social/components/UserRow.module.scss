@@ -1,0 +1,60 @@
+// Block: row — one collector in a list (Collectr-style row).
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-sm) 0;
+  border-radius: var(--radius-md);
+  transition: background var(--dur-fast) var(--ease-out);
+
+  &:hover {
+    background: var(--bg-sunken);
+  }
+
+  &__ident {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+    flex: 1;
+  }
+
+  &__name {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-xs);
+    font-size: var(--text-md);
+    font-weight: 700;
+    color: var(--ink);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+    svg {
+      color: var(--ink-muted);
+      flex-shrink: 0;
+    }
+  }
+
+  &__meta {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-sm);
+    font-size: var(--text-sm);
+    color: var(--ink-dim);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &__location {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    color: var(--ink-muted);
+  }
+
+  &__action {
+    flex-shrink: 0;
+  }
+}

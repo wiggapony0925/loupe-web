@@ -38,19 +38,20 @@ describe("MobileTabBar", () => {
     expect(links).toHaveLength(4);
     expect(links[0]).toHaveTextContent("Home");
     expect(links[1]).toHaveTextContent("Vault");
-    expect(links[2]).toHaveTextContent("Markets");
-    expect(links[3]).toHaveTextContent("Stats");
+    expect(links[2]).toHaveTextContent("People");
+    expect(links[3]).toHaveTextContent("Markets");
     expect(
       screen.getByRole("button", { name: /scan a card/i }),
     ).toBeInTheDocument();
   });
 
   it("hides flag-gated tabs when the flag is off and backfills the slot", () => {
-    renderBar({ web_markets: false });
+    renderBar({ web_markets: false, web_social: false });
     const nav = screen.getByRole("navigation", { name: /primary/i });
     const labels = [...nav.querySelectorAll("a")].map((a) => a.textContent);
     expect(labels).not.toContain("Markets");
-    // The next flag-on item takes the freed slot, keeping 2+2 around the shutter.
+    expect(labels).not.toContain("People");
+    // The next flag-on items take the freed slots, keeping 2+2 around the shutter.
     expect(labels).toEqual(["Home", "Vault", "Stats", "Watch"]);
   });
 

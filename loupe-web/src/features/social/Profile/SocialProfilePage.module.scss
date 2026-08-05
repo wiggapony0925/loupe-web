@@ -1,0 +1,233 @@
+// Block: profile — Instagram-anatomy collector page.
+.profile {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+  max-width: 640px;
+
+  &__head {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xl);
+  }
+
+  &__stats {
+    display: flex;
+    flex: 1;
+    justify-content: space-around;
+    gap: var(--space-sm);
+  }
+
+  &__stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    background: none;
+    border: none;
+    padding: var(--space-xs);
+    cursor: pointer;
+    border-radius: var(--radius-md);
+
+    &:disabled {
+      cursor: default;
+    }
+
+    &:not(:disabled):hover {
+      background: var(--bg-sunken);
+    }
+  }
+
+  &__statValue {
+    font-size: var(--text-lg);
+    font-weight: 800;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+  }
+
+  &__statLabel {
+    font-size: var(--text-xs);
+    color: var(--ink-dim);
+  }
+
+  &__ident {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  &__name {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-xs);
+    font-size: var(--text-lg);
+    font-weight: 800;
+    color: var(--ink);
+
+    svg {
+      color: var(--ink-muted);
+    }
+  }
+
+  &__handle {
+    font-size: var(--text-sm);
+    color: var(--ink-dim);
+  }
+
+  &__location {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    margin-top: var(--space-xs);
+    font-size: var(--text-sm);
+    color: var(--ink-muted);
+  }
+
+  &__bio {
+    margin-top: var(--space-sm);
+    font-size: var(--text-sm);
+    line-height: 1.5;
+    color: var(--ink);
+    white-space: pre-wrap;
+  }
+
+  &__actions {
+    display: flex;
+    gap: var(--space-sm);
+  }
+
+  &__private {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-xs);
+    padding: var(--space-xl) var(--space-lg);
+    border: 1px dashed var(--line-strong);
+    border-radius: var(--radius-lg);
+    text-align: center;
+  }
+
+  &__privateIcon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 1.5px solid var(--line-strong);
+    color: var(--ink-dim);
+    margin-bottom: var(--space-xs);
+  }
+
+  &__privateTitle {
+    font-size: var(--text-md);
+    font-weight: 700;
+    color: var(--ink);
+  }
+
+  &__privateSub {
+    font-size: var(--text-sm);
+    color: var(--ink-dim);
+  }
+
+  &__collection {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+    border-top: 1px solid var(--line);
+    padding-top: var(--space-lg);
+  }
+
+  &__collectionHead {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-md);
+  }
+
+  &__collectionTitle {
+    font-size: var(--text-md);
+    font-weight: 700;
+    color: var(--ink);
+  }
+
+  &__collectionValue {
+    font-size: var(--text-sm);
+    font-weight: 700;
+    color: var(--up);
+    font-variant-numeric: tabular-nums;
+  }
+
+  &__grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-sm);
+  }
+
+  &__cell {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+    min-width: 0;
+    border-radius: var(--radius-md);
+    transition: transform var(--dur-fast) var(--ease-out);
+
+    &:hover {
+      transform: translateY(-2px);
+    }
+  }
+
+  &__cellMeta {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-width: 0;
+  }
+
+  &__cellName {
+    font-size: var(--text-xs);
+    font-weight: 600;
+    color: var(--ink);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &__cellGrade {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-xs);
+    font-size: var(--text-xs);
+    color: var(--ink-dim);
+  }
+
+  &__cellPrice {
+    font-weight: 700;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+  }
+
+  &__empty {
+    font-size: var(--text-sm);
+    color: var(--ink-dim);
+    text-align: center;
+    padding: var(--space-xl) 0;
+  }
+
+  &__emptySelf {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-xs);
+    padding-bottom: var(--space-lg);
+
+    .profile__empty {
+      padding-bottom: 0;
+    }
+  }
+
+  &__scanCta {
+    display: inline-flex;
+  }
+}

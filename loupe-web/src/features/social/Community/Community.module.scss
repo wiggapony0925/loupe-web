@@ -1,0 +1,184 @@
+// Block: community — search-first people directory.
+.community {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+  max-width: 640px;
+
+  &__head {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+  }
+
+  &__title {
+    font-size: var(--text-2xl);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+  }
+
+  &__sub {
+    font-size: var(--text-sm);
+    color: var(--ink-dim);
+  }
+
+  &__mine {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+  }
+
+  &__mineLink {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    flex: 1;
+    min-width: 0;
+  }
+
+  &__mineIdent {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+
+  &__mineName {
+    font-size: var(--text-md);
+    font-weight: 700;
+    color: var(--ink);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &__mineHandle {
+    font-size: var(--text-sm);
+    color: var(--ink-dim);
+  }
+
+  &__claim {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+
+    > svg {
+      color: var(--accent-blue);
+      flex-shrink: 0;
+    }
+  }
+
+  &__claimText {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex: 1;
+    min-width: 0;
+  }
+
+  &__claimTitle {
+    font-size: var(--text-md);
+    font-weight: 700;
+    color: var(--ink);
+  }
+
+  &__claimSub {
+    font-size: var(--text-sm);
+    color: var(--ink-dim);
+  }
+
+  &__section {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+  }
+
+  &__sectionTitle {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    font-size: var(--text-md);
+    font-weight: 700;
+    color: var(--ink);
+  }
+
+  &__badge {
+    font-size: var(--text-xs);
+    font-weight: 700;
+    color: var(--on-accent);
+    background: var(--accent-blue);
+    border-radius: var(--radius-pill);
+    padding: 1px 8px;
+  }
+
+  &__decision {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-xs);
+  }
+
+  &__search {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+
+  &__searchIcon {
+    position: absolute;
+    left: var(--space-md);
+    color: var(--ink-muted);
+    pointer-events: none;
+  }
+
+  &__searchInput {
+    width: 100%;
+    font: inherit;
+    font-size: var(--text-md);
+    color: var(--ink);
+    background: var(--bg-sunken);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-pill);
+    padding: 12px var(--space-xl) 12px 44px;
+
+    &:focus-visible {
+      outline: 2px solid var(--accent-blue);
+      outline-offset: 1px;
+    }
+
+    &::placeholder {
+      color: var(--ink-muted);
+    }
+
+    // The UA clear button doubles ours.
+    &::-webkit-search-cancel-button {
+      display: none;
+    }
+  }
+
+  &__searchClear {
+    position: absolute;
+    right: var(--space-md);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: none;
+    color: var(--ink-muted);
+    cursor: pointer;
+    padding: 2px;
+  }
+
+  &__list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+  }
+
+  &__empty {
+    font-size: var(--text-sm);
+    color: var(--ink-dim);
+    text-align: center;
+    padding: var(--space-xl) 0;
+  }
+}

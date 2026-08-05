@@ -7,6 +7,7 @@ export { AdminCloud } from "./AdminCloud/AdminCloud";
 export { AdminEnv } from "./AdminEnv/AdminEnv";
 export { AdminIntegrations } from "./AdminIntegrations/AdminIntegrations";
 export { AdminEmail } from "./AdminEmail/AdminEmail";
+export { AdminNotifications } from "./AdminNotifications/AdminNotifications";
 export { AdminAudit } from "./AdminAudit/AdminAudit";
 export { AdminRevenue } from "./AdminRevenue/AdminRevenue";
 export { AdminCatalog } from "./AdminCatalog/AdminCatalog";

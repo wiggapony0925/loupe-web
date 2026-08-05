@@ -72,6 +72,10 @@ import {
   toScanHistoryDetail,
 } from "./opsAdapters";
 import type {
+  AdminNotificationInput,
+  AdminNotificationResult,
+  NotificationAudience,
+  NotificationPage,
   AdminAiLogDetail,
   AdminAiLogFilters,
   AdminAiLogPage,
@@ -132,6 +136,15 @@ import type {
   ScanHistoryPage,
   ScanHistoryQuery,
   AnalyticsOverview,
+  SocialCollection,
+  SocialCollectionItem,
+  SocialFollowRequest,
+  SocialMe,
+  SocialProfile,
+  SocialProfileInput,
+  SocialProfileView,
+  SocialRelationship,
+  SocialUserCard,
   ApplicationStatusUpdateInput,
   ApplicationSubmitted,
   ApplicationTrack,
@@ -1695,6 +1708,26 @@ export const api = {
       },
     },
     /** Live site config — the Pro plan shape + announcement banner. */
+    notifications: {
+      /** Compose + send. `dry_run` reports the audience without writing. */
+      send: (input: AdminNotificationInput): Promise<AdminNotificationResult> =>
+        apiFetch<AdminNotificationResult>(ENDPOINTS.admin.notifications, {
+          method: "POST",
+          json: input,
+        }),
+      /** Same payload, delivered only to the acting admin. */
+      test: (input: AdminNotificationInput): Promise<AdminNotificationResult> =>
+        apiFetch<AdminNotificationResult>(ENDPOINTS.admin.notificationsTest, {
+          method: "POST",
+          json: input,
+        }),
+      audience: (): Promise<NotificationAudience> =>
+        apiFetch<NotificationAudience>(ENDPOINTS.admin.notificationsAudience),
+      log: (page = 1, pageSize = 25): Promise<NotificationPage> =>
+        apiFetch<NotificationPage>(ENDPOINTS.admin.notificationsLog, {
+          query: { page, page_size: pageSize },
+        }),
+    },
     config: {
       get: (): Promise<SiteConfig> =>
         apiFetch<SiteConfig>(ENDPOINTS.admin.config),
@@ -1936,7 +1969,239 @@ export const api = {
         apiFetch<void>(ENDPOINTS.admin.waitlistEntry(id), { method: "DELETE" }),
     },
   },
+  /** Community layer — collector profiles, follows, shared collections. */
+  social: {
+    /** My social profile; `profile` is null until a username is claimed. */
+    me: async (): Promise<SocialMe> => {
+      const d = await apiFetch<RawSocialMe>(ENDPOINTS.social.me);
+      return {
+        profile: d.profile ? toSocialProfile(d.profile) : null,
+        incomingRequestCount: d.incoming_request_count ?? 0,
+      };
+    },
+    /** Claim or update my profile (handle, bio, location, privacy). */
+    updateProfile: async (input: SocialProfileInput): Promise<SocialProfile> =>
+      toSocialProfile(
+        await apiFetch<RawSocialProfile>(ENDPOINTS.social.me, {
+          method: "PUT",
+          json: {
+            username: input.username,
+            bio: input.bio ?? null,
+            location: input.location ?? null,
+            is_private: input.isPrivate ?? false,
+          },
+        }),
+      ),
+    /** Upload a profile picture (JPEG/PNG/WebP, max 5 MB). */
+    uploadAvatar: async (file: Blob): Promise<SocialProfile> => {
+      const form = new FormData();
+      form.append("image", file);
+      return toSocialProfile(
+        await apiFetch<RawSocialProfile>(ENDPOINTS.social.meAvatar, {
+          method: "POST",
+          form,
+        }),
+      );
+    },
+    /** Typeahead over handles + display names. */
+    search: async (q: string): Promise<SocialUserCard[]> => {
+      const rows = await apiFetch<RawSocialUserCard[]>(ENDPOINTS.social.search, {
+        query: { q },
+      });
+      return (rows ?? []).map(toSocialUserCard);
+    },
+    /** Collectors you might want to follow (empty Community page). */
+    suggested: async (limit = 10): Promise<SocialUserCard[]> => {
+      const rows = await apiFetch<RawSocialUserCard[]>(
+        ENDPOINTS.social.suggested,
+        { query: { limit } },
+      );
+      return (rows ?? []).map(toSocialUserCard);
+    },
+    /** My pending incoming follow requests (private account inbox). */
+    requests: async (): Promise<SocialFollowRequest[]> => {
+      const rows = await apiFetch<RawSocialFollowRequest[]>(
+        ENDPOINTS.social.requests,
+      );
+      return (rows ?? []).map((r) => ({
+        id: r.id,
+        requester: toSocialUserCard(r.requester),
+        createdAt: r.created_at,
+      }));
+    },
+    acceptRequest: (id: string) =>
+      apiFetch<void>(ENDPOINTS.social.requestAccept(id), { method: "POST" }),
+    declineRequest: (id: string) =>
+      apiFetch<void>(ENDPOINTS.social.requestDecline(id), { method: "POST" }),
+    /** Another collector's profile header, as seen by me. */
+    profile: async (username: string): Promise<SocialProfileView> => {
+      const d = await apiFetch<RawSocialProfileView>(
+        ENDPOINTS.social.user(username),
+      );
+      return {
+        userId: d.user_id,
+        username: d.username,
+        displayName: d.display_name ?? null,
+        avatarUrl: d.avatar_url ?? null,
+        bio: d.bio ?? null,
+        location: d.location ?? null,
+        isPrivate: d.is_private ?? false,
+        isPro: d.is_pro ?? false,
+        joinedAt: d.joined_at,
+        followerCount: d.follower_count ?? 0,
+        followingCount: d.following_count ?? 0,
+        cardCount: d.card_count ?? 0,
+        relationship: d.relationship ?? "none",
+        canViewCollection: d.can_view_collection ?? false,
+      };
+    },
+    /** Follow — instant on public profiles, a request on private ones. */
+    follow: async (username: string): Promise<SocialRelationship> =>
+      (
+        await apiFetch<{ relationship: SocialRelationship }>(
+          ENDPOINTS.social.follow(username),
+          { method: "POST" },
+        )
+      ).relationship,
+    /** Unfollow, or cancel a pending request. */
+    unfollow: async (username: string): Promise<SocialRelationship> =>
+      (
+        await apiFetch<{ relationship: SocialRelationship }>(
+          ENDPOINTS.social.follow(username),
+          { method: "DELETE" },
+        )
+      ).relationship,
+    followers: async (username: string): Promise<SocialUserCard[]> => {
+      const rows = await apiFetch<RawSocialUserCard[]>(
+        ENDPOINTS.social.followers(username),
+      );
+      return (rows ?? []).map(toSocialUserCard);
+    },
+    following: async (username: string): Promise<SocialUserCard[]> => {
+      const rows = await apiFetch<RawSocialUserCard[]>(
+        ENDPOINTS.social.following(username),
+      );
+      return (rows ?? []).map(toSocialUserCard);
+    },
+    /** A collector's vault, privacy-gated server-side (403 when private). */
+    collection: async (
+      username: string,
+      params?: { limit?: number; offset?: number },
+    ): Promise<SocialCollection> => {
+      const d = await apiFetch<RawSocialCollection>(
+        ENDPOINTS.social.collection(username),
+        { query: { limit: params?.limit, offset: params?.offset } },
+      );
+      return {
+        totalCards: d.total_cards ?? 0,
+        estimatedValueUsd: num(d.estimated_value_usd) ?? null,
+        items: (d.items ?? []).map(
+          (i): SocialCollectionItem => ({
+            id: i.id,
+            cardId: i.card_id,
+            cardName: i.card_name ?? null,
+            cardImageUrl: i.card_image_url ?? null,
+            cardSetName: i.card_set_name ?? null,
+            cardNumber: i.card_number ?? null,
+            cardTcg: i.card_tcg ?? null,
+            grade: String(i.grade),
+            house: i.house,
+            condition: i.condition ?? null,
+            estimatedValueUsd: num(i.estimated_value_usd) ?? null,
+            gradedAt: i.graded_at,
+          }),
+        ),
+      };
+    },
+  },
 } as const;
+
+// ── Social raw shapes + adapters ──
+
+interface RawSocialProfile {
+  user_id: string;
+  username: string;
+  bio?: string | null;
+  location?: string | null;
+  is_private?: boolean;
+  avatar_url?: string | null;
+  created_at: string;
+}
+
+interface RawSocialMe {
+  profile?: RawSocialProfile | null;
+  incoming_request_count?: number;
+}
+
+interface RawSocialUserCard {
+  user_id: string;
+  username: string;
+  display_name?: string | null;
+  avatar_url?: string | null;
+  location?: string | null;
+  is_private?: boolean;
+  is_pro?: boolean;
+  relationship?: SocialRelationship;
+}
+
+interface RawSocialFollowRequest {
+  id: string;
+  requester: RawSocialUserCard;
+  created_at: string;
+}
+
+interface RawSocialProfileView extends RawSocialUserCard {
+  bio?: string | null;
+  joined_at: string;
+  follower_count?: number;
+  following_count?: number;
+  card_count?: number;
+  can_view_collection?: boolean;
+}
+
+interface RawSocialCollection {
+  total_cards?: number;
+  estimated_value_usd?: string | number | null;
+  items?: Array<{
+    id: string;
+    card_id: string;
+    card_name?: string | null;
+    card_image_url?: string | null;
+    card_set_name?: string | null;
+    card_number?: string | null;
+    card_tcg?: string | null;
+    grade: string | number;
+    house: string;
+    condition?: string | null;
+    estimated_value_usd?: string | number | null;
+    graded_at: string;
+  }>;
+}
+
+function toSocialProfile(r: RawSocialProfile): SocialProfile {
+  return {
+    userId: r.user_id,
+    username: r.username,
+    bio: r.bio ?? null,
+    location: r.location ?? null,
+    isPrivate: r.is_private ?? false,
+    avatarUrl: r.avatar_url ?? null,
+    createdAt: r.created_at,
+  };
+}
+
+function toSocialUserCard(r: RawSocialUserCard): SocialUserCard {
+  return {
+    userId: r.user_id,
+    username: r.username,
+    displayName: r.display_name ?? null,
+    avatarUrl: r.avatar_url ?? null,
+    location: r.location ?? null,
+    isPrivate: r.is_private ?? false,
+    isPro: r.is_pro ?? false,
+    relationship: r.relationship ?? "none",
+  };
+}
 
 interface RawWatchlistItem {
   id: string;

@@ -1,0 +1,108 @@
+// Audience strip — the blast radius, shown before anything is written.
+.stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-sm);
+  margin-bottom: var(--space-xl);
+
+  @media (max-width: 640px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--space-md);
+  border: 1px solid var(--line-default);
+  border-radius: var(--radius-lg);
+  background: var(--bg-elevated);
+}
+
+.statValue {
+  font-size: var(--text-2xl);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--ink-default);
+}
+
+.statLabel {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+
+.hint {
+  margin: 6px 0 0;
+  font-size: var(--text-xs);
+  color: var(--ink-dim);
+}
+
+.toggle {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-sm);
+  margin-top: var(--space-md);
+  font-size: var(--text-sm);
+  color: var(--ink-muted);
+  cursor: pointer;
+
+  input {
+    margin-top: 3px;
+  }
+}
+
+.toggleHint {
+  display: block;
+  font-size: var(--text-xs);
+  font-style: normal;
+  color: var(--ink-dim);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-top: var(--space-lg);
+}
+
+// Two-step arm. A broadcast has no undo, so the destructive-ish confirm gets
+// its own tinted row rather than being one more button in the line.
+.confirm {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--accent-amber) 12%, transparent);
+}
+
+.confirmText {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--ink-default);
+}
+
+.logTitle {
+  margin: var(--space-2xl) 0 var(--space-md);
+  font-size: var(--text-lg);
+  font-weight: 600;
+  color: var(--ink-default);
+}
+
+.logBody {
+  margin: 2px 0 0;
+  font-size: var(--text-sm);
+  color: var(--ink-muted);
+}
+
+.logTime {
+  font-size: var(--text-xs);
+  color: var(--ink-dim);
+  white-space: nowrap;
+}

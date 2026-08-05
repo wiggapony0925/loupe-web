@@ -13,6 +13,10 @@ import {
 import { api } from "./api";
 import { ApiError } from "./client";
 import type {
+  AdminNotificationInput,
+  AdminNotificationResult,
+  NotificationAudience,
+  NotificationPage,
   AdminAiLogDetail,
   AdminAiLogFilters,
   AdminAiLogPage,
@@ -22,6 +26,14 @@ import type {
   AdminUserDetail,
   AdminUserPage,
   AdminUsersParams,
+  SocialCollection,
+  SocialFollowRequest,
+  SocialMe,
+  SocialProfile,
+  SocialProfileInput,
+  SocialProfileView,
+  SocialRelationship,
+  SocialUserCard,
   RefundResult,
   ImpersonateResult,
   AuditFacets,
@@ -2311,3 +2323,218 @@ export const useAddCardPriceOverride = (
     },
   });
 };
+
+// ── Social (community layer) ──
+
+/** My social profile + pending-request badge. Null profile = not claimed yet. */
+export const useSocialMe = (enabled = true) =>
+  useApiQuery<SocialMe>(["social", "me"], api.social.me, {
+    enabled,
+    staleTime: 30_000,
+  });
+
+/** Another collector's profile header (counts + relationship). */
+export const useSocialProfile = (username: string | null, enabled = true) =>
+  useApiQuery<SocialProfileView>(
+    ["social", "profile", username],
+    () => api.social.profile(username as string),
+    { enabled: enabled && Boolean(username), staleTime: 15_000 },
+  );
+
+/** Collector typeahead for the Community page. */
+export const useSocialSearch = (q: string, enabled = true) =>
+  useApiQuery<SocialUserCard[]>(
+    ["social", "search", q],
+    () => api.social.search(q),
+    {
+      enabled: enabled && q.trim().length > 1,
+      staleTime: 30_000,
+      placeholderData: (prev) => prev,
+    },
+  );
+
+/** Collectors you might want to follow (fills the empty Community page). */
+export const useSocialSuggested = (enabled = true) =>
+  useApiQuery<SocialUserCard[]>(
+    ["social", "suggested"],
+    () => api.social.suggested(),
+    { enabled, staleTime: 60_000 },
+  );
+
+/** My pending incoming follow requests. */
+export const useSocialRequests = (enabled = true) =>
+  useApiQuery<SocialFollowRequest[]>(
+    ["social", "requests"],
+    api.social.requests,
+    { enabled, staleTime: 15_000 },
+  );
+
+export const useSocialFollowers = (username: string | null, enabled = true) =>
+  useApiQuery<SocialUserCard[]>(
+    ["social", "followers", username],
+    () => api.social.followers(username as string),
+    { enabled: enabled && Boolean(username), staleTime: 15_000 },
+  );
+
+export const useSocialFollowing = (username: string | null, enabled = true) =>
+  useApiQuery<SocialUserCard[]>(
+    ["social", "following", username],
+    () => api.social.following(username as string),
+    { enabled: enabled && Boolean(username), staleTime: 15_000 },
+  );
+
+/** A collector's shared collection (server 403s when private → surfaced as error). */
+export const useSocialCollection = (username: string | null, enabled = true) =>
+  useApiQuery<SocialCollection>(
+    ["social", "collection", username],
+    () => api.social.collection(username as string),
+    { enabled: enabled && Boolean(username), staleTime: 30_000, retry: false },
+  );
+
+/** Every social mutation invalidates the whole ["social"] namespace — counts,
+ *  relationship chips and lists all shift together, so precision buys nothing. */
+function useSocialInvalidation() {
+  const qc = useQueryClient();
+  return () => void qc.invalidateQueries({ queryKey: ["social"] });
+}
+
+/** Claim/update my profile (handle, bio, location, private toggle). */
+export const useUpdateSocialProfile = (
+  options?: Omit<
+    UseMutationOptions<SocialProfile, ApiError, SocialProfileInput>,
+    "mutationFn"
+  >,
+) => {
+  const invalidate = useSocialInvalidation();
+  return useApiMutation<SocialProfile, SocialProfileInput>(
+    (input) => api.social.updateProfile(input),
+    {
+      ...options,
+      onSuccess: (...args) => {
+        invalidate();
+        options?.onSuccess?.(...args);
+      },
+    },
+  );
+};
+
+/** Upload my profile picture. */
+export const useUploadSocialAvatar = (
+  options?: Omit<UseMutationOptions<SocialProfile, ApiError, Blob>, "mutationFn">,
+) => {
+  const invalidate = useSocialInvalidation();
+  return useApiMutation<SocialProfile, Blob>(
+    (file) => api.social.uploadAvatar(file),
+    {
+      ...options,
+      onSuccess: (...args) => {
+        invalidate();
+        options?.onSuccess?.(...args);
+      },
+    },
+  );
+};
+
+/** Follow / unfollow (or request / cancel on private profiles). */
+export const useSocialFollowMutation = (
+  options?: Omit<
+    UseMutationOptions<
+      SocialRelationship,
+      ApiError,
+      { username: string; action: "follow" | "unfollow" }
+    >,
+    "mutationFn"
+  >,
+) => {
+  const invalidate = useSocialInvalidation();
+  return useApiMutation<
+    SocialRelationship,
+    { username: string; action: "follow" | "unfollow" }
+  >(
+    ({ username, action }) =>
+      action === "follow"
+        ? api.social.follow(username)
+        : api.social.unfollow(username),
+    {
+      ...options,
+      onSuccess: (...args) => {
+        invalidate();
+        options?.onSuccess?.(...args);
+      },
+    },
+  );
+};
+
+/** Accept/decline a follow request from the inbox. */
+export const useSocialRequestDecision = (
+  options?: Omit<
+    UseMutationOptions<void, ApiError, { id: string; accept: boolean }>,
+    "mutationFn"
+  >,
+) => {
+  const invalidate = useSocialInvalidation();
+  return useApiMutation<void, { id: string; accept: boolean }>(
+    ({ id, accept }) =>
+      accept ? api.social.acceptRequest(id) : api.social.declineRequest(id),
+    {
+      ...options,
+      onSuccess: (...args) => {
+        invalidate();
+        options?.onSuccess?.(...args);
+      },
+    },
+  );
+};
+
+
+/* ── Admin notifications ───────────────────────────────────────────────── */
+
+/** Who a broadcast would reach — real user and device counts, so the composer
+ *  never asks an admin to send blind. */
+export const useNotificationAudience = () =>
+  useApiQuery<NotificationAudience>(
+    ["admin", "notifications", "audience"],
+    () => api.admin.notifications.audience(),
+    // Counts move slowly; refetching per keystroke would be pure waste.
+    { staleTime: 5 * 60 * 1000 },
+  );
+
+/** What actually went out, newest first. */
+export const useAdminNotificationLog = (page = 1, pageSize = 25) =>
+  useApiQuery<NotificationPage>(
+    ["admin", "notifications", "log", page, pageSize],
+    () => api.admin.notifications.log(page, pageSize),
+  );
+
+/** Send for real (one user or a broadcast). Invalidates the log so the row
+ *  appears without a manual refresh. */
+export const useSendNotification = (
+  options?: Omit<
+    UseMutationOptions<AdminNotificationResult, ApiError, AdminNotificationInput>,
+    "mutationFn"
+  >,
+) => {
+  const qc = useQueryClient();
+  return useApiMutation<AdminNotificationResult, AdminNotificationInput>(
+    (input) => api.admin.notifications.send(input),
+    {
+      ...options,
+      onSuccess: (...a) => {
+        qc.invalidateQueries({ queryKey: ["admin", "notifications", "log"] });
+        options?.onSuccess?.(...a);
+      },
+    },
+  );
+};
+
+/** Send the composed notification to yourself only — the rail before a blast. */
+export const useTestNotification = (
+  options?: Omit<
+    UseMutationOptions<AdminNotificationResult, ApiError, AdminNotificationInput>,
+    "mutationFn"
+  >,
+) =>
+  useApiMutation<AdminNotificationResult, AdminNotificationInput>(
+    (input) => api.admin.notifications.test(input),
+    options,
+  );

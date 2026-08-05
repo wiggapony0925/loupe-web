@@ -231,6 +231,11 @@ export const ENDPOINTS = {
     env: `${V1}/admin/env`,
     integrations: `${V1}/admin/integrations`,
     emailTemplates: `${V1}/admin/email/templates`,
+    /** Push/in-app notification composer. */
+    notifications: `${V1}/admin/notifications`,
+    notificationsTest: `${V1}/admin/notifications/test`,
+    notificationsAudience: `${V1}/admin/notifications/audience`,
+    notificationsLog: `${V1}/admin/notifications/log`,
     emailTemplate: (key: string) =>
       `${V1}/admin/email/templates/${encodeURIComponent(key)}`,
     emailTest: `${V1}/admin/email/test`,
@@ -305,5 +310,24 @@ export const ENDPOINTS = {
     waitlist: `${V1}/admin/waitlist`,
     waitlistStatus: (id: string) => `${V1}/admin/waitlist/${id}/status`,
     waitlistEntry: (id: string) => `${V1}/admin/waitlist/${id}`,
+  },
+  /** Community layer — collector profiles, follows, shared collections. */
+  social: {
+    me: `${V1}/social/me`,
+    meAvatar: `${V1}/social/me/avatar`,
+    search: `${V1}/social/search`,
+    suggested: `${V1}/social/suggested`,
+    requests: `${V1}/social/requests`,
+    requestAccept: (id: string) => `${V1}/social/requests/${id}/accept`,
+    requestDecline: (id: string) => `${V1}/social/requests/${id}/decline`,
+    user: (username: string) => `${V1}/social/users/${encodeURIComponent(username)}`,
+    follow: (username: string) =>
+      `${V1}/social/users/${encodeURIComponent(username)}/follow`,
+    followers: (username: string) =>
+      `${V1}/social/users/${encodeURIComponent(username)}/followers`,
+    following: (username: string) =>
+      `${V1}/social/users/${encodeURIComponent(username)}/following`,
+    collection: (username: string) =>
+      `${V1}/social/users/${encodeURIComponent(username)}/collection`,
   },
 } as const;

@@ -1,4 +1,4 @@
-import { Home, Wallet, LineChart, BarChart3, Star, FileText, Settings, ScanSearch, type LucideIcon } from "lucide-react";
+import { Home, Wallet, Users, LineChart, BarChart3, Star, FileText, Settings, ScanSearch, type LucideIcon } from "lucide-react";
 
 export interface NavItem {
   to: string;
@@ -15,6 +15,10 @@ export interface NavItem {
 export const PRIMARY_NAV: NavItem[] = [
   { to: "/app", label: "Command Center", short: "Home", icon: Home, end: true },
   { to: "/app/vault", label: "Vault", icon: Wallet },
+  // Third on purpose: it must land inside the phone tab bar's four slots
+  // (Home, Vault | scan | People, Markets) — the social layer is a flagship
+  // surface, so it can't live drawer-only on mobile.
+  { to: "/app/community", label: "Community", short: "People", icon: Users, flag: "web_social" },
   { to: "/app/markets", label: "Markets", icon: LineChart, flag: "web_markets" },
   { to: "/app/analytics", label: "Analytics", short: "Stats", icon: BarChart3, flag: "web_analytics" },
   { to: "/app/watchlist", label: "Watchlist", short: "Watch", icon: Star, flag: "web_watchlist" },

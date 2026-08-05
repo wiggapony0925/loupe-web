@@ -100,6 +100,8 @@ const M = {
   appShell: () => import("@/layout/AppShell/AppShell"),
   commandCenter: () => import("@/features/commandCenter/CommandCenter/CommandCenter"),
   vault: () => import("@/features/vault/Vault/Vault"),
+  community: () => import("@/features/social/Community/Community"),
+  socialProfile: () => import("@/features/social/Profile/SocialProfilePage"),
   analytics: () => import("@/features/analytics/Analytics/Analytics"),
   statements: () => import("@/features/statements/Statements/Statements"),
   watchlist: () => import("@/features/watchlist/Watchlist/Watchlist"),
@@ -156,6 +158,24 @@ export const router = createBrowserRouter([
         children: [
           { index: true, element: el(M.commandCenter, "CommandCenter") },
           { path: "vault", element: el(M.vault, "Vault") },
+          {
+            // Community — collector search, follows, requests.
+            path: "community",
+            element: (
+              <FeatureGate flag="web_social" fallback={<NotFound />}>
+                {el(M.community, "Community")}
+              </FeatureGate>
+            ),
+          },
+          {
+            // A collector's public profile + collection.
+            path: "u/:username",
+            element: (
+              <FeatureGate flag="web_social" fallback={<NotFound />}>
+                {el(M.socialProfile, "SocialProfilePage")}
+              </FeatureGate>
+            ),
+          },
           { path: "discover", element: <Navigate to="/app/markets" replace /> },
           {
             // The one marketplace: the public storefront (rails, search,
