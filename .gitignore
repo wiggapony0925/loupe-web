@@ -32,3 +32,6 @@ DEVELOPER_PORTAL.md
 *.log
 .vscode/
 .idea/
+
+# Nested repo — @loupe/pipeline has its own git history
+loupe-pipeline/
