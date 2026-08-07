@@ -91,6 +91,7 @@ import type {
   AdminCarouselRecipe,
   AdminCarouselsView,
   AdminFeaturedView,
+  AdminLegalView,
   AiSearchAnswer,
   AppRemoteConfig,
   CarouselRailPage,
@@ -157,6 +158,9 @@ import type {
   BillingConfig,
   BlogPost,
   BlogPostInput,
+  LegalDocument,
+  LegalDocumentRead,
+  LegalIndex,
   PlanConfigUpdate,
   SiteConfig,
   CheckoutResult,
@@ -1378,6 +1382,18 @@ export const api = {
     post: async (slug: string): Promise<BlogPost> =>
       toBlogPost(await apiFetch(ENDPOINTS.blog.post(slug), { skipAuth: true })),
   },
+  /** Published legal corpus (Terms, Privacy, Cookies, AUP, Subprocessors,
+   *  Market Data Disclosure). `skipAuth` on both: a Terms of Service you have
+   *  to sign in to read is not a Terms of Service. */
+  legal: {
+    index: (): Promise<LegalIndex> =>
+      apiFetch<LegalIndex>(ENDPOINTS.public.legal, { skipAuth: true }),
+    /** One document, `{{placeholders}}` already resolved server-side. */
+    doc: (slug: string): Promise<LegalDocumentRead> =>
+      apiFetch<LegalDocumentRead>(ENDPOINTS.public.legalDoc(slug), {
+        skipAuth: true,
+      }),
+  },
   /** Public Loupe Scanner waitlist — join (the checkout CTA) + social-proof stats. */
   waitlist: {
     // No skipAuth: anonymous visitors omit the token, signed-in visitors
@@ -1990,6 +2006,42 @@ export const api = {
         ),
       remove: (id: string) =>
         apiFetch<void>(ENDPOINTS.admin.waitlistEntry(id), { method: "DELETE" }),
+    },
+    /** Law — the published legal corpus: checked-in file + live overrides. */
+    legal: {
+      overview: (): Promise<AdminLegalView> =>
+        apiFetch<AdminLegalView>(ENDPOINTS.admin.legal),
+      /** Placeholders used in the copy but missing from the entity block. */
+      unresolved: (): Promise<string[]> =>
+        apiFetch<string[]>(ENDPOINTS.admin.legalUnresolved),
+      /** Render a document exactly as a reader would see it. */
+      preview: (slug: string): Promise<LegalDocumentRead> =>
+        apiFetch<LegalDocumentRead>(ENDPOINTS.admin.legalPreview(slug)),
+      /** Replace the shared entity block (company, jurisdiction, contacts). */
+      setEntity: (entity: Record<string, string>): Promise<AdminLegalView> =>
+        apiFetch<AdminLegalView>(ENDPOINTS.admin.legalEntity, {
+          method: "PUT",
+          json: { entity },
+        }),
+      /** Publish an edited (or brand-new) document. */
+      publish: (doc: LegalDocument): Promise<AdminLegalView> =>
+        apiFetch<AdminLegalView>(ENDPOINTS.admin.legalDoc(doc.slug), {
+          method: "PUT",
+          json: doc,
+        }),
+      /** Restore a document to its checked-in text. */
+      reset: (slug: string): Promise<AdminLegalView> =>
+        apiFetch<AdminLegalView>(ENDPOINTS.admin.legalDocReset(slug), {
+          method: "POST",
+        }),
+      /** Retire a document (file documents tombstone, restorable via reset). */
+      retire: (slug: string): Promise<AdminLegalView> =>
+        apiFetch<AdminLegalView>(ENDPOINTS.admin.legalDoc(slug), {
+          method: "DELETE",
+        }),
+      /** Discard every operator edit — back to the checked-in corpus. */
+      resetAll: (): Promise<AdminLegalView> =>
+        apiFetch<AdminLegalView>(ENDPOINTS.admin.legalReset, { method: "POST" }),
     },
   },
   /** Community layer — collector profiles, follows, shared collections. */

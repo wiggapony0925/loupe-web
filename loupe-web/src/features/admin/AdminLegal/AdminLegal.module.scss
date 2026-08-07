@@ -1,0 +1,193 @@
+// Admin · Law — the legal corpus editor.
+
+.hint {
+  font-size: var(--text-xs);
+  color: var(--ink-dim);
+
+  code {
+    font-family: var(--font-mono);
+    font-size: 0.95em;
+    padding: 1px 4px;
+    background: var(--bg-sunken);
+    border-radius: var(--radius-sm);
+  }
+}
+
+// ── Sticky action bar ─────────────────────────────────────────────────────
+.stickyBar {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+  margin-top: var(--space-lg);
+  padding: var(--space-md) 0;
+  background: linear-gradient(to top, var(--bg-base) 70%, transparent);
+
+  &__note {
+    font-size: var(--text-xs);
+    color: var(--ink-dim);
+  }
+}
+
+// ── Entity tab ────────────────────────────────────────────────────────────
+.entity {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+
+  &__grid {
+    display: grid;
+    gap: var(--space-md);
+    grid-template-columns: 1fr;
+
+    @media (min-width: 60rem) {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  &__row {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+  }
+
+  &__key {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    font-size: var(--text-xs);
+
+    code {
+      font-family: var(--font-mono);
+      color: var(--ink-muted);
+    }
+  }
+
+  &__revert {
+    align-self: flex-start;
+    font-size: var(--text-xs);
+    color: var(--accent-mint);
+    background: none;
+    border: 0;
+    cursor: pointer;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+
+  &__add {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    flex-wrap: wrap;
+    padding-top: var(--space-md);
+    border-top: 1px solid var(--line);
+  }
+}
+
+// ── Document editor ───────────────────────────────────────────────────────
+.editor {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+}
+
+.liveLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--text-sm);
+  color: var(--ink-muted);
+  text-decoration: none;
+
+  &:hover {
+    color: var(--accent-mint);
+  }
+}
+
+.preview {
+  padding: var(--space-lg);
+  background: var(--bg-base);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+}
+
+.summaryRow {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-sm);
+
+  textarea {
+    flex: 1;
+  }
+}
+
+.sections {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.section {
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--bg-elevated);
+  overflow: hidden;
+
+  &__head {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-sm) var(--space-md);
+  }
+
+  &__toggle {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    flex: 1;
+    min-width: 0;
+    padding: 0;
+    font: inherit;
+    font-size: var(--text-sm);
+    font-weight: 600;
+    text-align: left;
+    color: var(--ink);
+    background: none;
+    border: 0;
+    cursor: pointer;
+
+    span {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+
+  &__actions {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+  }
+
+  &__body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+    padding: var(--space-md);
+    border-top: 1px solid var(--line);
+  }
+
+  &__preview {
+    max-height: 24rem;
+    overflow-y: auto;
+    padding: var(--space-md);
+    background: var(--bg-base);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+  }
+}

@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { NavLink, Outlet, Link, useLocation } from "react-router-dom";
 import {
   Briefcase,
+  Scale,
   FileText,
   Inbox,
   LayoutDashboard,
@@ -89,6 +90,7 @@ const ICONS: Record<string, LucideIcon> = {
   applications: Inbox,
   blog: FileText,
   waitlist: ScanLine,
+  legal: Scale,
   insights: Sparkles,
   api: Network,
   console: TerminalSquare,

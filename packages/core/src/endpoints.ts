@@ -158,6 +158,9 @@ export const ENDPOINTS = {
     /** One carousel EXPANDED (`?id&game&page&page_size`) — "view more". */
     carouselRail: `${V1}/public/carousels/rail`,
     sparklines: `${V1}/public/sparklines`,
+    /** Published legal corpus — open to everyone, signed in or not. */
+    legal: `${V1}/public/legal`,
+    legalDoc: (slug: string) => `${V1}/public/legal/${encodeURIComponent(slug)}`,
   },
   grades: {
     mine: `${V1}/grades`,
@@ -313,6 +316,16 @@ export const ENDPOINTS = {
     waitlist: `${V1}/admin/waitlist`,
     waitlistStatus: (id: string) => `${V1}/admin/waitlist/${id}/status`,
     waitlistEntry: (id: string) => `${V1}/admin/waitlist/${id}`,
+    // Law — the published legal corpus.
+    legal: `${V1}/admin/legal`,
+    legalEntity: `${V1}/admin/legal/entity`,
+    legalUnresolved: `${V1}/admin/legal/unresolved`,
+    legalReset: `${V1}/admin/legal/reset`,
+    legalDoc: (slug: string) => `${V1}/admin/legal/${encodeURIComponent(slug)}`,
+    legalDocReset: (slug: string) =>
+      `${V1}/admin/legal/${encodeURIComponent(slug)}/reset`,
+    legalPreview: (slug: string) =>
+      `${V1}/admin/legal/preview/${encodeURIComponent(slug)}`,
   },
   /** Community layer — collector profiles, follows, shared collections. */
   social: {

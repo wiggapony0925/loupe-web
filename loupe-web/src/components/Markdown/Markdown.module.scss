@@ -101,9 +101,16 @@
     border-top: 1px solid var(--line);
   }
 
+  // Wide tables scroll in their own box — the page body never scrolls sideways.
+  &__tableScroll {
+    margin: var(--space-md) 0;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
   table {
     width: 100%;
-    margin: var(--space-md) 0;
+    min-width: 32rem;
     border-collapse: collapse;
     font-size: var(--text-sm);
   }

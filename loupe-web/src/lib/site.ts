@@ -1,6 +1,10 @@
 /** Single source of truth for company contact details + external links used by
  *  the footer and the content pages. Swap these for your real handles before
  *  launch. Lives in `lib` so both `components` and `features` can share it. */
+/** Canonical public origin. Legal copy cross-references sibling documents by
+ *  absolute URL; this is what lets us route those links internally. */
+export const SITE_ORIGIN = "https://loupe.app";
+
 export const SUPPORT_EMAIL = "support@loupe.app";
 export const CAREERS_EMAIL = "careers@loupe.app";
 export const PRESS_EMAIL = "press@loupe.app";

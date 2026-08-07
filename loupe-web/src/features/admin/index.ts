@@ -35,3 +35,4 @@ export { AdminJobs } from "./AdminJobs/AdminJobs";
 export { AdminApplications } from "./AdminApplications/AdminApplications";
 export { AdminBlog } from "./AdminBlog/AdminBlog";
 export { AdminWaitlist } from "./AdminWaitlist/AdminWaitlist";
+export { AdminLegal } from "./AdminLegal/AdminLegal";

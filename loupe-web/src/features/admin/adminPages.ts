@@ -21,6 +21,7 @@ export type AdminGroup =
   | "Catalog & product"
   | "Growth"
   | "Content & hiring"
+  | "Legal"
   | "Tools";
 
 export interface AdminPage {
@@ -48,6 +49,7 @@ export const ADMIN_GROUP_ORDER: AdminGroup[] = [
   "Catalog & product",
   "Growth",
   "Content & hiring",
+  "Legal",
   "Tools",
 ];
 
@@ -292,6 +294,16 @@ export const ADMIN_PAGES: AdminPage[] = [
     hint: "Hardware",
     group: "Content & hiring",
     flag: "admin_waitlist",
+  },
+
+  // ── Legal ──
+  {
+    path: "legal",
+    component: "AdminLegal",
+    label: "Law",
+    hint: "Terms & privacy",
+    group: "Legal",
+    flag: "admin_legal",
   },
 
   // ── Tools ──

@@ -132,6 +132,7 @@ import type {
   AdminCarouselRecipe,
   AdminCarouselsView,
   AdminFeaturedView,
+  AdminLegalView,
   AiSearchAnswer,
   AppRemoteConfig,
   CarouselRailPage,
@@ -140,6 +141,9 @@ import type {
   CollectionSummary,
   GradedCard,
   GradesParams,
+  LegalDocument,
+  LegalDocumentRead,
+  LegalIndex,
   HomeFeed,
   UserReport,
   UpcomingReport,
@@ -1403,6 +1407,129 @@ export const useDeleteBlogPost = (
     },
   });
 };
+
+// ── Legal (public) ──
+
+/** The published legal corpus index. Cached hard — legal copy changes a few
+ *  times a year, and the pages must render instantly on a cold visit. */
+export const useLegalIndex = (enabled = true) =>
+  useApiQuery<LegalIndex>(["legal-index"], api.legal.index, {
+    enabled,
+    staleTime: 10 * 60_000,
+    gcTime: 60 * 60_000,
+  });
+
+/** One legal document, `{{placeholders}}` already resolved server-side. */
+export const useLegalDocument = (slug: string | null | undefined) =>
+  useApiQuery<LegalDocumentRead>(
+    ["legal-doc", slug],
+    () => api.legal.doc(slug as string),
+    {
+      enabled: !!slug,
+      staleTime: 10 * 60_000,
+      gcTime: 60 * 60_000,
+      // A published contract has no business retrying forever behind a
+      // spinner — fall through to the bundled copy fast.
+      retry: 1,
+    },
+  );
+
+// ── Admin: Law (legal corpus) ──
+
+/** The legal corpus — checked-in file merged with live operator overrides. */
+export const useAdminLegal = (enabled = true) =>
+  useApiQuery<AdminLegalView>(["admin-legal"], api.admin.legal.overview, {
+    enabled,
+  });
+
+/** Placeholders used in the copy but missing from the entity block. */
+export const useAdminLegalUnresolved = (enabled = true) =>
+  useApiQuery<string[]>(
+    ["admin-legal-unresolved"],
+    api.admin.legal.unresolved,
+    { enabled },
+  );
+
+/** Render one document exactly as a reader would see it (admin preview). */
+export const useAdminLegalPreview = (slug: string | null, enabled = true) =>
+  useApiQuery<LegalDocumentRead>(
+    ["admin-legal-preview", slug],
+    () => api.admin.legal.preview(slug as string),
+    { enabled: enabled && !!slug, staleTime: 0 },
+  );
+
+function invalidateLegal(qc: ReturnType<typeof useQueryClient>) {
+  void qc.invalidateQueries({ queryKey: ["admin-legal"] });
+  void qc.invalidateQueries({ queryKey: ["admin-legal-unresolved"] });
+  void qc.invalidateQueries({ queryKey: ["admin-legal-preview"] });
+  // Publishing changes what every reader sees.
+  void qc.invalidateQueries({ queryKey: ["legal-index"] });
+  void qc.invalidateQueries({ queryKey: ["legal-doc"] });
+}
+
+/** Wrap a legal mutation so every write refreshes the corpus + the site. */
+const useLegalMutation = <TVars>(
+  mutationFn: (vars: TVars) => Promise<AdminLegalView>,
+  options?: Omit<
+    UseMutationOptions<AdminLegalView, ApiError, TVars>,
+    "mutationFn"
+  >,
+) => {
+  const qc = useQueryClient();
+  return useApiMutation<AdminLegalView, TVars>(mutationFn, {
+    ...options,
+    onSuccess: (...a) => {
+      invalidateLegal(qc);
+      options?.onSuccess?.(...a);
+    },
+  });
+};
+
+/** Replace the shared entity block (company, jurisdiction, contact addresses)
+ *  — its values interpolate through every document. */
+export const useSetLegalEntity = (
+  options?: Omit<
+    UseMutationOptions<AdminLegalView, ApiError, Record<string, string>>,
+    "mutationFn"
+  >,
+) =>
+  useLegalMutation(
+    (entity: Record<string, string>) => api.admin.legal.setEntity(entity),
+    options,
+  );
+
+/** Publish an edited (or brand-new) document. */
+export const usePublishLegalDocument = (
+  options?: Omit<
+    UseMutationOptions<AdminLegalView, ApiError, LegalDocument>,
+    "mutationFn"
+  >,
+) =>
+  useLegalMutation((doc: LegalDocument) => api.admin.legal.publish(doc), options);
+
+/** Restore a document to its checked-in text. */
+export const useResetLegalDocument = (
+  options?: Omit<
+    UseMutationOptions<AdminLegalView, ApiError, string>,
+    "mutationFn"
+  >,
+) => useLegalMutation((slug: string) => api.admin.legal.reset(slug), options);
+
+/** Retire a document (file documents tombstone, restorable via reset). */
+export const useRetireLegalDocument = (
+  options?: Omit<
+    UseMutationOptions<AdminLegalView, ApiError, string>,
+    "mutationFn"
+  >,
+) => useLegalMutation((slug: string) => api.admin.legal.retire(slug), options);
+
+/** Discard every operator edit — back to the checked-in corpus. */
+export const useResetAllLegal = (
+  options?: Omit<
+    UseMutationOptions<AdminLegalView, ApiError, void>,
+    "mutationFn"
+  >,
+) => useLegalMutation(() => api.admin.legal.resetAll(), options);
 
 // ── Admin: scanner waitlist ──
 

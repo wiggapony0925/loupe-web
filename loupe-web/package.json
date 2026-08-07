@@ -40,6 +40,7 @@
     "test:coverage": "vitest run --project unit --coverage",
     "test:stories": "vitest run --project storybook",
     "test:contract": "node scripts/contract-check.mjs",
+    "gen:legal": "node scripts/gen-legal.mjs",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build"
   },

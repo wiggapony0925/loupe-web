@@ -149,6 +149,7 @@ export const router = createBrowserRouter([
           { path: "help", element: el(M.site, "Help") },
           { path: "status", element: el(M.site, "Status") },
           { path: "contact", element: el(M.site, "Contact") },
+          { path: "legal", element: el(M.site, "Legal") },
           { path: "legal/:doc", element: el(M.site, "Legal") },
         ],
       },

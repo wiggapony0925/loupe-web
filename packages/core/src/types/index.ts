@@ -14,6 +14,7 @@ export * from "./entitlements.types";
 export * from "./flags.types";
 export * from "./gradeReview.types";
 export * from "./insights.types";
+export * from "./legal.types";
 export * from "./money.types";
 export * from "./ops.types";
 export * from "./portfolio.types";
