@@ -19,6 +19,7 @@ export * from "./ops.types";
 export * from "./portfolio.types";
 export * from "./aiAdmin.types";
 export * from "./carouselAdmin.types";
+export * from "./featuredAdmin.types";
 export * from "./pulse.types";
 export * from "./recents.types";
 export * from "./report.types";

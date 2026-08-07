@@ -252,6 +252,9 @@ export const ENDPOINTS = {
     // Catalog & product.
     catalog: `${V1}/admin/catalog`,
     carousels: `${V1}/admin/carousels`,
+    featuredCollectors: `${V1}/admin/social/featured`,
+    featuredCollector: (handle: string) =>
+      `${V1}/admin/social/featured/${encodeURIComponent(handle)}`,
     carousel: (id: string) => `${V1}/admin/carousels/${encodeURIComponent(id)}`,
     carouselReset: (id: string) =>
       `${V1}/admin/carousels/${encodeURIComponent(id)}/reset`,

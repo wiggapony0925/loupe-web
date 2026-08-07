@@ -131,6 +131,7 @@ import type {
   FlagMap,
   AdminCarouselRecipe,
   AdminCarouselsView,
+  AdminFeaturedView,
   AiSearchAnswer,
   AppRemoteConfig,
   CarouselRailPage,
@@ -1798,6 +1799,41 @@ export const useUpsertFlag = (
     },
   });
 };
+
+// ── Admin: featured collectors ──
+
+/** The curated Community rail. */
+export const useAdminFeatured = (enabled = true) =>
+  useApiQuery<AdminFeaturedView>(
+    ["admin-featured"],
+    api.admin.featured.view,
+    { enabled },
+  );
+
+/** Every write returns the fresh view, so the cache is SET from the
+ *  response rather than invalidated — the tag list updates in one hop with
+ *  no refetch flicker between removing a tag and the row disappearing. */
+const useFeaturedMutation = <TVars>(
+  mutationFn: (vars: TVars) => Promise<AdminFeaturedView>,
+) => {
+  const qc = useQueryClient();
+  return useApiMutation<AdminFeaturedView, TVars>(mutationFn, {
+    onSuccess: (data) => {
+      qc.setQueryData(["admin-featured"], data);
+      // The public rail changes with it.
+      void qc.invalidateQueries({ queryKey: ["social", "discover"] });
+    },
+  });
+};
+
+export const useAddFeatured = () =>
+  useFeaturedMutation((username: string) => api.admin.featured.add(username));
+
+export const useRemoveFeatured = () =>
+  useFeaturedMutation((username: string) => api.admin.featured.remove(username));
+
+export const useSetFeatured = () =>
+  useFeaturedMutation((usernames: string[]) => api.admin.featured.set(usernames));
 
 // ── Admin: carousel registry ──
 

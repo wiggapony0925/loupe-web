@@ -1,0 +1,150 @@
+.count {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink-dim);
+  font-variant-numeric: tabular-nums;
+}
+
+.add {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-sm);
+
+  > :first-child {
+    flex: 1;
+    min-width: 0;
+    max-width: 340px;
+  }
+}
+
+.note {
+  margin: 0;
+  font-size: 12.5px;
+  color: var(--ink-dim);
+}
+
+/* The list IS the control: one tag per collector, × to drop it. */
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 6px 6px 11px;
+  border: 1px solid var(--line-default);
+  border-radius: 999px;
+  background: var(--bg-elevated);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-default);
+}
+
+/* A handle that resolves to nobody still occupies a slot, so it has to look
+   different from a working one rather than silently rendering nothing. */
+.tagDangling {
+  border-style: dashed;
+  border-color: var(--accent-amber);
+  color: var(--ink-muted);
+}
+
+.tagX {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--ink-dim);
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--accent-rose) 18%, transparent);
+    color: var(--accent-rose);
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+}
+
+.preview {
+  display: grid;
+  gap: var(--space-md);
+}
+
+/* Wide content scrolls inside its own box — the page never scrolls sideways. */
+.rail {
+  display: flex;
+  gap: var(--space-md);
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.card {
+  flex: 0 0 208px;
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--line-default);
+  border-radius: 16px;
+  background: var(--bg-elevated);
+}
+
+.cardArt {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  justify-content: center;
+  height: 92px;
+  padding: 8px;
+  border-radius: 12px;
+  background: var(--bg-sunken);
+  overflow: hidden;
+
+  img {
+    flex: 1;
+    min-width: 0;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 6px;
+  }
+}
+
+.cardArtEmpty {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--ink-dim);
+}
+
+.cardWho {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+
+  strong {
+    font-size: 13.5px;
+    font-weight: 700;
+    letter-spacing: -0.2px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  span {
+    font-size: 11.5px;
+    color: var(--ink-dim);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}

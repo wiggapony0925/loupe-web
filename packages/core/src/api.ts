@@ -90,6 +90,7 @@ import type {
   AdminCardsParams,
   AdminCarouselRecipe,
   AdminCarouselsView,
+  AdminFeaturedView,
   AiSearchAnswer,
   AppRemoteConfig,
   CarouselRailPage,
@@ -1414,6 +1415,28 @@ export const api = {
     catalog: async (): Promise<CatalogCoverage> =>
       toCatalogCoverage(await apiFetch(ENDPOINTS.admin.catalog)),
     /** Carousel registry — live operator control over every marketplace shelf. */
+    /** Curation of the Community "Featured collectors" rail. */
+    featured: {
+      view: (): Promise<AdminFeaturedView> =>
+        apiFetch<AdminFeaturedView>(ENDPOINTS.admin.featuredCollectors),
+      /** Replace the whole list — used for reorder and bulk edits. */
+      set: (usernames: string[]): Promise<AdminFeaturedView> =>
+        apiFetch<AdminFeaturedView>(ENDPOINTS.admin.featuredCollectors, {
+          method: "PUT",
+          json: { usernames },
+        }),
+      add: (username: string): Promise<AdminFeaturedView> =>
+        apiFetch<AdminFeaturedView>(ENDPOINTS.admin.featuredCollectors, {
+          method: "POST",
+          json: { username },
+        }),
+      /** The tag's × — idempotent server-side, so a double tap is safe. */
+      remove: (username: string): Promise<AdminFeaturedView> =>
+        apiFetch<AdminFeaturedView>(
+          ENDPOINTS.admin.featuredCollector(username),
+          { method: "DELETE" },
+        ),
+    },
     carousels: {
       overview: (): Promise<AdminCarouselsView> =>
         apiFetch<AdminCarouselsView>(ENDPOINTS.admin.carousels),
