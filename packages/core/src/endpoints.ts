@@ -257,6 +257,11 @@ export const ENDPOINTS = {
     carousels: `${V1}/admin/carousels`,
     featuredCollectors: `${V1}/admin/social/featured`,
     moderationQueue: `${V1}/admin/social/moderation`,
+    /** Story dev-tools: list, seed the test accounts, force-expire. */
+    adminStories: `${V1}/admin/social/stories`,
+    adminStoriesSeed: `${V1}/admin/social/stories/seed`,
+    adminStoryExpire: (id: string) =>
+      `${V1}/admin/social/stories/${encodeURIComponent(id)}/expire`,
     moderationResolve: (id: string) =>
       `${V1}/admin/social/moderation/${encodeURIComponent(id)}/resolve`,
     featuredCollector: (handle: string) =>

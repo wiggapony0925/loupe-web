@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { NavLink, Outlet, Link, useLocation } from "react-router-dom";
-import {
+import { Clapperboard,
   Briefcase,
   Scale,
   FileText,
@@ -63,6 +63,7 @@ interface NavGroup {
  * here next to the nav that renders them.
  */
 const ICONS: Record<string, LucideIcon> = {
+  community: Clapperboard,
   overview: LayoutDashboard,
   health: Activity,
   database: Database,

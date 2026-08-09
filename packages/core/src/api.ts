@@ -157,7 +157,9 @@ import type {
   PostAuthor,
   PostComment,
   ModerationCase,
+  AdminStory,
   ModerationQueue,
+  StorySeedResult,
   ReportInput,
   SocialSearchResults,
   ApplicationStatusUpdateInput,
@@ -1466,6 +1468,33 @@ export const api = {
           { method: "DELETE" },
         ),
     },
+    /** Admin story dev-tools. The 24h lifecycle is the one part of stories
+     *  nobody can test by waiting; these close the loop. */
+    adminStories: async (): Promise<AdminStory[]> =>
+      (
+        await apiFetch<RawAdminStory[]>(ENDPOINTS.admin.adminStories, {
+          query: { limit: 100 },
+        })
+      ).map(toAdminStory),
+    seedStories: async (): Promise<StorySeedResult> => {
+      const d = await apiFetch<{
+        created?: number;
+        skipped_live?: number;
+        authors?: string[];
+      }>(ENDPOINTS.admin.adminStoriesSeed, { method: "POST" });
+      return {
+        created: d.created ?? 0,
+        skippedLive: d.skipped_live ?? 0,
+        authors: d.authors ?? [],
+      };
+    },
+    expireStory: async (id: string): Promise<AdminStory> =>
+      toAdminStory(
+        await apiFetch<RawAdminStory>(ENDPOINTS.admin.adminStoryExpire(id), {
+          method: "POST",
+        }),
+      ),
+
     /** The community review queue — auto-flags and user reports, one list. */
     moderationQueue: async (status = "open"): Promise<ModerationQueue> => {
       const d = await apiFetch<{
@@ -2477,6 +2506,32 @@ function toSocialProfile(r: RawSocialProfile): SocialProfile {
     isPrivate: r.is_private ?? false,
     avatarUrl: r.avatar_url ?? null,
     createdAt: r.created_at,
+  };
+}
+
+interface RawAdminStory {
+  id: string;
+  username: string;
+  kind?: string;
+  caption?: string | null;
+  created_at: string;
+  expires_at: string;
+  live?: boolean;
+  view_count?: number;
+  comment_count?: number;
+}
+
+function toAdminStory(r: RawAdminStory): AdminStory {
+  return {
+    id: r.id,
+    username: r.username,
+    kind: r.kind === "video" ? "video" : "image",
+    caption: r.caption ?? null,
+    createdAt: r.created_at,
+    expiresAt: r.expires_at,
+    live: r.live ?? false,
+    viewCount: r.view_count ?? 0,
+    commentCount: r.comment_count ?? 0,
   };
 }
 

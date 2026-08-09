@@ -13,6 +13,7 @@ export { AdminRevenue } from "./AdminRevenue/AdminRevenue";
 export { AdminCatalog } from "./AdminCatalog/AdminCatalog";
 export { AdminCarousels } from "./AdminCarousels/AdminCarousels";
 export { AdminFeatured } from "./AdminFeatured/AdminFeatured";
+export { AdminCommunity } from "./AdminCommunity/AdminCommunity";
 export { AdminModeration } from "./AdminModeration/AdminModeration";
 export { AdminPriceCharting } from "./AdminPriceCharting/AdminPriceCharting";
 export { AdminScanner } from "./AdminScanner/AdminScanner";

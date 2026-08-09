@@ -45,7 +45,9 @@ import type {
   Post,
   PostComment,
   ModerationCase,
+  AdminStory,
   ModerationQueue,
+  StorySeedResult,
   ReportInput,
   SocialSearchResults,
   RefundResult,
@@ -3043,6 +3045,36 @@ export const useModerationQueue = (status = "open", enabled = true) =>
     () => api.admin.moderationQueue(status),
     { enabled, staleTime: 15_000 },
   );
+
+/** Admin: every story, live and expired — the dev-portal table. */
+export const useAdminStories = (enabled = true) =>
+  useApiQuery<AdminStory[]>(
+    ["admin", "stories"],
+    () => api.admin.adminStories(),
+    { enabled, staleTime: 10_000 },
+  );
+
+/** Admin: make the test accounts post stories. Skips accounts with one live. */
+export const useSeedStories = () => {
+  const qc = useQueryClient();
+  return useApiMutation<StorySeedResult, void>(() => api.admin.seedStories(), {
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ["admin", "stories"] });
+      void qc.invalidateQueries({ queryKey: ["social"] });
+    },
+  });
+};
+
+/** Admin: force a story to expire NOW — the 24h clock, minus the waiting. */
+export const useExpireStory = () => {
+  const qc = useQueryClient();
+  return useApiMutation<AdminStory, string>((id) => api.admin.expireStory(id), {
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ["admin", "stories"] });
+      void qc.invalidateQueries({ queryKey: ["social"] });
+    },
+  });
+};
 
 /** Admin: close a case (and every duplicate about the same thing). */
 export const useResolveModerationCase = () => {

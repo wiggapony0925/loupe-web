@@ -247,3 +247,24 @@ export interface ModerationQueue {
   /** Open cases regardless of the filter — the badge on the nav. */
   openCount: number;
 }
+
+/** Admin: one story as the dev-portal sees it — live and expired alike. */
+export interface AdminStory {
+  id: string;
+  username: string;
+  kind: "image" | "video";
+  caption: string | null;
+  createdAt: string;
+  expiresAt: string;
+  live: boolean;
+  viewCount: number;
+  commentCount: number;
+}
+
+/** Admin: what one seed run did. `skippedLive` is the retrigger contract —
+ *  accounts with a live story are skipped until it expires. */
+export interface StorySeedResult {
+  created: number;
+  skippedLive: number;
+  authors: string[];
+}

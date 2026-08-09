@@ -170,6 +170,14 @@ export const ADMIN_PAGES: AdminPage[] = [
 
   // ── People ──
   {
+    path: "community",
+    component: "AdminCommunity",
+    label: "Community",
+    hint: "Story bench & dev tools",
+    group: "People",
+    flag: "admin_community",
+  },
+  {
     path: "featured",
     component: "AdminFeatured",
     label: "Featured collectors",
