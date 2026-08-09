@@ -2297,6 +2297,19 @@ export const api = {
     deletePost: (id: string) =>
       apiFetch<void>(ENDPOINTS.social.post(id), { method: "DELETE" }),
 
+    /** Rewrite a caption. The CAPTION only — photos are immutable once
+     *  published, because swapping the image under a post people already
+     *  liked changes what they endorsed. The server re-moderates the new
+     *  text and re-derives the hashtags, so the returned post can differ
+     *  from what was typed. */
+    editPost: async (id: string, body: string): Promise<Post> =>
+      toPost(
+        await apiFetch<RawPost>(ENDPOINTS.social.post(id), {
+          method: "PATCH",
+          json: { body },
+        }),
+      ),
+
     /** Set the heart on a post. Returns the server's own fresh count. */
     likePost: async (id: string, liked: boolean): Promise<LikeState> =>
       toLikeState(
@@ -2546,7 +2559,9 @@ interface RawPost {
   viewer_has_liked?: boolean;
   hashtags?: string[];
   mentions?: string[];
+  edited_at?: string | null;
   can_delete?: boolean;
+  can_edit?: boolean;
 }
 
 interface RawFeed {
@@ -2629,7 +2644,9 @@ function toPost(r: RawPost): Post {
     viewerHasLiked: r.viewer_has_liked ?? false,
     hashtags: r.hashtags ?? [],
     mentions: r.mentions ?? [],
+    editedAt: r.edited_at ?? null,
     canDelete: r.can_delete ?? false,
+    canEdit: r.can_edit ?? false,
   };
 }
 

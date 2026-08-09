@@ -139,7 +139,13 @@ export interface Post {
   hashtags: string[];
   /** Handles in the caption that resolve to real accounts. */
   mentions: string[];
+  /** When the caption was last rewritten, or null. Render "· edited":
+   *  comments underneath may be answering words that are gone. */
+  editedAt: string | null;
   canDelete: boolean;
+  /** Author only. Staff can remove a post but never rewrite one under
+   *  someone else's byline — the rule lives on the server. */
+  canEdit: boolean;
 }
 
 /** A page of posts. `nextCursor` is opaque — hand it back verbatim. */

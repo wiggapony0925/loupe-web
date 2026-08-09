@@ -2899,6 +2899,36 @@ export const useDeletePost = (
 };
 
 /**
+ * Rewrite a caption.
+ *
+ * Not optimistic, unlike the heart: the server re-screens the text and
+ * re-derives the tags, so what comes back is deliberately not always what
+ * was typed. Painting the draft in first would show it, then change it.
+ */
+export const useEditPost = (
+  options?: Omit<
+    UseMutationOptions<Post, ApiError, { postId: string; body: string }>,
+    "mutationFn"
+  >,
+) => {
+  const qc = useQueryClient();
+  return useApiMutation<Post, { postId: string; body: string }>(
+    ({ postId, body }) => api.social.editPost(postId, body),
+    {
+      ...options,
+      onSuccess: (...args) => {
+        const updated = args[0];
+        patchCachedFeeds(qc, updated.id, () => updated);
+        void qc.invalidateQueries({ queryKey: ["social", "post", updated.id] });
+        // Its tags may have changed, so the pages it belongs to have too.
+        void qc.invalidateQueries({ queryKey: ["social", "hashtag"] });
+        options?.onSuccess?.(...args);
+      },
+    },
+  );
+};
+
+/**
  * Like/unlike a post, optimistically and everywhere at once. The server's
  * own count replaces the guess on success, so the heart and the number
  * beside it can never disagree.

@@ -1,15 +1,18 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { BadgeCheck, Flag, Heart, MessageCircle, Trash2 } from "lucide-react";
+import { BadgeCheck, Heart, MessageCircle } from "lucide-react";
 import type { Post } from "@loupe/core";
-import { useDeletePost, useLikePost } from "@loupe/core";
+import { useLikePost } from "@loupe/core";
 import { cx } from "@/lib/cx";
 import { relativeTime } from "@/lib/format";
 import { FollowButton } from "../components/FollowButton";
 import { SocialAvatar } from "../components/SocialAvatar";
 import { formatCount } from "./formatCount";
+import { EditPostModal } from "./EditPostModal";
+import { Lightbox } from "./Lightbox";
 import { PostCaption } from "./PostCaption";
 import { PostMedia } from "./PostMedia";
+import { PostMenu } from "./PostMenu";
 import type { ReportTarget } from "./ReportModal";
 import styles from "./Feed.module.scss";
 
@@ -35,8 +38,8 @@ export function PostCard({
   onReport,
 }: PostCardProps) {
   const like = useLikePost();
-  const remove = useDeletePost();
-  const [confirming, setConfirming] = useState(false);
+  const [editing, setEditing] = useState<Post | null>(null);
+  const [viewing, setViewing] = useState<number | null>(null);
   const author = post.author;
   const authorHref = `/app/u/${encodeURIComponent(author.username)}`;
 
@@ -59,6 +62,9 @@ export function PostCard({
             </span>
             <span className={styles.postMeta}>
               @{author.username} · {relativeTime(post.createdAt)}
+              {/* Comments underneath may be answering words that are no
+                  longer there. Saying so is the honest thing. */}
+              {post.editedAt ? " · edited" : ""}
             </span>
           </span>
         </Link>
@@ -70,57 +76,29 @@ export function PostCard({
           />
         )}
 
-        {/* Reporting your own post is meaningless, so it isn't offered. */}
-        {onReport && author.relationship !== "self" && (
-          <button
-            type="button"
-            className={styles.iconButton}
-            aria-label={`Report @${author.username}'s post`}
-            onClick={() =>
-              onReport({
-                type: "post",
-                id: post.id,
-                label: `@${author.username}'s post`,
-              })
-            }
-          >
-            <Flag size={15} />
-          </button>
-        )}
-
-        {post.canDelete &&
-          (confirming ? (
-            <span className={styles.confirm}>
-              <button
-                type="button"
-                className={styles.confirmYes}
-                disabled={remove.isPending}
-                onClick={() => remove.mutate(post.id)}
-              >
-                Delete
-              </button>
-              <button
-                type="button"
-                className={styles.confirmNo}
-                onClick={() => setConfirming(false)}
-              >
-                Cancel
-              </button>
-            </span>
-          ) : (
-            <button
-              type="button"
-              className={styles.iconButton}
-              aria-label="Delete this post"
-              onClick={() => setConfirming(true)}
-            >
-              <Trash2 size={16} />
-            </button>
-          ))}
+        <PostMenu
+          post={post}
+          onEdit={setEditing}
+          onReport={
+            onReport
+              ? (target) =>
+                  onReport({
+                    type: "post",
+                    id: target.id,
+                    label: `@${target.author.username}'s post`,
+                  })
+              : undefined
+          }
+        />
       </header>
 
       {post.media.length > 0 && (
-        <PostMedia media={post.media} onOpen={() => onOpenComments(post)} />
+        <PostMedia
+          media={post.media}
+          liked={post.viewerHasLiked}
+          onOpen={setViewing}
+          onLike={() => like.mutate({ postId: post.id, liked: false })}
+        />
       )}
 
       {post.card && (
@@ -181,6 +159,15 @@ export function PostCard({
           day: "numeric",
         })}
       </Link>
+
+      {viewing !== null && (
+        <Lightbox
+          media={post.media}
+          startIndex={viewing}
+          onClose={() => setViewing(null)}
+        />
+      )}
+      <EditPostModal post={editing} onClose={() => setEditing(null)} />
     </article>
   );
 }

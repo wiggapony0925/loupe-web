@@ -1,0 +1,102 @@
+// Block: lightbox — a post's photos, full screen.
+//
+// Deliberately NOT themed. A photo viewer is a dark room whichever theme
+// the app is in: a light backdrop washes out the very thing it's framing,
+// and every viewer worth copying (Photos, Lightroom, Instagram) does the
+// same. The chrome is fixed white-on-scrim for the same reason.
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-xl);
+  background: rgb(0 0 0 / 92%);
+  animation: fade 140ms ease-out;
+}
+
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .overlay {
+    animation: none;
+  }
+}
+
+.image {
+  max-width: 100%;
+  // Leaves room for the counter without letting a tall photo push it off.
+  max-height: calc(100vh - var(--space-3xl) * 2);
+  object-fit: contain;
+  border-radius: var(--radius-sm);
+  cursor: default;
+}
+
+.close,
+.nav {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  cursor: pointer;
+  background: rgb(255 255 255 / 10%);
+  border: none;
+  border-radius: 999px;
+  transition: background 120ms ease;
+
+  &:hover:not(:disabled) {
+    background: rgb(255 255 255 / 22%);
+  }
+
+  &:disabled {
+    cursor: default;
+    opacity: 0.25;
+  }
+
+  // The chrome sits on an arbitrary photograph, so the focus ring has to
+  // be visible against anything.
+  &:focus-visible {
+    outline: 2px solid #fff;
+    outline-offset: 2px;
+  }
+}
+
+.close {
+  top: var(--space-lg);
+  right: var(--space-lg);
+  width: 40px;
+  height: 40px;
+}
+
+.nav {
+  top: 50%;
+  width: 48px;
+  height: 48px;
+  transform: translateY(-50%);
+}
+
+.prev {
+  left: var(--space-lg);
+}
+
+.next {
+  right: var(--space-lg);
+}
+
+.counter {
+  position: absolute;
+  bottom: var(--space-lg);
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+  background: rgb(255 255 255 / 12%);
+  border-radius: 999px;
+}

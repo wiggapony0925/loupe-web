@@ -1,19 +1,22 @@
 import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { Lock, MapPin } from "lucide-react";
+import { Grid3x3, Layers3, Lock, MapPin } from "lucide-react";
 import {
   useSocialCollection,
   useSocialMe,
   useSocialProfile,
+  useUserPosts,
 } from "@loupe/core";
 import { useAuth } from "@/auth/AuthProvider";
 import { Badge, Button, CardThumb, NoteCard, Skeleton } from "@/components";
+import { cx } from "@/lib/cx";
 import { formatMoney } from "@/lib/format";
 import { cardImageSrc } from "@/lib/cardImage";
 import { SocialAvatar } from "../components/SocialAvatar";
 import { FollowButton } from "../components/FollowButton";
 import { UserListModal } from "../components/UserListModal";
 import { EditProfileModal } from "../EditProfile/EditProfileModal";
+import { PostGrid } from "../Feed/PostGrid";
 import styles from "./SocialProfilePage.module.scss";
 
 /**
@@ -26,6 +29,7 @@ export function SocialProfilePage() {
   const { user } = useAuth();
   const [listKind, setListKind] = useState<"followers" | "following" | null>(null);
   const [editOpen, setEditOpen] = useState(false);
+  const [tab, setTab] = useState<"collection" | "posts">("collection");
 
   const { data: view, isLoading, error } = useSocialProfile(username);
   const isSelf = view?.relationship === "self";
@@ -126,7 +130,12 @@ export function SocialProfilePage() {
         )}
       </div>
 
-      {/* Collection — the profile's content grid. */}
+      {/* Collection ⇄ Posts. Two different things live on a profile — what
+          someone OWNS and what they SAY — and stacking both down one page
+          buried whichever came second. Tabs, the way every profile does it.
+
+          The privacy gate wraps both: a private account you don't follow
+          shows neither, and the server would refuse either request anyway. */}
       {!canView ? (
         <div className={styles.profile__private}>
           <span className={styles.profile__privateIcon}>
@@ -141,8 +150,40 @@ export function SocialProfilePage() {
         </div>
       ) : (
         <section className={styles.profile__collection}>
+          <div className={styles.profile__tabs} role="tablist">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={tab === "collection"}
+              className={cx(
+                styles.profile__tab,
+                tab === "collection" && styles["profile__tab--on"],
+              )}
+              onClick={() => setTab("collection")}
+            >
+              <Layers3 size={15} aria-hidden />
+              Collection
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={tab === "posts"}
+              className={cx(
+                styles.profile__tab,
+                tab === "posts" && styles["profile__tab--on"],
+              )}
+              onClick={() => setTab("posts")}
+            >
+              <Grid3x3 size={15} aria-hidden />
+              Posts
+            </button>
+          </div>
+
+          {tab === "posts" ? (
+            <PostsTab username={view.username} isSelf={isSelf} />
+          ) : (
+          <>
           <div className={styles.profile__collectionHead}>
-            <h2 className={styles.profile__collectionTitle}>Collection</h2>
             {collection && collection.estimatedValueUsd != null && (
               <span className={styles.profile__collectionValue}>
                 {formatMoney(collection.estimatedValueUsd)}
@@ -204,6 +245,8 @@ export function SocialProfilePage() {
               ))}
             </div>
           )}
+          </>
+          )}
         </section>
       )}
 
@@ -224,5 +267,58 @@ export function SocialProfilePage() {
         />
       )}
     </div>
+  );
+}
+
+/**
+ * The posts tab.
+ *
+ * Its own component so `useUserPosts` is only mounted — and only fetched —
+ * once the tab is actually opened. Hoisting the hook into the page would
+ * pull a page of posts for every profile view, most of which never leave
+ * the collection tab.
+ */
+function PostsTab({ username, isSelf }: { username: string; isSelf: boolean }) {
+  const { data, isLoading, hasNextPage, fetchNextPage, isFetchingNextPage } =
+    useUserPosts(username);
+  const posts = (data?.pages ?? []).flatMap((page) => page.items);
+
+  if (isLoading) {
+    return (
+      <div className={styles.profile__grid}>
+        {Array.from({ length: 6 }).map((_, i) => (
+          <Skeleton key={i} height={150} radius={10} />
+        ))}
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <PostGrid
+        posts={posts}
+        // A profile grid is someone's work, not a leaderboard.
+        showStats={false}
+        empty={
+          <NoteCard
+            title={isSelf ? "You haven't posted yet" : "No posts yet"}
+            message={
+              isSelf
+                ? "Show off a pull, a grail, or a whole binder."
+                : "When they post, it'll show up here."
+            }
+          />
+        }
+      />
+      {hasNextPage && (
+        <Button
+          variant="ghost"
+          onClick={() => void fetchNextPage()}
+          disabled={isFetchingNextPage}
+        >
+          {isFetchingNextPage ? "Loading…" : "Load more posts"}
+        </Button>
+      )}
+    </>
   );
 }

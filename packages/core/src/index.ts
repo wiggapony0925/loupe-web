@@ -186,6 +186,7 @@ export {
   useCommentReplies,
   useCreatePost,
   useDeletePost,
+  useEditPost,
   useLikePost,
   useAddComment,
   useDeleteComment,
