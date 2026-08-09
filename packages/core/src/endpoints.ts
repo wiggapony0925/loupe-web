@@ -256,6 +256,9 @@ export const ENDPOINTS = {
     catalog: `${V1}/admin/catalog`,
     carousels: `${V1}/admin/carousels`,
     featuredCollectors: `${V1}/admin/social/featured`,
+    moderationQueue: `${V1}/admin/social/moderation`,
+    moderationResolve: (id: string) =>
+      `${V1}/admin/social/moderation/${encodeURIComponent(id)}/resolve`,
     featuredCollector: (handle: string) =>
       `${V1}/admin/social/featured/${encodeURIComponent(handle)}`,
     carousel: (id: string) => `${V1}/admin/carousels/${encodeURIComponent(id)}`,
@@ -345,5 +348,26 @@ export const ENDPOINTS = {
       `${V1}/social/users/${encodeURIComponent(username)}/following`,
     collection: (username: string) =>
       `${V1}/social/users/${encodeURIComponent(username)}/collection`,
+    // ── The feed ──
+    feed: `${V1}/social/feed`,
+    /** Users AND hashtags in one call, ranked together server-side. */
+    searchAll: `${V1}/social/search/all`,
+    posts: `${V1}/social/posts`,
+    post: (id: string) => `${V1}/social/posts/${encodeURIComponent(id)}`,
+    postLike: (id: string) => `${V1}/social/posts/${encodeURIComponent(id)}/like`,
+    postComments: (id: string) =>
+      `${V1}/social/posts/${encodeURIComponent(id)}/comments`,
+    comment: (id: string) => `${V1}/social/comments/${encodeURIComponent(id)}`,
+    commentLike: (id: string) =>
+      `${V1}/social/comments/${encodeURIComponent(id)}/like`,
+    commentReplies: (id: string) =>
+      `${V1}/social/comments/${encodeURIComponent(id)}/replies`,
+    userPosts: (username: string) =>
+      `${V1}/social/users/${encodeURIComponent(username)}/posts`,
+    trendingHashtags: `${V1}/social/hashtags/trending`,
+    hashtagPosts: (tag: string) =>
+      `${V1}/social/hashtags/${encodeURIComponent(tag)}/posts`,
+    reports: `${V1}/social/reports`,
+    reportReasons: `${V1}/social/report-reasons`,
   },
 } as const;

@@ -178,6 +178,14 @@ export const ADMIN_PAGES: AdminPage[] = [
     flag: "admin_featured",
   },
   {
+    path: "moderation",
+    component: "AdminModeration",
+    label: "Moderation",
+    hint: "Reports & auto-flags",
+    group: "People",
+    flag: "admin_moderation",
+  },
+  {
     path: "users",
     component: "AdminUsers",
     label: "Users",

@@ -101,6 +101,9 @@ const M = {
   commandCenter: () => import("@/features/commandCenter/CommandCenter/CommandCenter"),
   vault: () => import("@/features/vault/Vault/Vault"),
   community: () => import("@/features/social/Community/Community"),
+  communityFeed: () => import("@/features/social/Feed/CommunityFeed"),
+  hashtagPage: () => import("@/features/social/Feed/HashtagPage"),
+  postPage: () => import("@/features/social/Feed/PostPage"),
   socialProfile: () => import("@/features/social/Profile/SocialProfilePage"),
   analytics: () => import("@/features/analytics/Analytics/Analytics"),
   statements: () => import("@/features/statements/Statements/Statements"),
@@ -160,11 +163,41 @@ export const router = createBrowserRouter([
           { index: true, element: el(M.commandCenter, "CommandCenter") },
           { path: "vault", element: el(M.vault, "Vault") },
           {
-            // Community — collector search, follows, requests.
+            // Community — the FEED. The collector directory that used to
+            // live here moved to /app/community/people: a social product's
+            // home is the stream, and finding someone specific is a
+            // different errand.
             path: "community",
             element: (
               <FeatureGate flag="web_social" fallback={<NotFound />}>
+                {el(M.communityFeed, "CommunityFeed")}
+              </FeatureGate>
+            ),
+          },
+          {
+            // The directory: search, suggestions, follow requests.
+            path: "community/people",
+            element: (
+              <FeatureGate flag="web_social" fallback={<NotFound />}>
                 {el(M.community, "Community")}
+              </FeatureGate>
+            ),
+          },
+          {
+            // Post permalink — the path social notifications link to
+            // (see feed_notify.post_href).
+            path: "community/p/:id",
+            element: (
+              <FeatureGate flag="web_social" fallback={<NotFound />}>
+                {el(M.postPage, "PostPage")}
+              </FeatureGate>
+            ),
+          },
+          {
+            path: "community/tag/:tag",
+            element: (
+              <FeatureGate flag="web_social" fallback={<NotFound />}>
+                {el(M.hashtagPage, "HashtagPage")}
               </FeatureGate>
             ),
           },

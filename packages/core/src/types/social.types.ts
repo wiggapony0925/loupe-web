@@ -85,3 +85,159 @@ export interface SocialCollection {
   estimatedValueUsd: number | null;
   items: SocialCollectionItem[];
 }
+
+// ── The feed ──
+
+/** Which feed tab. The BACKEND owns what each one means; clients ask. */
+export type FeedTab = "following" | "foryou" | "mine";
+
+/** A byline. Leaner than {@link SocialUserCard} — a feed page shows twenty
+ *  and a full card would drag a collection lookup along with each one. */
+export interface PostAuthor {
+  userId: string;
+  username: string;
+  displayName: string | null;
+  avatarUrl: string | null;
+  /** Gold PRO chip. */
+  isPro: boolean;
+  /** Loupe staff — drives the verified tick. */
+  isAdmin: boolean;
+  relationship: SocialRelationship;
+}
+
+export interface PostMedia {
+  id: string;
+  url: string;
+  position: number;
+  /** Intrinsic size when known — reserve this aspect ratio before load. */
+  width: number | null;
+  height: number | null;
+}
+
+/** The catalog card a post showcases. Carries no price: the card page holds
+ *  the authoritative, grade-aware number. */
+export interface PostCardRef {
+  cardId: string;
+  name: string | null;
+  imageUrl: string | null;
+  setName: string | null;
+  number: string | null;
+  tcg: string | null;
+}
+
+export interface Post {
+  id: string;
+  author: PostAuthor;
+  body: string | null;
+  media: PostMedia[];
+  card: PostCardRef | null;
+  createdAt: string;
+  likeCount: number;
+  commentCount: number;
+  viewerHasLiked: boolean;
+  /** Lowercase, no '#'. */
+  hashtags: string[];
+  /** Handles in the caption that resolve to real accounts. */
+  mentions: string[];
+  canDelete: boolean;
+}
+
+/** A page of posts. `nextCursor` is opaque — hand it back verbatim. */
+export interface Feed {
+  items: Post[];
+  nextCursor: string | null;
+}
+
+export interface PostComment {
+  id: string;
+  postId: string;
+  parentId: string | null;
+  author: PostAuthor;
+  body: string;
+  createdAt: string;
+  likeCount: number;
+  viewerHasLiked: boolean;
+  /** Replies under this top-level comment; always 0 on a reply. */
+  replyCount: number;
+  replies: PostComment[];
+  canDelete: boolean;
+}
+
+export interface CommentThread {
+  items: PostComment[];
+  nextCursor: string | null;
+  /** Every comment including replies — the number under the bubble. */
+  total: number;
+}
+
+export interface Hashtag {
+  tag: string;
+  postCount: number;
+}
+
+/** One query, both kinds of result — ranked together server-side. */
+export interface SocialSearchResults {
+  users: SocialUserCard[];
+  hashtags: Hashtag[];
+}
+
+/** New like state + the fresh total, so a client never guesses. */
+export interface LikeState {
+  liked: boolean;
+  likeCount: number;
+}
+
+/** Body for creating a post. Images ride along as real files. */
+export interface NewPostInput {
+  body?: string;
+  cardId?: string;
+  images?: File[];
+}
+
+// ── Safety ──
+
+/** What a report can say. Server-owned closed list (`/social/report-reasons`)
+ *  so both clients offer the same options and every reason can be counted. */
+export type ReportReason =
+  | "spam"
+  | "nudity"
+  | "hate"
+  | "violence"
+  | "counterfeit"
+  | "other";
+
+export interface ReportInput {
+  targetType: "post" | "comment" | "profile";
+  targetId: string;
+  reason: ReportReason | string;
+  note?: string;
+}
+
+/** One row in the moderation queue — an auto-flag or a user report. */
+export interface ModerationCase {
+  id: string;
+  targetType: string;
+  targetId: string;
+  authorId: string | null;
+  authorUsername: string | null;
+  /** "auto" (the classifier) | "report" (a user). */
+  source: string;
+  reason: string | null;
+  reasonLabel: string | null;
+  detail: string | null;
+  /** Worst classifier score, 0-1 — the queue is ordered by it. */
+  score: number | null;
+  /** A copy of the text, kept in case the target is deleted before review. */
+  excerpt: string | null;
+  reporterUsername: string | null;
+  status: string;
+  createdAt: string;
+  resolvedAt: string | null;
+}
+
+export interface ModerationQueue {
+  items: ModerationCase[];
+  total: number;
+  /** Open cases regardless of the filter — the badge on the nav. */
+  openCount: number;
+}

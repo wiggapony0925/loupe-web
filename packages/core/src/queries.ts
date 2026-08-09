@@ -4,9 +4,11 @@
  * hooks below are built on them and shared across web + mobile.
  */
 import {
+  useInfiniteQuery,
   useMutation,
   useQuery,
   useQueryClient,
+  type InfiniteData,
   type UseMutationOptions,
   type UseQueryOptions,
 } from "@tanstack/react-query";
@@ -34,6 +36,18 @@ import type {
   SocialProfileView,
   SocialRelationship,
   SocialUserCard,
+  CommentThread,
+  Feed,
+  FeedTab,
+  Hashtag,
+  LikeState,
+  NewPostInput,
+  Post,
+  PostComment,
+  ModerationCase,
+  ModerationQueue,
+  ReportInput,
+  SocialSearchResults,
   RefundResult,
   ImpersonateResult,
   AuditFacets,
@@ -2701,3 +2715,316 @@ export const useTestNotification = (
     (input) => api.admin.notifications.test(input),
     options,
   );
+
+// ── The community feed ──
+//
+// Shared by web and mobile-web alike. Nothing here decides what a feed
+// CONTAINS — that is the backend's job (see app/social/services/posts.py);
+// these hooks ask for a tab and cache the answer.
+
+/** How many posts a page carries. ~3 screens of scrolling. */
+const FEED_PAGE = 12;
+
+/** Flatten an infinite feed's pages into the list a component renders. */
+export function feedPosts(data: InfiniteData<Feed> | undefined): Post[] {
+  return data?.pages.flatMap((page) => page.items) ?? [];
+}
+
+/** One of the three feed tabs. */
+export const useFeed = (tab: FeedTab, enabled = true) =>
+  useInfiniteQuery<Feed, ApiError, InfiniteData<Feed>, unknown[], string | null>({
+    queryKey: ["social", "feed", tab],
+    queryFn: ({ pageParam }) =>
+      api.social.feed(tab, { cursor: pageParam, limit: FEED_PAGE }),
+    initialPageParam: null,
+    getNextPageParam: (last) => last.nextCursor,
+    enabled,
+    staleTime: 30_000,
+  });
+
+/** A collector's own posts — the grid on their profile. */
+export const useUserPosts = (username: string | null, enabled = true) =>
+  useInfiniteQuery<Feed, ApiError, InfiniteData<Feed>, unknown[], string | null>({
+    queryKey: ["social", "user-posts", username],
+    queryFn: ({ pageParam }) =>
+      api.social.userPosts(username as string, {
+        cursor: pageParam,
+        limit: FEED_PAGE,
+      }),
+    initialPageParam: null,
+    getNextPageParam: (last) => last.nextCursor,
+    enabled: enabled && Boolean(username),
+    staleTime: 30_000,
+  });
+
+/** Every post carrying a tag. */
+export const useHashtagPosts = (tag: string | null, enabled = true) =>
+  useInfiniteQuery<Feed, ApiError, InfiniteData<Feed>, unknown[], string | null>({
+    queryKey: ["social", "hashtag-posts", tag],
+    queryFn: ({ pageParam }) =>
+      api.social.hashtagPosts(tag as string, {
+        cursor: pageParam,
+        limit: FEED_PAGE,
+      }),
+    initialPageParam: null,
+    getNextPageParam: (last) => last.nextCursor,
+    enabled: enabled && Boolean(tag),
+    staleTime: 30_000,
+  });
+
+/** One post — the permalink a notification opens. */
+export const usePost = (id: string | null, enabled = true) =>
+  useApiQuery<Post>(["social", "post", id], () => api.social.post(id as string), {
+    enabled: enabled && Boolean(id),
+    staleTime: 30_000,
+  });
+
+/** The trending chip row above For You. */
+export const useTrendingHashtags = (enabled = true) =>
+  useApiQuery<Hashtag[]>(
+    ["social", "trending-hashtags"],
+    () => api.social.trendingHashtags(),
+    { enabled, staleTime: 5 * 60_000 },
+  );
+
+/** The feed's search bar: people and tags in one round trip. */
+export const useSocialSearchAll = (q: string, enabled = true) =>
+  useApiQuery<SocialSearchResults>(
+    ["social", "search-all", q],
+    () => api.social.searchAll(q),
+    // Two characters, matching the server's floor.
+    { enabled: enabled && q.trim().length >= 2, staleTime: 30_000 },
+  );
+
+/** A post's thread. Offset-paged: a thread grows at the BOTTOM, so rows
+ *  above the reader's position never shift. */
+export const usePostComments = (postId: string | null, enabled = true) =>
+  useInfiniteQuery<CommentThread, ApiError, InfiniteData<CommentThread>, unknown[], number>({
+    queryKey: ["social", "comments", postId],
+    queryFn: ({ pageParam }) =>
+      api.social.comments(postId as string, { offset: pageParam }),
+    initialPageParam: 0,
+    getNextPageParam: (last) =>
+      last.nextCursor ? Number(last.nextCursor) : undefined,
+    enabled: enabled && Boolean(postId),
+    staleTime: 15_000,
+  });
+
+/** The rest of a comment's replies, behind "View N replies". */
+export const useCommentReplies = (commentId: string | null, enabled = true) =>
+  useApiQuery<CommentThread>(
+    ["social", "replies", commentId],
+    () => api.social.replies(commentId as string),
+    { enabled: enabled && Boolean(commentId), staleTime: 15_000 },
+  );
+
+/**
+ * Apply `edit` to one post across EVERY cached feed — the tabs, profile
+ * grids and hashtag pages alike. Returning null removes it.
+ *
+ * Feeds overlap by design (For You can show a post you also see in
+ * Following), so patching only the list that was clicked leaves the same
+ * post showing two different like counts one tab away.
+ */
+function patchCachedFeeds(
+  qc: ReturnType<typeof useQueryClient>,
+  postId: string,
+  edit: (post: Post) => Post | null,
+): void {
+  const apply = (data: InfiniteData<Feed> | undefined) => {
+    if (!data) return data;
+    let touched = false;
+    const pages = data.pages.map((page) => {
+      if (!page.items.some((item) => item.id === postId)) return page;
+      touched = true;
+      const items: Post[] = [];
+      for (const item of page.items) {
+        if (item.id !== postId) {
+          items.push(item);
+          continue;
+        }
+        const next = edit(item);
+        if (next) items.push(next);
+      }
+      return { ...page, items };
+    });
+    // Returning the original object when nothing matched keeps React Query
+    // from re-rendering every feed on every click.
+    return touched ? { ...data, pages } : data;
+  };
+
+  for (const key of [
+    ["social", "feed"],
+    ["social", "user-posts"],
+    ["social", "hashtag-posts"],
+  ]) {
+    qc.setQueriesData<InfiniteData<Feed>>({ queryKey: key }, apply);
+  }
+  qc.setQueryData<Post>(["social", "post", postId], (post) =>
+    post ? (edit(post) ?? post) : post,
+  );
+}
+
+/** Publish a post. */
+export const useCreatePost = (
+  options?: Omit<UseMutationOptions<Post, ApiError, NewPostInput>, "mutationFn">,
+) => {
+  const qc = useQueryClient();
+  return useApiMutation<Post, NewPostInput>((input) => api.social.createPost(input), {
+    ...options,
+    onSuccess: (...args) => {
+      // A new post changes Following (it includes your own), Mine, your
+      // profile grid, and the trending chips if it carried tags.
+      void qc.invalidateQueries({ queryKey: ["social", "feed"] });
+      void qc.invalidateQueries({ queryKey: ["social", "user-posts"] });
+      void qc.invalidateQueries({ queryKey: ["social", "trending-hashtags"] });
+      options?.onSuccess?.(...args);
+    },
+  });
+};
+
+export const useDeletePost = (
+  options?: Omit<UseMutationOptions<void, ApiError, string>, "mutationFn">,
+) => {
+  const qc = useQueryClient();
+  return useApiMutation<void, string>((id) => api.social.deletePost(id), {
+    ...options,
+    onSuccess: (...args) => {
+      // Drop it from every cached page immediately — invalidating instead
+      // leaves the deleted post on screen until the refetch lands.
+      patchCachedFeeds(qc, args[1], () => null);
+      options?.onSuccess?.(...args);
+    },
+  });
+};
+
+/**
+ * Like/unlike a post, optimistically and everywhere at once. The server's
+ * own count replaces the guess on success, so the heart and the number
+ * beside it can never disagree.
+ */
+export const useLikePost = () => {
+  const qc = useQueryClient();
+  return useApiMutation<LikeState, { postId: string; liked: boolean }>(
+    ({ postId, liked }) => api.social.likePost(postId, !liked),
+    {
+      onMutate: ({ postId, liked }) => {
+        patchCachedFeeds(qc, postId, (post) => ({
+          ...post,
+          viewerHasLiked: !liked,
+          // Clamped: a stale page could otherwise render "-1 likes".
+          likeCount: Math.max(0, post.likeCount + (liked ? -1 : 1)),
+        }));
+      },
+      onSuccess: (data, { postId }) => {
+        patchCachedFeeds(qc, postId, (post) => ({
+          ...post,
+          viewerHasLiked: data.liked,
+          likeCount: data.likeCount,
+        }));
+      },
+      onError: (_error, { postId, liked }) => {
+        patchCachedFeeds(qc, postId, (post) => ({
+          ...post,
+          viewerHasLiked: liked,
+          likeCount: Math.max(0, post.likeCount + (liked ? 1 : -1)),
+        }));
+      },
+    },
+  );
+};
+
+export const useAddComment = () => {
+  const qc = useQueryClient();
+  return useApiMutation<
+    PostComment,
+    { postId: string; body: string; parentId?: string | null }
+  >(
+    ({ postId, body, parentId }) => api.social.addComment(postId, body, parentId),
+    {
+      onSuccess: (_comment, { postId, parentId }) => {
+        void qc.invalidateQueries({ queryKey: ["social", "comments", postId] });
+        if (parentId) {
+          void qc.invalidateQueries({ queryKey: ["social", "replies", parentId] });
+        }
+        // The bubble count under the post moved.
+        patchCachedFeeds(qc, postId, (post) => ({
+          ...post,
+          commentCount: post.commentCount + 1,
+        }));
+      },
+    },
+  );
+};
+
+export const useDeleteComment = () => {
+  const qc = useQueryClient();
+  return useApiMutation<void, { commentId: string; postId: string }>(
+    ({ commentId }) => api.social.deleteComment(commentId),
+    {
+      onSuccess: (_data, { postId }) => {
+        void qc.invalidateQueries({ queryKey: ["social", "comments", postId] });
+        patchCachedFeeds(qc, postId, (post) => ({
+          ...post,
+          commentCount: Math.max(0, post.commentCount - 1),
+        }));
+      },
+    },
+  );
+};
+
+/** The heart beside a comment. Invalidates rather than patches: a thread is
+ *  one screen of rows, so a refetch is cheap and can't drift. */
+export const useLikeComment = (postId: string) => {
+  const qc = useQueryClient();
+  return useApiMutation<LikeState, { commentId: string; liked: boolean }>(
+    ({ commentId, liked }) => api.social.likeComment(commentId, !liked),
+    {
+      onSuccess: (_data, { commentId }) => {
+        void qc.invalidateQueries({ queryKey: ["social", "comments", postId] });
+        void qc.invalidateQueries({ queryKey: ["social", "replies", commentId] });
+      },
+    },
+  );
+};
+
+// ── Safety: reports + the moderation queue ──
+
+/** The closed list of report reasons, straight from the server. */
+export const useReportReasons = (enabled = true) =>
+  useApiQuery<Record<string, string>>(
+    ["social", "report-reasons"],
+    api.social.reportReasons,
+    { enabled, staleTime: 60 * 60_000 },
+  );
+
+/** Report a post, comment or profile. Reporting twice is idempotent. */
+export const useReportContent = (
+  options?: Omit<
+    UseMutationOptions<ModerationCase, ApiError, ReportInput>,
+    "mutationFn"
+  >,
+) => useApiMutation<ModerationCase, ReportInput>((input) => api.social.report(input), options);
+
+/** Admin: the review queue, worst first. */
+export const useModerationQueue = (status = "open", enabled = true) =>
+  useApiQuery<ModerationQueue>(
+    ["admin", "moderation", status],
+    () => api.admin.moderationQueue(status),
+    { enabled, staleTime: 15_000 },
+  );
+
+/** Admin: close a case (and every duplicate about the same thing). */
+export const useResolveModerationCase = () => {
+  const qc = useQueryClient();
+  return useApiMutation<ModerationCase, { id: string; action: "dismiss" | "remove" }>(
+    ({ id, action }) => api.admin.resolveModerationCase(id, action),
+    {
+      onSuccess: () => {
+        void qc.invalidateQueries({ queryKey: ["admin", "moderation"] });
+        // A removal takes a post out of every feed it was in.
+        void qc.invalidateQueries({ queryKey: ["social", "feed"] });
+      },
+    },
+  );
+};

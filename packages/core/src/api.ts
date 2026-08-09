@@ -147,6 +147,19 @@ import type {
   SocialProfileView,
   SocialRelationship,
   SocialUserCard,
+  CommentThread,
+  Feed,
+  FeedTab,
+  Hashtag,
+  LikeState,
+  NewPostInput,
+  Post,
+  PostAuthor,
+  PostComment,
+  ModerationCase,
+  ModerationQueue,
+  ReportInput,
+  SocialSearchResults,
   ApplicationStatusUpdateInput,
   ApplicationSubmitted,
   ApplicationTrack,
@@ -1453,6 +1466,31 @@ export const api = {
           { method: "DELETE" },
         ),
     },
+    /** The community review queue — auto-flags and user reports, one list. */
+    moderationQueue: async (status = "open"): Promise<ModerationQueue> => {
+      const d = await apiFetch<{
+        items?: RawModerationCase[];
+        total?: number;
+        open_count?: number;
+      }>(ENDPOINTS.admin.moderationQueue, { query: { status, limit: 100 } });
+      return {
+        items: (d.items ?? []).map(toModerationCase),
+        total: d.total ?? 0,
+        openCount: d.open_count ?? 0,
+      };
+    },
+    /** Close a case. Resolving one answers every duplicate about the same
+     *  thing — the server does that, not the client. */
+    resolveModerationCase: async (
+      id: string,
+      action: "dismiss" | "remove",
+    ): Promise<ModerationCase> =>
+      toModerationCase(
+        await apiFetch<RawModerationCase>(ENDPOINTS.admin.moderationResolve(id), {
+          method: "POST",
+          query: { action },
+        }),
+      ),
     carousels: {
       overview: (): Promise<AdminCarouselsView> =>
         apiFetch<AdminCarouselsView>(ENDPOINTS.admin.carousels),
@@ -2188,6 +2226,170 @@ export const api = {
         ),
       };
     },
+
+    // ── The feed ──
+
+    /** One of the three feed tabs. `cursor` is opaque — pass back verbatim. */
+    feed: async (
+      tab: FeedTab,
+      params?: { cursor?: string | null; limit?: number },
+    ): Promise<Feed> =>
+      toFeed(
+        await apiFetch<RawFeed>(ENDPOINTS.social.feed, {
+          query: {
+            tab,
+            cursor: params?.cursor ?? undefined,
+            limit: params?.limit ?? 12,
+          },
+        }),
+      ),
+
+    /** A collector's own posts (privacy-gated). */
+    userPosts: async (
+      username: string,
+      params?: { cursor?: string | null; limit?: number },
+    ): Promise<Feed> =>
+      toFeed(
+        await apiFetch<RawFeed>(ENDPOINTS.social.userPosts(username), {
+          query: {
+            cursor: params?.cursor ?? undefined,
+            limit: params?.limit ?? 12,
+          },
+        }),
+      ),
+
+    /** Every post carrying a tag. */
+    hashtagPosts: async (
+      tag: string,
+      params?: { cursor?: string | null; limit?: number },
+    ): Promise<Feed> =>
+      toFeed(
+        await apiFetch<RawFeed>(ENDPOINTS.social.hashtagPosts(tag), {
+          query: {
+            cursor: params?.cursor ?? undefined,
+            limit: params?.limit ?? 12,
+          },
+        }),
+      ),
+
+    /** One post — the permalink a notification opens. */
+    post: async (id: string): Promise<Post> =>
+      toPost(await apiFetch<RawPost>(ENDPOINTS.social.post(id))),
+
+    /**
+     * Publish a post. Multipart, so caption and photos arrive in ONE
+     * request — a two-step "create then attach" leaves a half-made post
+     * behind whenever the second call fails.
+     */
+    createPost: async (input: NewPostInput): Promise<Post> => {
+      const form = new FormData();
+      if (input.body) form.append("body", input.body);
+      if (input.cardId) form.append("card_id", input.cardId);
+      for (const image of input.images ?? []) form.append("images", image);
+      return toPost(
+        await apiFetch<RawPost>(ENDPOINTS.social.posts, {
+          method: "POST",
+          form,
+        }),
+      );
+    },
+
+    deletePost: (id: string) =>
+      apiFetch<void>(ENDPOINTS.social.post(id), { method: "DELETE" }),
+
+    /** Set the heart on a post. Returns the server's own fresh count. */
+    likePost: async (id: string, liked: boolean): Promise<LikeState> =>
+      toLikeState(
+        await apiFetch<RawLikeState>(ENDPOINTS.social.postLike(id), {
+          method: liked ? "POST" : "DELETE",
+        }),
+      ),
+
+    /** A post's thread — top-level comments oldest first, replies inlined. */
+    comments: async (
+      postId: string,
+      params?: { offset?: number; limit?: number },
+    ): Promise<CommentThread> =>
+      toThread(
+        await apiFetch<RawCommentThread>(ENDPOINTS.social.postComments(postId), {
+          query: { offset: params?.offset ?? 0, limit: params?.limit ?? 20 },
+        }),
+      ),
+
+    /** The rest of a comment's replies, behind "View N replies". */
+    replies: async (commentId: string): Promise<CommentThread> =>
+      toThread(
+        await apiFetch<RawCommentThread>(
+          ENDPOINTS.social.commentReplies(commentId),
+          { query: { limit: 50 } },
+        ),
+      ),
+
+    addComment: async (
+      postId: string,
+      body: string,
+      parentId?: string | null,
+    ): Promise<PostComment> =>
+      toComment(
+        await apiFetch<RawComment>(ENDPOINTS.social.postComments(postId), {
+          method: "POST",
+          json: { body, parent_id: parentId ?? null },
+        }),
+      ),
+
+    deleteComment: (id: string) =>
+      apiFetch<void>(ENDPOINTS.social.comment(id), { method: "DELETE" }),
+
+    likeComment: async (id: string, liked: boolean): Promise<LikeState> =>
+      toLikeState(
+        await apiFetch<RawLikeState>(ENDPOINTS.social.commentLike(id), {
+          method: liked ? "POST" : "DELETE",
+        }),
+      ),
+
+    /** The trending chip row. */
+    trendingHashtags: async (limit = 12): Promise<Hashtag[]> => {
+      const rows = await apiFetch<RawHashtag[]>(
+        ENDPOINTS.social.trendingHashtags,
+        { query: { limit } },
+      );
+      return (rows ?? []).map((r) => ({
+        tag: r.tag,
+        postCount: r.post_count ?? 0,
+      }));
+    },
+
+    /** The closed list of report reasons, straight from the server. */
+    reportReasons: async (): Promise<Record<string, string>> =>
+      (await apiFetch<Record<string, string>>(ENDPOINTS.social.reportReasons)) ?? {},
+
+    /** Report a post, comment or profile. Idempotent per person per thing. */
+    report: async (input: ReportInput): Promise<ModerationCase> =>
+      toModerationCase(
+        await apiFetch<RawModerationCase>(ENDPOINTS.social.reports, {
+          method: "POST",
+          json: {
+            target_type: input.targetType,
+            target_id: input.targetId,
+            reason: input.reason,
+            note: input.note ?? null,
+          },
+        }),
+      ),
+
+    /** People and tags in one round trip, ranked together server-side. */
+    searchAll: async (q: string, limit = 15): Promise<SocialSearchResults> => {
+      const d = await apiFetch<RawSocialSearch>(ENDPOINTS.social.searchAll, {
+        query: { q, limit },
+      });
+      return {
+        users: (d.users ?? []).map(toSocialUserCard),
+        hashtags: (d.hashtags ?? []).map((r) => ({
+          tag: r.tag,
+          postCount: r.post_count ?? 0,
+        })),
+      };
+    },
   },
 } as const;
 
@@ -2263,6 +2465,207 @@ function toSocialProfile(r: RawSocialProfile): SocialProfile {
     avatarUrl: r.avatar_url ?? null,
     createdAt: r.created_at,
   };
+}
+
+interface RawModerationCase {
+  id: string;
+  target_type: string;
+  target_id: string;
+  author_id?: string | null;
+  author_username?: string | null;
+  source: string;
+  reason?: string | null;
+  reason_label?: string | null;
+  detail?: string | null;
+  score?: number | null;
+  excerpt?: string | null;
+  reporter_username?: string | null;
+  status: string;
+  created_at: string;
+  resolved_at?: string | null;
+}
+
+function toModerationCase(r: RawModerationCase): ModerationCase {
+  return {
+    id: r.id,
+    targetType: r.target_type,
+    targetId: r.target_id,
+    authorId: r.author_id ?? null,
+    authorUsername: r.author_username ?? null,
+    source: r.source,
+    reason: r.reason ?? null,
+    reasonLabel: r.reason_label ?? r.reason ?? null,
+    detail: r.detail ?? null,
+    score: r.score ?? null,
+    excerpt: r.excerpt ?? null,
+    reporterUsername: r.reporter_username ?? null,
+    status: r.status,
+    createdAt: r.created_at,
+    resolvedAt: r.resolved_at ?? null,
+  };
+}
+
+// ── Feed raw shapes + adapters ──
+
+interface RawPostAuthor {
+  user_id: string;
+  username: string;
+  display_name?: string | null;
+  avatar_url?: string | null;
+  is_pro?: boolean;
+  is_admin?: boolean;
+  relationship?: SocialRelationship;
+}
+
+interface RawPostMedia {
+  id: string;
+  url: string;
+  position?: number;
+  width?: number | null;
+  height?: number | null;
+}
+
+interface RawPostCardRef {
+  card_id: string;
+  name?: string | null;
+  image_url?: string | null;
+  set_name?: string | null;
+  number?: string | null;
+  tcg?: string | null;
+}
+
+interface RawPost {
+  id: string;
+  author: RawPostAuthor;
+  body?: string | null;
+  media?: RawPostMedia[];
+  card?: RawPostCardRef | null;
+  created_at: string;
+  like_count?: number;
+  comment_count?: number;
+  viewer_has_liked?: boolean;
+  hashtags?: string[];
+  mentions?: string[];
+  can_delete?: boolean;
+}
+
+interface RawFeed {
+  items?: RawPost[];
+  next_cursor?: string | null;
+}
+
+interface RawComment {
+  id: string;
+  post_id: string;
+  parent_id?: string | null;
+  author: RawPostAuthor;
+  body: string;
+  created_at: string;
+  like_count?: number;
+  viewer_has_liked?: boolean;
+  reply_count?: number;
+  replies?: RawComment[];
+  can_delete?: boolean;
+}
+
+interface RawCommentThread {
+  items?: RawComment[];
+  next_cursor?: string | null;
+  total?: number;
+}
+
+interface RawLikeState {
+  liked?: boolean;
+  like_count?: number;
+}
+
+interface RawHashtag {
+  tag: string;
+  post_count?: number;
+}
+
+interface RawSocialSearch {
+  users?: RawSocialUserCard[];
+  hashtags?: RawHashtag[];
+}
+
+function toPostAuthor(r: RawPostAuthor): PostAuthor {
+  return {
+    userId: r.user_id,
+    username: r.username,
+    displayName: r.display_name ?? null,
+    avatarUrl: r.avatar_url ?? null,
+    isPro: r.is_pro ?? false,
+    isAdmin: r.is_admin ?? false,
+    relationship: r.relationship ?? "none",
+  };
+}
+
+function toPost(r: RawPost): Post {
+  return {
+    id: r.id,
+    author: toPostAuthor(r.author),
+    body: r.body ?? null,
+    media: (r.media ?? []).map((m) => ({
+      id: m.id,
+      url: m.url,
+      position: m.position ?? 0,
+      width: m.width ?? null,
+      height: m.height ?? null,
+    })),
+    card: r.card
+      ? {
+          cardId: r.card.card_id,
+          name: r.card.name ?? null,
+          imageUrl: r.card.image_url ?? null,
+          setName: r.card.set_name ?? null,
+          number: r.card.number ?? null,
+          tcg: r.card.tcg ?? null,
+        }
+      : null,
+    createdAt: r.created_at,
+    likeCount: r.like_count ?? 0,
+    commentCount: r.comment_count ?? 0,
+    viewerHasLiked: r.viewer_has_liked ?? false,
+    hashtags: r.hashtags ?? [],
+    mentions: r.mentions ?? [],
+    canDelete: r.can_delete ?? false,
+  };
+}
+
+function toFeed(r: RawFeed): Feed {
+  return {
+    items: (r.items ?? []).map(toPost),
+    nextCursor: r.next_cursor ?? null,
+  };
+}
+
+function toComment(r: RawComment): PostComment {
+  return {
+    id: r.id,
+    postId: r.post_id,
+    parentId: r.parent_id ?? null,
+    author: toPostAuthor(r.author),
+    body: r.body,
+    createdAt: r.created_at,
+    likeCount: r.like_count ?? 0,
+    viewerHasLiked: r.viewer_has_liked ?? false,
+    replyCount: r.reply_count ?? 0,
+    replies: (r.replies ?? []).map(toComment),
+    canDelete: r.can_delete ?? false,
+  };
+}
+
+function toThread(r: RawCommentThread): CommentThread {
+  return {
+    items: (r.items ?? []).map(toComment),
+    nextCursor: r.next_cursor ?? null,
+    total: r.total ?? 0,
+  };
+}
+
+function toLikeState(r: RawLikeState): LikeState {
+  return { liked: r.liked ?? false, likeCount: r.like_count ?? 0 };
 }
 
 function toSocialUserCard(r: RawSocialUserCard): SocialUserCard {
