@@ -585,6 +585,7 @@ export const api = {
         method: "POST",
         json: { askId, verdict },
       }),
+
     /** Batch mini price series keyed by card id — for list-row sparklines. */
     sparklines: async (
       ids: string[],

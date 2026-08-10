@@ -363,7 +363,6 @@ export const useAiFeedback = () =>
   useApiMutation<{ ok: boolean }, { askId: string; verdict: "up" | "down" }>(
     ({ askId, verdict }) => api.cards.aiFeedback(askId, verdict),
   );
-
 /** Real price history for a card. `range` is a backend bucket
  *  (`7d|30d|90d|1y|all`); omit for the default window. Keyed by range so
  *  switching timeframes refetches the correctly-grained series. */
