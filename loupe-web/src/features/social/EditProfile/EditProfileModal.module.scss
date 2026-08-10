@@ -72,6 +72,45 @@
     }
   }
 
+  &__links {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+    border: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  &__linkRow {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: end;
+    gap: var(--space-sm);
+  }
+
+  &__linkIcon {
+    color: var(--ink-dim);
+    margin-bottom: 10px;
+  }
+
+  &__linkClear {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    margin-bottom: 6px;
+    border: none;
+    border-radius: 999px;
+    background: var(--bg-sunken);
+    color: var(--ink-dim);
+    cursor: pointer;
+
+    &:hover {
+      color: var(--ink);
+    }
+  }
+
   &__privacy {
     display: flex;
     align-items: center;

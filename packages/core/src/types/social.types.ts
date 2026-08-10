@@ -10,6 +10,8 @@ export interface SocialProfile {
   bio: string | null;
   location: string | null;
   isPrivate: boolean;
+  /** Canonical https URLs keyed by platform (server-normalized). */
+  links: Record<string, string> | null;
   avatarUrl: string | null;
   createdAt: string;
 }
@@ -24,6 +26,9 @@ export interface SocialProfileInput {
   bio?: string | null;
   location?: string | null;
   isPrivate?: boolean;
+  /** Omit = leave stored links alone; {} = clear; values may be bare
+   *  handles — the server canonicalises to https URLs. */
+  links?: Record<string, string> | null;
 }
 
 /** One row in search results / follower lists. */
@@ -53,6 +58,8 @@ export interface SocialProfileView {
   followerCount: number;
   followingCount: number;
   cardCount: number;
+  /** Canonical https URLs keyed by platform (server-normalized). */
+  links: Record<string, string> | null;
   relationship: SocialRelationship;
   canViewCollection: boolean;
 }

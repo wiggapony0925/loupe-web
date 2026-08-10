@@ -229,11 +229,11 @@ export function AdminNotifications() {
       <h2 className={styles.logTitle}>Recently sent</h2>
       {logQ.isLoading ? (
         <Skeleton height={180} />
-      ) : (logQ.data?.items.length ?? 0) === 0 ? (
+      ) : (logQ.data?.items?.length ?? 0) === 0 ? (
         <p className={admin.subtitle}>Nothing sent yet.</p>
       ) : (
         <ul className={admin.list}>
-          {logQ.data?.items.map((n: NotificationRow) => (
+          {(logQ.data?.items ?? []).map((n: NotificationRow) => (
             <li key={n.id} className={admin.row}>
               <div>
                 <strong>{n.title}</strong>

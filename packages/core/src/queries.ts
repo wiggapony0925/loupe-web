@@ -2726,9 +2726,11 @@ export const useTestNotification = (
 /** How many posts a page carries. ~3 screens of scrolling. */
 const FEED_PAGE = 12;
 
-/** Flatten an infinite feed's pages into the list a component renders. */
+/** Flatten an infinite feed's pages into the list a component renders.
+ *  Null-tolerant: a 204/failed mapping must degrade to nothing, never to a
+ *  render throw (getNextPageParam runs during RENDER in TanStack v5). */
 export function feedPosts(data: InfiniteData<Feed> | undefined): Post[] {
-  return data?.pages.flatMap((page) => page.items) ?? [];
+  return (data?.pages ?? []).flatMap((page) => page?.items ?? []);
 }
 
 /** One of the three feed tabs. */
@@ -2738,7 +2740,7 @@ export const useFeed = (tab: FeedTab, enabled = true) =>
     queryFn: ({ pageParam }) =>
       api.social.feed(tab, { cursor: pageParam, limit: FEED_PAGE }),
     initialPageParam: null,
-    getNextPageParam: (last) => last.nextCursor,
+    getNextPageParam: (last) => last?.nextCursor ?? null,
     enabled,
     staleTime: 30_000,
   });
@@ -2753,7 +2755,7 @@ export const useUserPosts = (username: string | null, enabled = true) =>
         limit: FEED_PAGE,
       }),
     initialPageParam: null,
-    getNextPageParam: (last) => last.nextCursor,
+    getNextPageParam: (last) => last?.nextCursor ?? null,
     enabled: enabled && Boolean(username),
     staleTime: 30_000,
   });
@@ -2768,7 +2770,7 @@ export const useHashtagPosts = (tag: string | null, enabled = true) =>
         limit: FEED_PAGE,
       }),
     initialPageParam: null,
-    getNextPageParam: (last) => last.nextCursor,
+    getNextPageParam: (last) => last?.nextCursor ?? null,
     enabled: enabled && Boolean(tag),
     staleTime: 30_000,
   });
@@ -2806,7 +2808,7 @@ export const usePostComments = (postId: string | null, enabled = true) =>
       api.social.comments(postId as string, { offset: pageParam }),
     initialPageParam: 0,
     getNextPageParam: (last) =>
-      last.nextCursor ? Number(last.nextCursor) : undefined,
+      last?.nextCursor ? Number(last.nextCursor) : undefined,
     enabled: enabled && Boolean(postId),
     staleTime: 15_000,
   });
