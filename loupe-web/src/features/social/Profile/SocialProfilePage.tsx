@@ -17,6 +17,7 @@ import { FollowButton } from "../components/FollowButton";
 import { UserListModal } from "../components/UserListModal";
 import { EditProfileModal } from "../EditProfile/EditProfileModal";
 import { PostGrid } from "../Feed/PostGrid";
+import { linkDisplayText, orderedLinks } from "../socialLinks";
 import styles from "./SocialProfilePage.module.scss";
 
 /**
@@ -111,6 +112,24 @@ export function SocialProfilePage() {
           </span>
         )}
         {view.bio && <p className={styles.profile__bio}>{view.bio}</p>}
+        {/* Where else to find them — icon + handle per platform, straight
+            under the bio (the lisacollects pattern). */}
+        {orderedLinks(view.links).length > 0 && (
+          <div className={styles.profile__links}>
+            {orderedLinks(view.links).map(({ platform, url }) => (
+              <a
+                key={platform.key}
+                className={styles.profile__link}
+                href={url}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <platform.Icon size={13} aria-hidden />
+                {linkDisplayText(url)}
+              </a>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* The one action. */}

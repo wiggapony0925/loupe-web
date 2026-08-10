@@ -2131,6 +2131,9 @@ export const api = {
             bio: input.bio ?? null,
             location: input.location ?? null,
             is_private: input.isPrivate ?? false,
+            // Omitted entirely when the caller doesn't manage links — the
+            // server preserves stored links unless the field is present.
+            ...(input.links !== undefined ? { links: input.links } : {}),
           },
         }),
       ),
@@ -2193,6 +2196,7 @@ export const api = {
         followerCount: d.follower_count ?? 0,
         followingCount: d.following_count ?? 0,
         cardCount: d.card_count ?? 0,
+        links: d.links ?? null,
         relationship: d.relationship ?? "none",
         canViewCollection: d.can_view_collection ?? false,
       };
@@ -2443,6 +2447,7 @@ interface RawSocialProfile {
   bio?: string | null;
   location?: string | null;
   is_private?: boolean;
+  links?: Record<string, string> | null;
   avatar_url?: string | null;
   created_at: string;
 }
@@ -2471,6 +2476,7 @@ interface RawSocialFollowRequest {
 
 interface RawSocialProfileView extends RawSocialUserCard {
   bio?: string | null;
+  links?: Record<string, string> | null;
   joined_at: string;
   follower_count?: number;
   following_count?: number;
@@ -2504,6 +2510,7 @@ function toSocialProfile(r: RawSocialProfile): SocialProfile {
     bio: r.bio ?? null,
     location: r.location ?? null,
     isPrivate: r.is_private ?? false,
+    links: r.links ?? null,
     avatarUrl: r.avatar_url ?? null,
     createdAt: r.created_at,
   };

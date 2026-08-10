@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Camera } from "lucide-react";
+import { Camera, X } from "lucide-react";
 import {
   useUpdateSocialProfile,
   useUploadSocialAvatar,
@@ -7,6 +7,7 @@ import {
 } from "@loupe/core";
 import { Button, Modal, Switch, TextField } from "@/components";
 import { SocialAvatar } from "../components/SocialAvatar";
+import { SOCIAL_PLATFORMS } from "../socialLinks";
 import styles from "./EditProfileModal.module.scss";
 
 export interface EditProfileModalProps {
@@ -34,6 +35,11 @@ export function EditProfileModal({
   const [bio, setBio] = useState(profile?.bio ?? "");
   const [location, setLocation] = useState(profile?.location ?? "");
   const [isPrivate, setIsPrivate] = useState(profile?.isPrivate ?? false);
+  // Per-platform links, exactly as typed — the SERVER canonicalises
+  // (@handle → https URL) on save and the cache refetch re-seeds us.
+  const [links, setLinks] = useState<Record<string, string>>(
+    profile?.links ?? {},
+  );
   const [error, setError] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -44,6 +50,7 @@ export function EditProfileModal({
       setBio(profile?.bio ?? "");
       setLocation(profile?.location ?? "");
       setIsPrivate(profile?.isPrivate ?? false);
+      setLinks(profile?.links ?? {});
       setError(null);
     }
   }, [open, profile]);
@@ -70,6 +77,13 @@ export function EditProfileModal({
       bio: bio.trim() || null,
       location: location.trim() || null,
       isPrivate,
+      // Explicit replace: blanks drop out, {} clears everything. Unknown
+      // platforms and junk URLs come back as a 422 in the error line.
+      links: Object.fromEntries(
+        Object.entries(links)
+          .map(([k, v]): [string, string] => [k, v.trim()])
+          .filter(([, v]) => v !== ""),
+      ),
     });
   };
 
@@ -148,6 +162,45 @@ export function EditProfileModal({
           onChange={(e) => setLocation(e.target.value)}
           placeholder="City, Region (optional)"
         />
+
+        {/* ── Social links — the lisacollects pattern: one row per
+            platform, type a handle or paste a URL, ✕ clears. ── */}
+        <fieldset className={styles.edit__links}>
+          <legend className={styles.edit__label}>Social links</legend>
+          <p className={styles.edit__hint}>
+            Shown on your profile. Type a handle like @{username.trim() || "you"}{" "}
+            or paste a full link.
+          </p>
+          {SOCIAL_PLATFORMS.map(({ key, label, Icon }) => {
+            const value = links[key] ?? "";
+            return (
+              <div key={key} className={styles.edit__linkRow}>
+                <Icon size={15} aria-hidden className={styles.edit__linkIcon} />
+                <TextField
+                  label={label}
+                  value={value}
+                  onChange={(e) =>
+                    setLinks((prev) => ({ ...prev, [key]: e.target.value }))
+                  }
+                  placeholder={key === "web" ? "https://…" : "@handle or URL"}
+                  autoCapitalize="none"
+                  autoCorrect="off"
+                  spellCheck={false}
+                />
+                {value ? (
+                  <button
+                    type="button"
+                    className={styles.edit__linkClear}
+                    onClick={() => setLinks((prev) => ({ ...prev, [key]: "" }))}
+                    aria-label={`Clear ${label} link`}
+                  >
+                    <X size={14} aria-hidden />
+                  </button>
+                ) : null}
+              </div>
+            );
+          })}
+        </fieldset>
 
         <div className={styles.edit__privacy}>
           <div className={styles.edit__privacyText}>
