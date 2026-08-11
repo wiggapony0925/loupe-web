@@ -87,13 +87,29 @@ export function PostMedia({
       className={styles.media}
       style={{ aspectRatio: String(aspectRatio(media)) }}
     >
-      <img
-        src={current.url}
-        alt=""
-        className={styles.mediaImage}
-        loading="lazy"
-        onClick={onClick}
-      />
+      {current.kind === "video" ? (
+        // The video's own controls own the click surface — wiring the
+        // like/viewer gestures over them would fight every play/pause tap.
+        // playsInline matters doubly here: the community feed also ships
+        // inside the mobile app's WebView, where a bare <video> fullscreens
+        // itself on play.
+        <video
+          key={current.id}
+          src={current.url}
+          className={styles.mediaImage}
+          controls
+          playsInline
+          preload="metadata"
+        />
+      ) : (
+        <img
+          src={current.url}
+          alt=""
+          className={styles.mediaImage}
+          loading="lazy"
+          onClick={onClick}
+        />
+      )}
 
       {/* Keyed on the burst counter so React remounts it and the CSS
           animation restarts; a class toggle would only play once. */}

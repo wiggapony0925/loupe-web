@@ -15,8 +15,15 @@ const photo = (id: string): PostMediaModel => ({
   id,
   url: `https://cdn.test/${id}.jpg`,
   position: 0,
+  kind: "image",
   width: 1000,
   height: 1000,
+});
+
+const video = (id: string): PostMediaModel => ({
+  ...photo(id),
+  url: `https://cdn.test/${id}.mp4`,
+  kind: "video",
 });
 
 function setup(props: Partial<Parameters<typeof PostMedia>[0]> = {}) {
@@ -74,5 +81,21 @@ describe("PostMedia gestures", () => {
     // The heart is decorative and aria-hidden, so it's found by class,
     // not by role — the point is only that it mounted.
     expect(document.querySelector("svg[aria-hidden]")).toBeTruthy();
+  });
+});
+
+describe("PostMedia video", () => {
+  it("renders a playable player for kind=video, not a dead <img>", () => {
+    // The white-box bug: a video URL inside <img> renders a blank frame
+    // with nothing to click. kind comes from the server precisely so the
+    // client never has to sniff the MIME type.
+    render(<PostMedia media={[video("v")]} />);
+    const player = document.querySelector("video");
+    expect(player).toBeTruthy();
+    expect(player!.getAttribute("src")).toBe("https://cdn.test/v.mp4");
+    expect(player!.hasAttribute("controls")).toBe(true);
+    // WKWebView (the app's community shell) fullscreens bare videos.
+    expect(player!.hasAttribute("playsinline")).toBe(true);
+    expect(document.querySelector("img")).toBeNull();
   });
 });

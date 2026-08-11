@@ -2597,6 +2597,7 @@ interface RawPostMedia {
   id: string;
   url: string;
   position?: number;
+  kind?: "image" | "video" | string;
   width?: number | null;
   height?: number | null;
 }
@@ -2688,6 +2689,9 @@ function toPost(r: RawPost): Post {
       id: m.id,
       url: m.url,
       position: m.position ?? 0,
+      // Unknown kinds degrade to image — a wrong <img> is a blank frame,
+      // a wrong <video> is a broken player with dead controls.
+      kind: m.kind === "video" ? "video" : "image",
       width: m.width ?? null,
       height: m.height ?? null,
     })),

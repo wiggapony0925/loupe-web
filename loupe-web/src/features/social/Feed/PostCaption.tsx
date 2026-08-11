@@ -53,7 +53,7 @@ export function PostCaption({ body, hashtags, mentions, prefix }: PostCaptionPro
             <Link
               key={key}
               to={`/app/community/tag/${encodeURIComponent(tag)}`}
-              className={styles.token}
+              className={styles.tag}
             >
               {part}
             </Link>

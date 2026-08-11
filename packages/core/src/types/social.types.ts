@@ -116,6 +116,8 @@ export interface PostMedia {
   id: string;
   url: string;
   position: number;
+  /** "image" or "video" — sent as a KIND so no client sniffs the MIME type. */
+  kind: "image" | "video";
   /** Intrinsic size when known — reserve this aspect ratio before load. */
   width: number | null;
   height: number | null;

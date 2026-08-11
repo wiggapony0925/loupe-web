@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { ImagePlus, X } from "lucide-react";
 import { useCreatePost } from "@loupe/core";
 import { Button, Panel } from "@/components";
@@ -30,6 +30,16 @@ export function Composer({
   const [images, setImages] = useState<File[]>([]);
   const [error, setError] = useState<string | null>(null);
 
+  // The #tags the server will index, previewed live as chips — the same
+  // rounded look they'll have on the published post.
+  const draftTags = useMemo(() => {
+    const seen = new Set<string>();
+    for (const match of body.matchAll(/#([A-Za-z0-9_]+)/g)) {
+      seen.add(match[1]!.toLowerCase());
+    }
+    return [...seen];
+  }, [body]);
+
   const canPost = (body.trim().length > 0 || images.length > 0) && !create.isPending;
 
   const publish = () => {
@@ -60,6 +70,16 @@ export function Composer({
           rows={2}
         />
       </div>
+
+      {draftTags.length > 0 && (
+        <div className={styles.draftTags} aria-label="Tags in this post">
+          {draftTags.map((tag) => (
+            <span key={tag} className={styles.tag}>
+              #{tag}
+            </span>
+          ))}
+        </div>
+      )}
 
       {images.length > 0 && (
         <ul className={styles.thumbs}>

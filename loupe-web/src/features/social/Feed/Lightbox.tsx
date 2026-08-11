@@ -77,12 +77,24 @@ export function Lightbox({
         <X size={22} />
       </button>
 
-      <img
-        src={current.url}
-        alt=""
-        className={styles.image}
-        onClick={(event) => event.stopPropagation()}
-      />
+      {current.kind === "video" ? (
+        <video
+          key={current.id}
+          src={current.url}
+          className={styles.image}
+          controls
+          playsInline
+          autoPlay
+          onClick={(event) => event.stopPropagation()}
+        />
+      ) : (
+        <img
+          src={current.url}
+          alt=""
+          className={styles.image}
+          onClick={(event) => event.stopPropagation()}
+        />
+      )}
 
       {media.length > 1 && (
         <>
