@@ -4,10 +4,16 @@ import { MemoryRouter } from "react-router-dom";
 import { PostCaption } from "./PostCaption";
 
 /**
- * The rule under test: a word is only linked when the SERVER says it
- * resolves. Linking every `#word` and `@word` the regex finds produces tag
- * pages with nothing on them, profiles that don't exist, and — worst —
- * turns an email address in a caption into a broken mention.
+ * The rules under test:
+ *
+ * 1. A `#tag` always READS as a tag — it wears the chip whether or not the
+ *    server indexed it, because a hashtag that renders as plain grey text
+ *    doesn't look like the tag the author clearly typed.
+ * 2. But a word is only LINKED when the server says it resolves: only an
+ *    indexed tag gets a page link, and only a resolved @handle gets a
+ *    profile link. Linking everything the regex finds produces tag pages
+ *    with nothing on them, profiles that don't exist, and — worst — turns
+ *    an email address in a caption into a broken mention.
  */
 function renderCaption(props: Parameters<typeof PostCaption>[0]) {
   return render(
@@ -26,9 +32,14 @@ describe("PostCaption", () => {
     );
   });
 
-  it("leaves a hashtag the server did NOT index as plain text", () => {
+  it("still shows a tag chip when the server did NOT index it, but not a link", () => {
     renderCaption({ body: "grail #charizard", hashtags: [], mentions: [] });
+    // No page link (the tag didn't earn a page)…
     expect(screen.queryByRole("link", { name: "#charizard" })).toBeNull();
+    // …but it's still a chip, not bare text — so it reads as a tag.
+    const chip = screen.getByText("#charizard");
+    expect(chip.tagName).toBe("SPAN");
+    expect(chip.className).toMatch(/tag/);
   });
 
   it("links a mention that resolves to a real account", () => {

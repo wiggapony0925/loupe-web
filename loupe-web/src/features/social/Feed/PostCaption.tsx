@@ -47,8 +47,19 @@ export function PostCaption({ body, hashtags, mentions, prefix }: PostCaptionPro
       {parts.map((part, index) => {
         const key = `${index}-${part}`;
         if (part.startsWith("#")) {
+          // A #tag always READS as a tag — it wears the chip either way.
+          // Only server-indexed tags become a LINK to a page, though: the
+          // backend's hashtag policy decides which words earn a browsable
+          // page (app/social/hashtag_policy.py), and an un-indexed tag chip
+          // is deliberately inert rather than a link to nothing.
           const tag = part.slice(1).toLowerCase();
-          if (!tags.has(tag)) return <Fragment key={key}>{part}</Fragment>;
+          if (!tags.has(tag)) {
+            return (
+              <span key={key} className={styles.tag}>
+                {part}
+              </span>
+            );
+          }
           return (
             <Link
               key={key}
