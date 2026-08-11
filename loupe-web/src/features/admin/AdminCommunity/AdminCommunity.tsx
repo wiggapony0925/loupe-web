@@ -6,6 +6,8 @@ import {
   Eye,
   Flag,
   MessageCircle,
+  ShieldCheck,
+  ShieldOff,
   Sparkles,
   Star,
   Timer,
@@ -52,6 +54,14 @@ export function AdminCommunity() {
         <Link to="/admin/moderation" className={styles.link}>
           <Flag size={14} />
           Moderation queue
+        </Link>
+        <Link to="/admin/moderation?tab=blocked" className={styles.link}>
+          <ShieldOff size={14} />
+          Blocked at post
+        </Link>
+        <Link to="/admin/moderation?tab=dismissed" className={styles.link}>
+          <ShieldCheck size={14} />
+          Cleared
         </Link>
         <Link to="/admin/featured" className={styles.link}>
           <Star size={14} />

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Search, ShieldCheck, Shield, ChevronRight } from "lucide-react";
 import { useAdminUsers } from "@loupe/core";
 import { Skeleton, NoteCard, Button, TextField, Pagination } from "@/components";
@@ -15,8 +16,12 @@ function joined(iso: string): string {
 
 /** Admin user directory — search, then open any user for full detail + actions. */
 export function AdminUsers() {
-  const [draft, setDraft] = useState("");
-  const [q, setQ] = useState("");
+  // `?q=` seeds the search — the moderation queue's "manage account" link
+  // lands here with the author already looked up.
+  const [params] = useSearchParams();
+  const seeded = params.get("q") ?? "";
+  const [draft, setDraft] = useState(seeded);
+  const [q, setQ] = useState(seeded);
   const [page, setPage] = useState(1);
   const [activeId, setActiveId] = useState<string | null>(null);
 

@@ -156,6 +156,13 @@
   font-size: var(--text-xs);
   color: var(--ink-dim);
 
+  .manage {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    vertical-align: text-bottom;
+  }
+
   a {
     color: var(--accent-mint);
   }

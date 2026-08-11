@@ -129,4 +129,11 @@
     font-size: var(--text-sm);
     color: var(--down);
   }
+
+  // A moderation refusal is a policy notice, not a malfunction — amber,
+  // not red, so "reword this" doesn't read like "something broke".
+  &__refusal {
+    font-size: var(--text-sm);
+    color: var(--accent-amber);
+  }
 }

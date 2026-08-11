@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import type { Post } from "@loupe/core";
 import { useEditPost } from "@loupe/core";
+import { useModeratedSubmit } from "moderato/react";
 import { Button, Modal } from "@/components";
 import styles from "./Feed.module.scss";
 
@@ -27,14 +28,16 @@ export function EditPostModal({
 }) {
   const edit = useEditPost();
   const [body, setBody] = useState("");
-  const [error, setError] = useState<string | null>(null);
+  const { submit, refusal, dismiss, pending, error } = useModeratedSubmit(edit, {
+    onDone: onClose,
+  });
 
   // Reseed on a DIFFERENT post, keyed by id — a cache patch (someone likes
   // it while the modal is open) must not wipe out what's being typed.
   useEffect(() => {
     if (post) {
       setBody(post.body ?? "");
-      setError(null);
+      dismiss();
     }
   }, [post?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -43,15 +46,11 @@ export function EditPostModal({
   // Clearing the text of a text-only post is a delete, and the author
   // should do it as one rather than be left with an invisible post.
   const wouldEmpty = body.trim().length === 0 && !hasOtherContent;
-  const canSave = dirty && !wouldEmpty && !edit.isPending;
+  const canSave = dirty && !wouldEmpty && !pending;
 
   const save = () => {
     if (!post || !canSave) return;
-    setError(null);
-    edit.mutate(
-      { postId: post.id, body: body.trim() },
-      { onSuccess: () => onClose(), onError: (err) => setError(err.message) },
-    );
+    submit({ postId: post.id, body: body.trim() });
   };
 
   return (
@@ -67,7 +66,7 @@ export function EditPostModal({
         onChange={(event) => {
           setBody(event.target.value.slice(0, MAX_BODY));
           // Editing IS the answer to a refusal — clear it as they type.
-          if (error) setError(null);
+          if (refusal) dismiss();
         }}
         placeholder="Write a caption…"
         aria-label="Post caption"
@@ -80,12 +79,17 @@ export function EditPostModal({
           A post needs a caption or a photo — delete it instead.
         </p>
       )}
-      {error && <p className={styles.composerError}>{error}</p>}
+      {refusal && (
+        <p className={styles.composerRefusal} role="alert">
+          {refusal}
+        </p>
+      )}
+      {error && <p className={styles.composerError}>{error.message}</p>}
 
       <div className={styles.composerActions}>
         <span className={styles.composerCount}>{MAX_BODY - body.length}</span>
         <Button onClick={save} disabled={!canSave}>
-          {edit.isPending ? "Saving…" : "Save"}
+          {pending ? "Saving…" : "Save"}
         </Button>
       </div>
     </Modal>

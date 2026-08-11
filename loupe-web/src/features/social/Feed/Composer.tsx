@@ -1,6 +1,8 @@
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import { ImagePlus, X } from "lucide-react";
 import { useCreatePost } from "@loupe/core";
+import { useModeratedSubmit } from "moderato/react";
+import { ModeratedUpload } from "moderato/web";
 import { Button, Panel } from "@/components";
 import { SocialAvatar } from "../components/SocialAvatar";
 import styles from "./Feed.module.scss";
@@ -25,10 +27,18 @@ export function Composer({
   avatarUrl: string | null;
 }) {
   const create = useCreatePost();
-  const fileRef = useRef<HTMLInputElement>(null);
   const [body, setBody] = useState("");
   const [images, setImages] = useState<File[]>([]);
-  const [error, setError] = useState<string | null>(null);
+
+  // The SERVER is the only real screen (one chokepoint, one refusal copy
+  // registry) — this hook just makes its 422 read the same everywhere:
+  // draft kept, backend's own words shown, editing clears the notice.
+  const { submit, refusal, dismiss, pending, error } = useModeratedSubmit(create, {
+    onDone: () => {
+      setBody("");
+      setImages([]);
+    },
+  });
 
   // The #tags the server will index, previewed live as chips — the same
   // rounded look they'll have on the published post.
@@ -40,21 +50,11 @@ export function Composer({
     return [...seen];
   }, [body]);
 
-  const canPost = (body.trim().length > 0 || images.length > 0) && !create.isPending;
+  const canPost = (body.trim().length > 0 || images.length > 0) && !pending;
 
   const publish = () => {
     if (!canPost) return;
-    setError(null);
-    create.mutate(
-      { body: body.trim() || undefined, images },
-      {
-        onSuccess: () => {
-          setBody("");
-          setImages([]);
-        },
-        onError: (err) => setError(err.message || "Couldn't post. Please try again."),
-      },
-    );
+    submit({ body: body.trim() || undefined, images });
   };
 
   return (
@@ -64,7 +64,11 @@ export function Composer({
         <textarea
           className={styles.composerBody}
           value={body}
-          onChange={(e) => setBody(e.target.value.slice(0, MAX_BODY))}
+          onChange={(e) => {
+            setBody(e.target.value.slice(0, MAX_BODY));
+            // Editing IS the answer to a refusal — clear it as they type.
+            if (refusal) dismiss();
+          }}
           placeholder="What did you pull? Use #tags and @mentions."
           aria-label="Post caption"
           rows={2}
@@ -100,31 +104,40 @@ export function Composer({
         </ul>
       )}
 
-      {error && <p className={styles.composerError}>{error}</p>}
+      {refusal && (
+        <p className={styles.composerRefusal} role="alert">
+          {refusal}
+        </p>
+      )}
+      {error && (
+        <p className={styles.composerError}>
+          {error.message || "Couldn't post. Please try again."}
+        </p>
+      )}
 
       <div className={styles.composerTools}>
-        <input
-          ref={fileRef}
-          type="file"
+        <ModeratedUpload
           accept="image/jpeg,image/png,image/webp"
           multiple
-          hidden
-          onChange={(e) => {
-            const picked = Array.from(e.target.files ?? []);
-            setImages((current) => [...current, ...picked].slice(0, MAX_IMAGES));
-            // Reset so re-picking the same file fires onChange again.
-            e.target.value = "";
-          }}
-        />
-        <Button
-          variant="ghost"
-          size="sm"
-          disabled={images.length >= MAX_IMAGES}
-          onClick={() => fileRef.current?.click()}
+          remaining={MAX_IMAGES - images.length}
+          onAccept={(files) =>
+            setImages((current) => [...current, ...files].slice(0, MAX_IMAGES))
+          }
         >
-          <ImagePlus size={16} />
-          {images.length > 0 ? `${images.length}/${MAX_IMAGES} photos` : "Add photos"}
-        </Button>
+          {({ open }) => (
+            <Button
+              variant="ghost"
+              size="sm"
+              disabled={images.length >= MAX_IMAGES}
+              onClick={open}
+            >
+              <ImagePlus size={16} />
+              {images.length > 0
+                ? `${images.length}/${MAX_IMAGES} photos`
+                : "Add photos"}
+            </Button>
+          )}
+        </ModeratedUpload>
         <span className={styles.composerSpacer} />
         {/* Only near the limit: a counter always on screen turns writing
             into a budget. */}
@@ -132,7 +145,7 @@ export function Composer({
           <span className={styles.composerCount}>{MAX_BODY - body.length}</span>
         )}
         <Button size="sm" disabled={!canPost} onClick={publish}>
-          {create.isPending ? "Posting…" : "Post"}
+          {pending ? "Posting…" : "Post"}
         </Button>
       </div>
     </Panel>

@@ -11,10 +11,15 @@ WORKDIR /app
 # Workspace manifests + lockfile first (better layer caching on source-only edits).
 COPY package.json package-lock.json ./
 COPY packages ./packages
+COPY moderato ./moderato
 COPY loupe-web ./loupe-web
 
-# Install the whole workspace; local @loupe/* resolve via workspace symlinks.
+# Install the whole workspace; local @loupe/* + moderato resolve via symlinks.
 RUN npm ci
+
+# moderato's exports point at its dist/ (it ships to npm), and dist is
+# excluded from the upload context — build it here before the SPA needs it.
+RUN npm run build -w moderato
 
 # tsc --noEmit && vite build → loupe-web/dist
 RUN npm run build -w loupe-web

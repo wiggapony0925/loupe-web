@@ -5,6 +5,7 @@
   "description": "Loupe monorepo — shared logic (@loupe/core) consumed by the web client and (next) the Expo app.",
   "workspaces": [
     "packages/*",
+    "moderato",
     "loupe-web"
   ],
   "scripts": {

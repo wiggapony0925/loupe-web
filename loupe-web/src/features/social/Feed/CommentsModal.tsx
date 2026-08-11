@@ -9,6 +9,7 @@ import {
   useLikeComment,
   usePostComments,
 } from "@loupe/core";
+import { useModeratedSubmit } from "moderato/react";
 import { Button, Modal, Skeleton } from "@/components";
 import { cx } from "@/lib/cx";
 import { relativeTime } from "@/lib/format";
@@ -37,6 +38,15 @@ export function CommentsModal({
 
   const thread = usePostComments(postId);
   const add = useAddComment();
+  // Comments are screened server-side like any publish; before moderato a
+  // 422 here vanished — spinner stopped, nothing explained. The backend's
+  // own refusal copy now shows, and the draft survives.
+  const moderated = useModeratedSubmit(add, {
+    onDone: () => {
+      setDraft("");
+      setReplyTo(null);
+    },
+  });
 
   const comments = thread.data?.pages.flatMap((page) => page.items) ?? [];
   const total = thread.data?.pages[0]?.total ?? post?.commentCount ?? 0;
@@ -44,22 +54,15 @@ export function CommentsModal({
   const close = () => {
     setDraft("");
     setReplyTo(null);
+    moderated.dismiss();
     onClose();
   };
 
   const submit = (event: React.FormEvent) => {
     event.preventDefault();
     const body = draft.trim();
-    if (!body || !postId || add.isPending) return;
-    add.mutate(
-      { postId, body, parentId: replyTo?.id ?? null },
-      {
-        onSuccess: () => {
-          setDraft("");
-          setReplyTo(null);
-        },
-      },
-    );
+    if (!body || !postId || moderated.pending) return;
+    moderated.submit({ postId, body, parentId: replyTo?.id ?? null });
   };
 
   const startReply = (comment: PostComment) => {
@@ -152,11 +155,25 @@ export function CommentsModal({
           </p>
         )}
 
+        {moderated.refusal && (
+          <p className={styles.composerRefusal} role="alert">
+            {moderated.refusal}
+          </p>
+        )}
+        {moderated.error && (
+          <p className={styles.composerError}>
+            {moderated.error.message || "Couldn't comment. Please try again."}
+          </p>
+        )}
+
         <form className={styles.composer} onSubmit={submit}>
           <input
             className={styles.composerInput}
             value={draft}
-            onChange={(e) => setDraft(e.target.value)}
+            onChange={(e) => {
+              setDraft(e.target.value);
+              if (moderated.refusal) moderated.dismiss();
+            }}
             placeholder="Add a comment…"
             aria-label="Write a comment"
             maxLength={1000}
@@ -164,7 +181,7 @@ export function CommentsModal({
           <button
             type="submit"
             className={styles.composerSend}
-            disabled={!draft.trim() || add.isPending}
+            disabled={!draft.trim() || moderated.pending}
             aria-label="Post comment"
           >
             <SendHorizonal size={16} />

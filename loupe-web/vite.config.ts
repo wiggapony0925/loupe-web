@@ -14,7 +14,12 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": fileURLToPath(new URL("./src", import.meta.url))
-    }
+    },
+    // moderato is a linked workspace package with its OWN node_modules
+    // (it ships to npm and installs standalone). Without dedupe, imports
+    // resolved through the symlink find that copy of React → two Reacts,
+    // broken hooks.
+    dedupe: ["react", "react-dom"]
   },
   css: {
     preprocessorOptions: {

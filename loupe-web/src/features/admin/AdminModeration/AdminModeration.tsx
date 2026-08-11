@@ -1,17 +1,23 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
-import { Bot, Flag, ShieldCheck } from "lucide-react";
+import { Link, useSearchParams } from "react-router-dom";
+import { Bot, Flag, ShieldCheck, UserCog } from "lucide-react";
 import { useModerationQueue, useResolveModerationCase } from "@loupe/core";
 import { Button, Panel, SectionHeader, Skeleton } from "@/components";
 import { cx } from "@/lib/cx";
 import { relativeTime } from "@/lib/format";
 import styles from "./AdminModeration.module.scss";
 
+/**
+ * Every case lives in exactly ONE tab (the server keeps them disjoint):
+ * "Blocked at post" is the machine's refusals — content that never
+ * published; "Removed" is a human's decisions; "Cleared" is reviewed-fine.
+ */
 const TABS = [
-  { key: "open", label: "Open" },
+  { key: "open", label: "Needs review" },
+  { key: "blocked", label: "Blocked at post" },
   { key: "removed", label: "Removed" },
-  { key: "dismissed", label: "Dismissed" },
+  { key: "dismissed", label: "Cleared" },
 ] as const;
+type TabKey = (typeof TABS)[number]["key"];
 
 /**
  * The community review queue.
@@ -23,9 +29,16 @@ const TABS = [
  *
  * Ordering is the server's (worst classifier score first, then newest), so
  * ten spare minutes get spent on the ten worst things.
+ *
+ * The tab rides in the URL (`?tab=blocked`) so other portal pages can link
+ * straight into a filter.
  */
 export function AdminModeration() {
-  const [tab, setTab] = useState<(typeof TABS)[number]["key"]>("open");
+  const [params, setParams] = useSearchParams();
+  const raw = params.get("tab");
+  const tab: TabKey = TABS.some((t) => t.key === raw) ? (raw as TabKey) : "open";
+  const setTab = (next: TabKey) =>
+    setParams(next === "open" ? {} : { tab: next }, { replace: true });
   const { data, isLoading } = useModerationQueue(tab);
   const resolve = useResolveModerationCase();
 
@@ -70,7 +83,9 @@ export function AdminModeration() {
             <p className={styles.emptyBody}>
               {tab === "open"
                 ? "Every report and auto-flag has been dealt with."
-                : "No cases with this status yet."}
+                : tab === "blocked"
+                  ? "The classifier hasn't refused anything at post time yet."
+                  : "No cases with this status yet."}
             </p>
           </div>
         </Panel>
@@ -125,10 +140,24 @@ export function AdminModeration() {
                     "unknown author"
                   )}
                   {row.reporterUsername && ` · reported by @${row.reporterUsername}`}
-                  {row.targetType === "post" && (
+                  {row.targetType === "post" && tab !== "blocked" && (
                     <>
                       {" · "}
                       <Link to={`/app/community/p/${row.targetId}`}>view post</Link>
+                    </>
+                  )}
+                  {row.authorUsername && (
+                    // The road to a ban runs through the user admin, where
+                    // it's audit-logged and reversible — this is the on-ramp,
+                    // not the button.
+                    <>
+                      {" · "}
+                      <Link
+                        to={`/admin/users?q=${encodeURIComponent(row.authorUsername)}`}
+                        className={styles.manage}
+                      >
+                        <UserCog size={12} aria-hidden /> manage account
+                      </Link>
                     </>
                   )}
                 </span>
@@ -158,7 +187,11 @@ export function AdminModeration() {
                   </span>
                 ) : (
                   <span className={styles.resolved}>
-                    {row.status === "removed" ? "Removed" : "Dismissed"}
+                    {tab === "blocked"
+                      ? "Blocked at post — never published"
+                      : row.status === "removed"
+                        ? "Removed"
+                        : "Cleared"}
                     {row.resolvedAt && ` · ${relativeTime(row.resolvedAt)}`}
                   </span>
                 )}

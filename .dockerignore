@@ -8,3 +8,9 @@ node_modules
 loupe-backend
 loupe-frontend
 tools
+
+# Nested git histories and moderato dev droppings — never needed in the image.
+**/.git
+moderato/bench
+moderato/coverage
+moderato/test
