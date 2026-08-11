@@ -35,3 +35,6 @@ DEVELOPER_PORTAL.md
 
 # Nested repo — @loupe/pipeline has its own git history
 loupe-pipeline/
+
+# Nested repo — moderato (the moderation package, ships to npm) has its own git history
+moderato/
