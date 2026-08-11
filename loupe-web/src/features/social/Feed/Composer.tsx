@@ -1,10 +1,11 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { ImagePlus, X } from "lucide-react";
 import { useCreatePost } from "@loupe/core";
 import { useModeratedSubmit } from "moderato/react";
 import { ModeratedUpload } from "moderato/web";
 import { Button, Panel } from "@/components";
 import { SocialAvatar } from "../components/SocialAvatar";
+import { DraftTags } from "./DraftTags";
 import styles from "./Feed.module.scss";
 
 /** Matches the server's caps (`MAX_POST_BODY`, `MAX_IMAGES_PER_POST`). */
@@ -40,16 +41,6 @@ export function Composer({
     },
   });
 
-  // The #tags the server will index, previewed live as chips — the same
-  // rounded look they'll have on the published post.
-  const draftTags = useMemo(() => {
-    const seen = new Set<string>();
-    for (const match of body.matchAll(/#([A-Za-z0-9_]+)/g)) {
-      seen.add(match[1]!.toLowerCase());
-    }
-    return [...seen];
-  }, [body]);
-
   const canPost = (body.trim().length > 0 || images.length > 0) && !pending;
 
   const publish = () => {
@@ -75,15 +66,7 @@ export function Composer({
         />
       </div>
 
-      {draftTags.length > 0 && (
-        <div className={styles.draftTags} aria-label="Tags in this post">
-          {draftTags.map((tag) => (
-            <span key={tag} className={styles.tag}>
-              #{tag}
-            </span>
-          ))}
-        </div>
-      )}
+      <DraftTags body={body} />
 
       {images.length > 0 && (
         <ul className={styles.thumbs}>

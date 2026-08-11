@@ -3,6 +3,7 @@ import type { Post } from "@loupe/core";
 import { useEditPost } from "@loupe/core";
 import { useModeratedSubmit } from "moderato/react";
 import { Button, Modal } from "@/components";
+import { DraftTags } from "./DraftTags";
 import styles from "./Feed.module.scss";
 
 /** Matches the server's `MAX_POST_BODY`. */
@@ -73,6 +74,8 @@ export function EditPostModal({
         rows={5}
         autoFocus
       />
+
+      <DraftTags body={body} />
 
       {wouldEmpty && (
         <p className={styles.composerHint}>
