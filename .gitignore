@@ -38,3 +38,6 @@ loupe-pipeline/
 
 # Nested repo — moderato (the moderation package, ships to npm) has its own git history
 moderato/
+
+# Nested repo — loupe.data (the database playground) has its own git history
+loupe.data/
