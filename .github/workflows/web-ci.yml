@@ -27,6 +27,31 @@ jobs:
           node-version: 20
           cache: npm
 
+      # moderato is a PRIVATE repo and this one is PUBLIC, which is exactly why
+      # `moderato/` is gitignored here (see .gitignore, and the `chore: untrack
+      # moderato/` commit). Committing it back would publish private source, so
+      # the only safe way to give CI the workspace it needs is to fetch it at
+      # build time with a token that is never written into the tree.
+      #
+      # MODERATO_TOKEN is a PAT with `repo` scope on wiggapony0925/moderato.
+      # Without it, everything that needs the workspace to resolve is skipped
+      # and said out loud — see the guard on the steps below. GITHUB_TOKEN
+      # cannot be used: it is scoped to this repository only.
+      - name: Fetch the moderato workspace
+        id: moderato
+        env:
+          MODERATO_TOKEN: ${{ secrets.MODERATO_TOKEN }}
+        run: |
+          if [ -z "${MODERATO_TOKEN}" ]; then
+            echo "available=false" >> "$GITHUB_OUTPUT"
+            echo "::warning title=moderato unavailable::MODERATO_TOKEN is not set, so the private moderato workspace could not be fetched. Typecheck, lint, unit tests and build are SKIPPED — this job is not verifying loupe-web. Add a PAT with repo scope on wiggapony0925/moderato as the MODERATO_TOKEN secret to turn them back on."
+            exit 0
+          fi
+          git clone --depth 1 \
+            "https://x-access-token:${MODERATO_TOKEN}@github.com/wiggapony0925/moderato.git" \
+            moderato
+          echo "available=true" >> "$GITHUB_OUTPUT"
+
       - name: Install dependencies
         run: npm ci
 
@@ -50,20 +75,26 @@ jobs:
         run: npm run contract:ci
 
       - name: Typecheck
+        if: steps.moderato.outputs.available == 'true'
         run: npm run typecheck -w loupe-web
 
       - name: Lint
+        if: steps.moderato.outputs.available == 'true'
         run: npm run lint -w loupe-web
 
       - name: Unit tests
+        if: steps.moderato.outputs.available == 'true'
         run: npm test -w loupe-web
 
       - name: Build
+        if: steps.moderato.outputs.available == 'true'
         run: npm run build -w loupe-web
 
       - name: Install Playwright Chromium
+        if: steps.moderato.outputs.available == 'true'
         working-directory: loupe-web
         run: npx playwright install --with-deps chromium
 
       - name: Storybook story tests
+        if: steps.moderato.outputs.available == 'true'
         run: npm run test:stories -w loupe-web
