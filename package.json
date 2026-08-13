@@ -2,7 +2,7 @@
   "name": "loupe-workspace",
   "private": true,
   "version": "0.1.0",
-  "description": "Loupe monorepo — shared logic (@loupe/core) consumed by the web client and (next) the Expo app.",
+  "description": "Loupe monorepo \u2014 shared logic (@loupe/core) consumed by the web client and (next) the Expo app.",
   "workspaces": [
     "packages/*",
     "moderato",
@@ -10,6 +10,9 @@
     "loupe-web"
   ],
   "scripts": {
-    "gen:tokens": "node packages/tokens/scripts/gen-scss.mjs"
+    "gen:tokens": "node packages/tokens/scripts/gen-scss.mjs",
+    "contract:publish": "node scripts/publish-contract.mjs",
+    "contract:check": "node scripts/publish-contract.mjs --check",
+    "contract:ci": "node scripts/publish-contract.mjs --strict"
   }
 }

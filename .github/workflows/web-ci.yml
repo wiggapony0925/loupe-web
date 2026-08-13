@@ -36,6 +36,16 @@ jobs:
       - name: Lint
         run: npm run lint -w loupe-web
 
+      # The consumer half of consumer-driven contracts. Asserts that
+      # contracts/loupe-web.contract.json still describes this app — every
+      # endpoint reached through packages/core must be declared, or the
+      # backend's can-i-deploy gate is guarding a surface that has moved on.
+      #
+      # Root-level, not `-w loupe-web`: the HTTP layer is the shared
+      # packages/core package, so the contract covers both.
+      - name: Contract still describes this app
+        run: npm run contract:ci
+
       - name: Unit tests
         run: npm test -w loupe-web
 
