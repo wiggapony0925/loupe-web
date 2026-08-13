@@ -1,25 +1,24 @@
+import { getApiModePreference, resolveApiBaseUrl } from "@/lib/apiMode";
+import { initSentry } from "@/observability/sentry";
+import { configureApi } from "@loupe/core";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import { configureApi } from "@loupe/core";
-import { initSentry } from "@/observability/sentry";
 // Capture `beforeinstallprompt` before React mounts (the event fires once,
 // early) — Settings surfaces the actual install button.
+import App from "@/App";
 import "@/lib/installPrompt";
 import "@/styles/global.scss";
-import App from "@/App";
 
 // Error + performance monitoring. No-op unless VITE_SENTRY_DSN is set.
 initSentry();
 
-// Configure the shared API layer before first render: same-origin /v1 (proxied
-// by Vite in dev, nginx in prod) and the bearer token from localStorage.
+const apiMode = getApiModePreference();
+const baseUrl = resolveApiBaseUrl(apiMode);
+
 configureApi({
-  baseUrl: "",
+  baseUrl,
   getToken: () => localStorage.getItem("loupe.auth.token"),
-  // Send the HttpOnly auth cookie alongside requests (same-origin /v1). The
-  // bearer token still works during rollout; the cookie is the path off
-  // JS-readable storage.
-  withCredentials: true,
+  withCredentials: !import.meta.env.VITE_API_URL?.trim(),
 });
 
 createRoot(document.getElementById("root")!).render(

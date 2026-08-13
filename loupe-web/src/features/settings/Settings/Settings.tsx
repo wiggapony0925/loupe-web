@@ -1,18 +1,32 @@
-import { useState, type ReactNode } from "react";
-import { useNavigate } from "react-router-dom";
-import { Download, LogOut, MonitorSmartphone, Sparkles } from "lucide-react";
-import { useUserSettings, useUpdateUserSettings } from "@loupe/core";
-import { Panel, SegmentedControl, Switch, ThemeToggle, Badge, Button, useConfirm } from "@/components";
-import { notify } from "@/stores/noticeStore";
-import { useUiStore } from "@/stores/uiStore";
 import { useAuth } from "@/auth/AuthProvider";
+import {
+  Badge,
+  Button,
+  Panel,
+  SegmentedControl,
+  Switch,
+  ThemeToggle,
+  useConfirm,
+} from "@/components";
 import { useInstallPrompt } from "@/hooks/useInstallPrompt";
-import { MfaCard } from "../MfaCard/MfaCard";
-import { ChangePasswordCard } from "../ChangePasswordCard/ChangePasswordCard";
-import { usePro } from "@/pro";
-import { useDisplayCurrency } from "@/providers/DisplayCurrencyProvider";
+import {
+  getApiModePreference,
+  resolveApiBaseUrl,
+  setApiModePreference,
+  type ApiMode,
+} from "@/lib/apiMode";
 import { CURRENCIES } from "@/lib/currency";
 import { cx } from "@/lib/cx";
+import { usePro } from "@/pro";
+import { useDisplayCurrency } from "@/providers/DisplayCurrencyProvider";
+import { notify } from "@/stores/noticeStore";
+import { useUiStore } from "@/stores/uiStore";
+import { configureApi, useUpdateUserSettings, useUserSettings } from "@loupe/core";
+import { Download, LogOut, MonitorSmartphone, Sparkles } from "lucide-react";
+import { useState, type ReactNode } from "react";
+import { useNavigate } from "react-router-dom";
+import { ChangePasswordCard } from "../ChangePasswordCard/ChangePasswordCard";
+import { MfaCard } from "../MfaCard/MfaCard";
 import styles from "./Settings.module.scss";
 
 const VERSION = "0.1.0";
@@ -30,6 +44,7 @@ export function Settings() {
   const { subscriptionsEnabled, isPro, openPaywall, manageBilling, billingBusy } = usePro();
   const { canInstall, showIosHint, install } = useInstallPrompt();
   const { code: displayCurrency, setCurrency } = useDisplayCurrency();
+  const [apiMode, setApiMode] = useState<ApiMode>(getApiModePreference());
   const { data: settings } = useUserSettings(Boolean(user));
   const updateSettings = useUpdateUserSettings({
     onError: () => notify.error("Couldn't update your email preferences. Please try again."),
@@ -58,6 +73,17 @@ export function Settings() {
       setSigningOutAll(false);
     }
   }
+
+  const handleApiModeChange = (next: ApiMode) => {
+    setApiModePreference(next);
+    setApiMode(next);
+    configureApi({
+      baseUrl: resolveApiBaseUrl(next),
+      withCredentials: !import.meta.env.VITE_API_URL?.trim(),
+    });
+    notify.info(next === "live" ? "Switched to live data." : "Switched to local data.");
+    window.location.reload();
+  };
 
   return (
     <div className={styles.page}>
@@ -152,9 +178,7 @@ export function Settings() {
             aria-label="Product updates & blog posts"
             checked={emailAnnouncements}
             disabled={!settings}
-            onCheckedChange={(next) =>
-              updateSettings.mutate({ email_announcements_enabled: next })
-            }
+            onCheckedChange={(next) => updateSettings.mutate({ email_announcements_enabled: next })}
           />
         </Row>
       </Panel>
@@ -180,7 +204,10 @@ export function Settings() {
       </Panel>
 
       <Panel padding="lg">
-        <Row title="Appearance" desc="Light, dark, or follow your system — flips every token instantly.">
+        <Row
+          title="Appearance"
+          desc="Light, dark, or follow your system — flips every token instantly."
+        >
           <ThemeToggle />
         </Row>
       </Panel>
@@ -239,10 +266,23 @@ export function Settings() {
             <Divider />
           </>
         )}
-        <Row title="Data source" desc="Live loupe-backend — real market data, no mock numbers.">
-          <Badge tone="mint" dot>
-            Live
-          </Badge>
+        <Row
+          title="Data source"
+          desc={
+            apiMode === "live"
+              ? "Production Cloud Run backend — real market data."
+              : "Local backend — your machine's data source for development and debugging."
+          }
+        >
+          <SegmentedControl
+            aria-label="Data source"
+            options={[
+              { value: "live", label: "Live" },
+              { value: "local", label: "Local" },
+            ]}
+            value={apiMode}
+            onChange={handleApiModeChange}
+          />
         </Row>
         <Divider />
         <Row title="Version" desc={`Loupe Web · v${VERSION}`} />

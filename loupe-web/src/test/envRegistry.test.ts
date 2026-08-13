@@ -1,5 +1,5 @@
-import { describe, it, expect } from "vitest";
 import { readClientEnv } from "@/features/admin/AdminEnv/envRegistry";
+import { describe, expect, it } from "vitest";
 
 describe("readClientEnv", () => {
   const vars = readClientEnv();
@@ -7,6 +7,7 @@ describe("readClientEnv", () => {
 
   it("includes the Vite build built-ins and declared VITE_ vars", () => {
     expect(byKey.MODE).toBeDefined();
+    expect(byKey.VITE_API_MODE).toBeDefined();
     expect(byKey.VITE_API_URL).toBeDefined();
     expect(byKey.VITE_GOOGLE_CLIENT_ID).toBeDefined();
     expect(byKey.VITE_SENTRY_DSN).toBeDefined();

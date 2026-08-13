@@ -48,11 +48,20 @@ const CLIENT_SPECS: ClientEnvSpec[] = [
     description: "Public base path the SPA is served under.",
   },
   {
+    key: "VITE_API_MODE",
+    label: "API mode",
+    group: "Backend",
+    secret: false,
+    description:
+      "Backend source: live (production Cloud Run) or local (your machine's backend). Defaults to live.",
+  },
+  {
     key: "VITE_API_URL",
     label: "API base URL",
     group: "Backend",
     secret: false,
-    description: "Backend base URL. Blank = same-origin /v1 (Vite proxy in dev, nginx in prod).",
+    description:
+      "Backend base URL. Blank = same-origin /v1 (Vite proxy in dev, nginx in prod). Overrides the API mode when set explicitly.",
   },
   {
     key: "VITE_GOOGLE_CLIENT_ID",
