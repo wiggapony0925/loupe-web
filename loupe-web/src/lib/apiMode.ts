@@ -1,6 +1,31 @@
 export type ApiMode = "live" | "local";
 
-export const LIVE_BACKEND_URL = "https://loupe-api-714615078104.us-central1.run.app";
+/**
+ * Live = SAME ORIGIN. nginx proxies `/v1` to Cloud Run (see nginx.conf), so a
+ * relative base reaches the same backend an absolute URL would — and it is the
+ * only form the deployed page is allowed to use.
+ *
+ * THIS WAS AN ABSOLUTE URL AND IT BROKE THE WHOLE SITE. The deployed CSP is
+ *
+ *     connect-src 'self' https://accounts.google.com https://appleid.apple.com
+ *
+ * with a comment above it in nginx.conf saying, in as many words, that
+ * `connect-src 'self'` keeps API calls same-origin. Pointing `live` at
+ * `https://loupe-api-….run.app` made every request cross-origin, so the
+ * browser refused all of them before they were sent:
+ *
+ *     Connecting to 'https://loupe-api-….run.app/v1/announcement' violates
+ *     the following Content Security Policy directive: "connect-src 'self' …"
+ *
+ * Not login specifically — EVERY call. Sign in, the announcement, FX rates,
+ * all of it, on a page that otherwise rendered normally, which is why it read
+ * as "logging in on the website is broken" rather than "the site is offline".
+ *
+ * Keeping it relative also keeps the proxy doing its job: same-origin cookies,
+ * no preflight, and the API host stays an implementation detail rather than
+ * something baked into a shipped bundle.
+ */
+export const LIVE_BACKEND_URL = "";
 export const LOCAL_BACKEND_URL = "http://127.0.0.1:8099";
 export const API_MODE_KEY = "loupe.api.mode";
 
