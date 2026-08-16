@@ -1,34 +1,44 @@
 @use '../../styles/variables' as *;
 
+// Floating pill dock: translucent blur surface, active tab gets a soft
+// filled capsule — the modern-app read, in both themes.
 .tab-bar {
   position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  left: $space-3;
+  right: $space-3;
+  bottom: calc(#{$safe-bottom} + #{$space-3});
   z-index: $z-tab-bar;
   display: flex;
-  background: $color-white;
-  border-top: $hairline;
-  padding-bottom: $safe-bottom;
+  height: $tab-bar-height;
+  padding: $space-1;
+  border: $hairline;
+  border-radius: $radius-card + 4px;
+  box-shadow: $shadow-float;
+  @include blur-bar;
 
   &__item {
     flex: 1;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 2px;
-    padding: $space-2 0 $space-1;
-    color: $color-ink-faint;
+    justify-content: center;
+    gap: 3px;
+    border-radius: $radius-card;
+    color: $ink-faint;
+    transition:
+      color $dur-med $ease-out,
+      background-color $dur-med $ease-out;
     @include press-state;
 
     &--active {
-      color: $color-black;
+      color: $ink;
+      background: $surface-sunken;
     }
   }
 
   &__icon {
-    width: 24px;
-    height: 24px;
+    width: 23px;
+    height: 23px;
 
     svg {
       width: 100%;

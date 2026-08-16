@@ -8,7 +8,10 @@ screen — `[Mine]` `[Nicol's]` `[Shared 50/50]` `[Owed]` — and roll up into a
 live who-owes-whom ledger, a net-worth chart, an excel-style combined sheet,
 and exportable statements.
 
-Monochrome Square-style UI. One web codebase, bundled into iOS/Android with
+Modern monochrome-forward UI with first-class **light & dark themes** (CSS
+custom properties on `<html data-theme>`, resolved pre-paint — the loupe
+pattern), trend-colored animated charts, spring bottom sheets, and haptic
+micro-interactions. One web codebase, bundled into iOS/Android with
 Capacitor (the Chase-app model). Node/Express + Prisma + Cloud SQL on Cloud
 Run, Firebase SMS OTP auth, GCP Secret Manager.
 

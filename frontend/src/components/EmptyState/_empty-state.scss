@@ -5,8 +5,12 @@
   flex-direction: column;
   align-items: center;
   gap: $space-3;
+  margin: $space-4;
   padding: $space-10 $space-6;
   text-align: center;
+  border: 1px dashed $border;
+  border-radius: $radius-card;
+  animation: list-enter $dur-med $ease-out both;
 
   &__title {
     font-size: $text-lg;
@@ -15,7 +19,8 @@
 
   &__body {
     font-size: $text-sm;
-    color: $color-ink-dim;
+    color: $ink-dim;
     max-width: 280px;
+    line-height: 1.45;
   }
 }

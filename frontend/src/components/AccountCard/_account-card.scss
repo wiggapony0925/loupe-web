@@ -7,9 +7,25 @@
   width: 100%;
   padding: $space-3 $space-4;
   text-align: left;
-  border-bottom: $hairline;
-  background: $color-white;
+  background: $surface;
+  transition: background-color $dur-fast $ease-out;
   @include press-state;
+
+  &:active {
+    background: $surface-sunken;
+  }
+
+  &__avatar {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 42px;
+    height: 42px;
+    border-radius: $radius-control;
+    background: $surface-sunken;
+    font-size: $text-md;
+    font-weight: $weight-heavy;
+  }
 
   &__main {
     flex: 1;
@@ -29,7 +45,7 @@
     display: block;
     margin-top: 2px;
     font-size: $text-sm;
-    color: $color-ink-dim;
+    color: $ink-dim;
   }
 
   &__balance {
@@ -38,11 +54,11 @@
     @include tabular-nums;
 
     &--liability {
-      color: $color-red;
+      color: $negative;
     }
 
     &--unknown {
-      color: $color-ink-faint;
+      color: $ink-faint;
       font-weight: $weight-regular;
     }
   }

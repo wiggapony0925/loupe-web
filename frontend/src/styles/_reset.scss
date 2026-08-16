@@ -1,5 +1,6 @@
-// Minimal reset tuned for a webview app: kill tap highlights, overscroll
-// glow, and iOS text inflation — the wrapper must not feel like a website.
+// Reset tuned for a themed webview app: tap highlights off, overscroll glow
+// off, smooth theme transitions, and every animation collapses under
+// prefers-reduced-motion.
 @use 'variables' as *;
 
 *,
@@ -19,11 +20,14 @@ body {
   font-family: $font-stack;
   font-size: $text-md;
   font-weight: $weight-regular;
-  color: $color-black;
-  background: $color-white;
+  color: $ink;
+  background: $bg;
   -webkit-font-smoothing: antialiased;
   overscroll-behavior-y: none;
   touch-action: manipulation;
+  transition:
+    background-color $dur-med $ease-out,
+    color $dur-med $ease-out;
 }
 
 button {
@@ -55,4 +59,14 @@ img,
 svg {
   display: block;
   max-width: 100%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

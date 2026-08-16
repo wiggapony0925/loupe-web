@@ -11,21 +11,24 @@
   &__backdrop {
     position: absolute;
     inset: 0;
-    background: rgba(0, 0, 0, 0.4);
-    animation: bottom-sheet-fade 180ms ease;
+    background: $backdrop;
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+    animation: bottom-sheet-fade $dur-med $ease-out;
   }
 
   &__panel {
     position: relative;
-    background: $color-white;
+    background: $surface-raised;
     border-radius: $radius-sheet $radius-sheet 0 0;
     border-top: $hairline;
+    box-shadow: $shadow-float;
     padding-bottom: calc(#{$safe-bottom} + #{$space-4});
     max-height: 88dvh;
     display: flex;
     flex-direction: column;
-    animation: bottom-sheet-rise 220ms cubic-bezier(0.2, 0.9, 0.3, 1);
-    transition: transform 180ms ease;
+    animation: bottom-sheet-rise 360ms $ease-spring;
+    transition: transform $dur-med $ease-out;
 
     &--dragging {
       transition: none;
@@ -34,12 +37,12 @@
 
   &--closing &__panel {
     transform: translateY(100%);
-    transition: transform 220ms ease-in;
+    transition: transform $dur-med ease-in;
   }
 
   &--closing &__backdrop {
     opacity: 0;
-    transition: opacity 220ms ease;
+    transition: opacity $dur-med $ease-out;
   }
 
   &__grip {
@@ -51,14 +54,19 @@
   }
 
   &__handle {
-    width: 36px;
-    height: 4px;
-    border-radius: 2px;
-    background: $color-border;
+    width: 40px;
+    height: 5px;
+    border-radius: $radius-pill;
+    background: $border;
+    transition: background-color $dur-fast $ease-out;
+  }
+
+  &__grip:active &__handle {
+    background: $ink-faint;
   }
 
   &__title {
-    padding: 0 $space-4 $space-2;
+    padding: 0 $space-5 $space-2;
     font-size: $text-lg;
     font-weight: $weight-heavy;
     letter-spacing: -0.01em;

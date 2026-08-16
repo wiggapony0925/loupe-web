@@ -1,17 +1,24 @@
 /**
- * NetWorthChart — the loupe-style hero chart: single monochrome 2px line,
- * no grid noise, dashed period-start baseline, crosshair scrub with haptic
- * ticks, and range pills. Scrubbing reports the hovered point upward so the
- * hero number above the chart live-updates (the value is always readable as
- * text — identity never rides on color).
+ * NetWorthChart — the hero chart, modern edition: monotone-cubic line with a
+ * gradient area fill, colored by trend (green up / red down — the delta text
+ * beside it always carries the sign, so color never works alone), an
+ * animated draw-in per range change, a pulsing live endpoint, and a
+ * crosshair scrubber with a floating date/value tooltip and haptic ticks.
  */
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { computeGeometry, nearestPointIndex, type SeriesPoint } from '@/lib/chartGeometry';
 import { useHaptics } from '@/hooks/useHaptics';
+import { money } from '@/lib/format';
 import type { NetWorthRange } from '@/types/types';
 
 const RANGES: NetWorthRange[] = ['1W', '1M', '3M', 'YTD', '1Y', 'ALL'];
-const CHART_HEIGHT = 180;
+const CHART_HEIGHT = 200;
+
+const tooltipDate = new Intl.DateTimeFormat('en-US', {
+  month: 'short',
+  day: 'numeric',
+  year: 'numeric',
+});
 
 export interface NetWorthChartProps {
   points: Array<{ t: string; netWorthCents: number }>;
@@ -22,7 +29,9 @@ export interface NetWorthChartProps {
 
 export function NetWorthChart({ points, range, onRangeChange, onScrub }: NetWorthChartProps) {
   const haptics = useHaptics();
+  const gradientId = useId();
   const wrapRef = useRef<HTMLDivElement>(null);
+  const lineRef = useRef<SVGPathElement>(null);
   const [width, setWidth] = useState(0);
   const [scrubIndex, setScrubIndex] = useState<number | null>(null);
   const lastIndex = useRef<number | null>(null);
@@ -43,10 +52,29 @@ export function NetWorthChart({ points, range, onRangeChange, onScrub }: NetWort
     [points],
   );
 
-  const geometry = useMemo(
-    () => computeGeometry(series, width, CHART_HEIGHT),
-    [series, width],
-  );
+  const geometry = useMemo(() => computeGeometry(series, width, CHART_HEIGHT), [series, width]);
+
+  // Draw-in: dash the line to its own length and release. Re-runs when the
+  // range (or data identity) changes; collapses under reduced motion.
+  const drawKey = `${range}:${series.length}:${width}`;
+  useEffect(() => {
+    const path = lineRef.current;
+    if (!path || !geometry) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const length = path.getTotalLength();
+    path.style.transition = 'none';
+    path.style.strokeDasharray = `${length}`;
+    path.style.strokeDashoffset = `${length}`;
+    path.getBoundingClientRect(); // flush so the transition actually animates
+    path.style.transition = 'stroke-dashoffset 640ms cubic-bezier(0.16, 1, 0.3, 1)';
+    path.style.strokeDashoffset = '0';
+    const timer = window.setTimeout(() => {
+      // Clear the dash so the scrub crosshair never reveals a dashed line.
+      path.style.strokeDasharray = 'none';
+    }, 700);
+    return () => window.clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [drawKey, geometry === null]);
 
   const handleScrub = (clientX: number): void => {
     if (!geometry || !wrapRef.current) return;
@@ -54,7 +82,7 @@ export function NetWorthChart({ points, range, onRangeChange, onScrub }: NetWort
     const index = nearestPointIndex(geometry, clientX - rect.left);
     if (index !== lastIndex.current) {
       lastIndex.current = index;
-      haptics.impactLight(); // tick as the crosshair jumps points
+      haptics.impactLight();
     }
     setScrubIndex(index);
     const point = geometry.points[index];
@@ -68,9 +96,14 @@ export function NetWorthChart({ points, range, onRangeChange, onScrub }: NetWort
   };
 
   const scrubPoint = scrubIndex !== null && geometry ? geometry.points[scrubIndex] : undefined;
+  const endPoint = geometry ? geometry.points[geometry.points.length - 1] : undefined;
+  const trendClass = geometry ? ` net-worth-chart--${geometry.trend}` : '';
+
+  // Keep the floating tooltip inside the plot edges.
+  const tooltipLeft = scrubPoint ? Math.min(Math.max(scrubPoint.x, 56), Math.max(width - 56, 56)) : 0;
 
   return (
-    <div className="net-worth-chart">
+    <div className={`net-worth-chart${trendClass}${scrubPoint ? ' net-worth-chart--scrubbing' : ''}`}>
       <div
         ref={wrapRef}
         className="net-worth-chart__plot"
@@ -83,37 +116,68 @@ export function NetWorthChart({ points, range, onRangeChange, onScrub }: NetWort
         onPointerCancel={endScrub}
       >
         {geometry ? (
-          <svg
-            className="net-worth-chart__svg"
-            width={width}
-            height={CHART_HEIGHT}
-            viewBox={`0 0 ${width} ${CHART_HEIGHT}`}
-            role="img"
-            aria-label={`Net worth over ${range}`}
-          >
-            {geometry.baselineY !== null ? (
-              <line
-                className="net-worth-chart__baseline"
-                x1={0}
-                x2={width}
-                y1={geometry.baselineY}
-                y2={geometry.baselineY}
-              />
-            ) : null}
-            <path className="net-worth-chart__line" d={geometry.path} />
-            {scrubPoint ? (
-              <g>
+          <>
+            <svg
+              className="net-worth-chart__svg"
+              width={width}
+              height={CHART_HEIGHT}
+              viewBox={`0 0 ${width} ${CHART_HEIGHT}`}
+              role="img"
+              aria-label={`Net worth over ${range}`}
+            >
+              <defs>
+                <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+                  <stop className="net-worth-chart__grad-top" offset="0%" />
+                  <stop className="net-worth-chart__grad-bottom" offset="100%" />
+                </linearGradient>
+              </defs>
+              {geometry.baselineY !== null ? (
                 <line
-                  className="net-worth-chart__crosshair"
-                  x1={scrubPoint.x}
-                  x2={scrubPoint.x}
-                  y1={0}
-                  y2={CHART_HEIGHT}
+                  className="net-worth-chart__baseline"
+                  x1={0}
+                  x2={width}
+                  y1={geometry.baselineY}
+                  y2={geometry.baselineY}
                 />
-                <circle className="net-worth-chart__dot" cx={scrubPoint.x} cy={scrubPoint.y} r={5} />
-              </g>
+              ) : null}
+              <path
+                key={`area-${drawKey}`}
+                className="net-worth-chart__area"
+                d={geometry.areaPath}
+                fill={`url(#${gradientId})`}
+              />
+              <path
+                key={`line-${drawKey}`}
+                ref={lineRef}
+                className="net-worth-chart__line"
+                d={geometry.linePath}
+              />
+              {endPoint && !scrubPoint ? (
+                <g className="net-worth-chart__live">
+                  <circle className="net-worth-chart__live-ring" cx={endPoint.x} cy={endPoint.y} r={5} />
+                  <circle className="net-worth-chart__live-dot" cx={endPoint.x} cy={endPoint.y} r={4} />
+                </g>
+              ) : null}
+              {scrubPoint ? (
+                <g>
+                  <line
+                    className="net-worth-chart__crosshair"
+                    x1={scrubPoint.x}
+                    x2={scrubPoint.x}
+                    y1={0}
+                    y2={CHART_HEIGHT}
+                  />
+                  <circle className="net-worth-chart__dot" cx={scrubPoint.x} cy={scrubPoint.y} r={5.5} />
+                </g>
+              ) : null}
+            </svg>
+            {scrubPoint ? (
+              <div className="net-worth-chart__tooltip" style={{ left: tooltipLeft }}>
+                <span className="net-worth-chart__tooltip-value">{money(scrubPoint.v)}</span>
+                <span className="net-worth-chart__tooltip-date">{tooltipDate.format(scrubPoint.t)}</span>
+              </div>
             ) : null}
-          </svg>
+          </>
         ) : (
           <div className="net-worth-chart__empty">
             Link an account — your chart starts with your first snapshot.

@@ -1,26 +1,27 @@
-// Shared primitives: full-width block buttons, chips, edge-to-edge lists,
-// section headers. Strict BEM; state via modifiers, never inline styles.
+// Shared primitives, modern pass: pill buttons with press-scale, chip
+// filters, card-grouped lists, shimmer skeletons, and entrance motion.
 @use 'variables' as *;
 
 .app-shell {
   min-height: 100dvh;
   display: flex;
   flex-direction: column;
-  background: $color-white;
 
   &__main {
     flex: 1;
-    padding-bottom: calc(#{$tab-bar-height} + #{$safe-bottom} + #{$space-6});
+    padding-bottom: calc(#{$tab-bar-height} + #{$safe-bottom} + #{$space-8});
   }
 }
 
 .page {
   padding-top: calc(#{$safe-top} + #{$space-4});
+  animation: page-enter $dur-med $ease-out both;
 
   &__header {
     display: flex;
-    align-items: baseline;
+    align-items: center;
     justify-content: space-between;
+    gap: $space-3;
     padding: 0 $space-4 $space-3;
   }
 
@@ -30,10 +31,31 @@
     letter-spacing: -0.02em;
   }
 
+  &__actions {
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+  }
+
   &__action {
     font-size: $text-sm;
     font-weight: $weight-semibold;
+    color: $ink-dim;
+    padding: $space-2 $space-3;
+    border-radius: $radius-pill;
+    background: $surface-sunken;
     @include press-state;
+  }
+}
+
+@keyframes page-enter {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
@@ -44,23 +66,23 @@
   font-size: $text-md;
   font-weight: $weight-semibold;
   text-align: center;
-  border-radius: $radius-control;
+  border-radius: $radius-pill;
   @include press-state;
 
   &--primary {
-    background: $color-black;
-    color: $color-white;
+    background: $accent;
+    color: $on-accent;
+    box-shadow: $shadow-card;
   }
 
   &--ghost {
-    background: $color-off-white;
-    color: $color-black;
+    background: $surface-sunken;
+    color: $ink;
   }
 
   &--danger {
-    background: $color-white;
-    color: $color-red;
-    border: 1px solid $color-border;
+    background: $negative-soft;
+    color: $negative;
   }
 
   &--disabled {
@@ -83,17 +105,17 @@
   padding: $space-2 $space-3;
   font-size: $text-sm;
   font-weight: $weight-semibold;
-  color: $color-black;
-  background: $color-white;
-  border: 1px solid $color-border;
-  border-radius: $radius-control;
+  color: $ink-dim;
+  background: $surface;
+  border: $hairline;
+  border-radius: $radius-pill;
   white-space: nowrap;
   @include press-state;
 
   &--active {
-    background: $color-black;
-    color: $color-white;
-    border-color: $color-black;
+    background: $accent;
+    color: $on-accent;
+    border-color: $accent;
   }
 }
 
@@ -111,30 +133,55 @@
 
 .section {
   &__title {
-    padding: $space-5 $space-4 $space-2;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    padding: $space-5 $space-5 $space-2;
     font-size: $text-xs;
     font-weight: $weight-semibold;
     letter-spacing: 0.08em;
     text-transform: uppercase;
-    color: $color-ink-dim;
+    color: $ink-faint;
   }
 }
 
-// Edge-to-edge list: hairline separators, no side insets on the rule.
+// Card-grouped list (iOS/Polymarket style): rounded surface container,
+// hairline separators inside, entrance stagger via --i set by the renderer.
 .list {
-  border-top: $hairline;
+  margin: 0 $space-4;
+  @include card;
+
+  > * {
+    border-bottom: $hairline;
+    animation: list-enter $dur-med $ease-out both;
+    animation-delay: calc(var(--i, 0) * 24ms);
+
+    &:last-child {
+      border-bottom: none;
+    }
+  }
 
   &__empty {
     padding: $space-8 $space-4;
     text-align: center;
-    color: $color-ink-dim;
+    color: $ink-dim;
     font-size: $text-sm;
+  }
+}
+
+@keyframes list-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
 .field {
   padding: $space-3 $space-4;
-  border-bottom: $hairline;
 
   &__label {
     display: block;
@@ -142,44 +189,57 @@
     font-weight: $weight-semibold;
     letter-spacing: 0.08em;
     text-transform: uppercase;
-    color: $color-ink-dim;
-    margin-bottom: $space-1;
+    color: $ink-faint;
+    margin-bottom: $space-2;
   }
 
   &__input {
     width: 100%;
-    padding: $space-2 0;
+    padding: $space-3 $space-4;
     font-size: $text-lg;
-    border: none;
+    border: $hairline;
+    border-radius: $radius-control;
+    background: $surface-sunken;
     outline: none;
-    background: transparent;
+    transition: border-color $dur-fast $ease-out;
+
+    &:focus {
+      border-color: $ink;
+    }
 
     &::placeholder {
-      color: $color-ink-faint;
+      color: $ink-faint;
     }
   }
 }
 
 .badge {
-  display: inline-block;
-  padding: 2px $space-2;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 3px $space-2;
   font-size: $text-xs;
   font-weight: $weight-semibold;
-  border-radius: $radius-control;
+  border-radius: $radius-pill;
 
   &--outline {
-    border: 1px solid $color-border;
-    color: $color-ink-dim;
+    background: $surface-sunken;
+    color: $ink-dim;
   }
 
   &--solid {
-    background: $color-black;
-    color: $color-white;
+    background: $accent;
+    color: $on-accent;
   }
 
   &--alert {
-    background: $color-red;
-    color: $color-white;
+    background: $negative-soft;
+    color: $negative;
+  }
+
+  &--positive {
+    background: $positive-soft;
+    color: $positive;
   }
 }
 
@@ -188,26 +248,59 @@
   @include tabular-nums;
 
   &--negative {
-    color: $color-red;
+    color: $negative;
+  }
+
+  &--positive {
+    color: $positive;
   }
 
   &--muted {
-    color: $color-ink-faint;
+    color: $ink-faint;
     font-weight: $weight-regular;
   }
 }
 
 .notice {
   margin: $space-3 $space-4;
-  padding: $space-3;
+  padding: $space-3 $space-4;
   font-size: $text-sm;
-  background: $color-off-white;
+  background: $surface;
+  border: $hairline;
   border-radius: $radius-control;
-  color: $color-ink-dim;
+  color: $ink-dim;
+  animation: list-enter $dur-med $ease-out both;
 
   &--error {
-    color: $color-red;
-    background: $color-white;
-    border: 1px solid $color-red;
+    color: $negative;
+    background: $negative-soft;
+    border-color: transparent;
+  }
+}
+
+// Shimmer skeletons for loading states.
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  background: $surface-sunken;
+  border-radius: $radius-control;
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.35), transparent);
+    animation: skeleton-sweep 1.4s $ease-out infinite;
+  }
+}
+
+html[data-theme='dark'] .skeleton::after {
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.06), transparent);
+}
+
+@keyframes skeleton-sweep {
+  to {
+    transform: translateX(100%);
   }
 }

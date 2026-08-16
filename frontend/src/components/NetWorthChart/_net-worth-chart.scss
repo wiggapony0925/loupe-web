@@ -1,10 +1,22 @@
 @use '../../styles/variables' as *;
 
+// Trend color rides on the block modifier; every child (line, gradient,
+// dots, tooltip value) inherits it via currentColor / stop-color.
 .net-worth-chart {
+  --chart-color: var(--ink);
+
+  &--up {
+    --chart-color: var(--positive);
+  }
+
+  &--down {
+    --chart-color: var(--negative);
+  }
+
   &__plot {
     position: relative;
-    height: 180px;
-    touch-action: pan-y; // vertical page scroll still works; horizontal scrubs
+    height: 200px;
+    touch-action: pan-y; // vertical page scroll survives; horizontal scrubs
   }
 
   &__svg {
@@ -13,27 +25,85 @@
 
   &__line {
     fill: none;
-    stroke: $color-black;
-    stroke-width: 2;
+    stroke: var(--chart-color);
+    stroke-width: 2.5;
     stroke-linejoin: round;
     stroke-linecap: round;
   }
 
+  &__area {
+    animation: chart-area-in $dur-slow $ease-out both;
+  }
+
+  &__grad-top {
+    stop-color: var(--chart-color);
+    stop-opacity: 0.22;
+  }
+
+  &__grad-bottom {
+    stop-color: var(--chart-color);
+    stop-opacity: 0;
+  }
+
   &__baseline {
-    stroke: $color-border;
+    stroke: $border;
     stroke-width: 1;
-    stroke-dasharray: 2 4;
+    stroke-dasharray: 2 5;
   }
 
   &__crosshair {
-    stroke: $color-ink-faint;
+    stroke: $ink-faint;
     stroke-width: 1;
   }
 
   &__dot {
-    fill: $color-black;
-    stroke: $color-white;
+    fill: var(--chart-color);
+    stroke: $surface;
+    stroke-width: 2.5;
+  }
+
+  &__live-dot {
+    fill: var(--chart-color);
+    stroke: $surface;
     stroke-width: 2;
+  }
+
+  &__live-ring {
+    fill: var(--chart-color);
+    opacity: 0.4;
+    transform-origin: center;
+    transform-box: fill-box;
+    animation: chart-live-pulse 2s $ease-out infinite;
+  }
+
+  &__tooltip {
+    position: absolute;
+    top: 2px;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1px;
+    padding: $space-2 $space-3;
+    background: $surface-raised;
+    border: $hairline;
+    border-radius: $radius-control;
+    box-shadow: $shadow-float;
+    pointer-events: none;
+    z-index: $z-tooltip;
+    animation: chart-tooltip-in $dur-fast $ease-out both;
+  }
+
+  &__tooltip-value {
+    font-size: $text-sm;
+    font-weight: $weight-heavy;
+    color: var(--chart-color);
+    @include tabular-nums;
+  }
+
+  &__tooltip-date {
+    font-size: $text-xs;
+    color: $ink-dim;
   }
 
   &__empty {
@@ -41,32 +111,77 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 0 $space-8;
+    margin: 0 $space-4;
+    padding: 0 $space-6;
     text-align: center;
     font-size: $text-sm;
-    color: $color-ink-dim;
-    border-top: $hairline;
-    border-bottom: $hairline;
+    color: $ink-dim;
+    border: 1px dashed $border;
+    border-radius: $radius-card;
   }
 
   &__ranges {
     display: flex;
     justify-content: space-between;
-    padding: $space-3 $space-4 0;
+    gap: $space-1;
+    margin: $space-3 $space-4 0;
+    padding: 3px;
+    background: $surface-sunken;
+    border-radius: $radius-pill;
   }
 
   &__range {
-    padding: $space-1 $space-3;
+    flex: 1;
+    padding: $space-2 0;
     font-size: $text-xs;
     font-weight: $weight-semibold;
     letter-spacing: 0.04em;
-    color: $color-ink-dim;
-    border-radius: $radius-control;
-    @include press-state;
+    color: $ink-dim;
+    border-radius: $radius-pill;
+    transition:
+      background-color $dur-med $ease-out,
+      color $dur-med $ease-out,
+      box-shadow $dur-med $ease-out;
 
     &--active {
-      background: $color-black;
-      color: $color-white;
+      background: $surface;
+      color: $ink;
+      box-shadow: $shadow-card;
     }
+  }
+}
+
+@keyframes chart-area-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes chart-live-pulse {
+  0% {
+    transform: scale(1);
+    opacity: 0.4;
+  }
+  70% {
+    transform: scale(2.6);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(2.6);
+    opacity: 0;
+  }
+}
+
+@keyframes chart-tooltip-in {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
   }
 }

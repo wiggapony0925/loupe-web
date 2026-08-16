@@ -7,28 +7,46 @@
   width: 100%;
   padding: $space-3 $space-4;
   text-align: left;
-  border-bottom: $hairline;
-  background: $color-white;
+  background: $surface;
+  transition: background-color $dur-fast $ease-out;
   @include press-state;
+
+  &:active {
+    background: $surface-sunken;
+  }
+
+  &__avatar {
+    position: relative;
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 42px;
+    height: 42px;
+    border-radius: $radius-pill;
+    background: $surface-sunken;
+    font-size: $text-md;
+    font-weight: $weight-heavy;
+    color: $ink;
+  }
+
+  &__live-dot {
+    position: absolute;
+    top: -1px;
+    right: -1px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: $positive;
+    border: 2px solid $surface;
+    animation: transaction-row-pulse 1.6s ease-in-out infinite;
+  }
 
   &__main {
     flex: 1;
     min-width: 0;
-  }
-
-  &__top {
     display: flex;
-    align-items: center;
-    gap: $space-2;
-  }
-
-  &__live-dot {
-    flex: none;
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-    background: $color-black;
-    animation: transaction-row-pulse 1.6s ease-in-out infinite;
+    flex-direction: column;
+    gap: 2px;
   }
 
   &__merchant {
@@ -40,9 +58,8 @@
   }
 
   &__meta {
-    margin-top: 2px;
     font-size: $text-sm;
-    color: $color-ink-dim;
+    color: $ink-dim;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -52,7 +69,7 @@
     display: flex;
     flex-wrap: wrap;
     gap: $space-1;
-    margin-top: $space-1;
+    margin-top: 2px;
 
     &:empty {
       display: none;
@@ -65,12 +82,12 @@
     font-weight: $weight-heavy;
     @include tabular-nums;
 
-    &--credit::before {
-      content: '';
+    &--credit {
+      color: $positive;
     }
 
     &--settled {
-      color: $color-ink-faint;
+      color: $ink-faint;
       font-weight: $weight-regular;
       text-decoration: line-through;
     }
@@ -81,8 +98,10 @@
   0%,
   100% {
     opacity: 1;
+    transform: scale(1);
   }
   50% {
-    opacity: 0.25;
+    opacity: 0.55;
+    transform: scale(0.82);
   }
 }

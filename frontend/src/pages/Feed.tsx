@@ -74,8 +74,13 @@ export function Feed() {
         <section className="section feed__needs-tagging">
           <h2 className="section__title">Needs tagging · {needsTagging.length}</h2>
           <div className="list">
-            {needsTagging.map((transaction) => (
-              <TransactionRow key={transaction.id} transaction={transaction} onPress={open} />
+            {needsTagging.map((transaction, index) => (
+              <TransactionRow
+                key={transaction.id}
+                transaction={transaction}
+                onPress={open}
+                enterIndex={Math.min(index, 10)}
+              />
             ))}
           </div>
         </section>
@@ -91,8 +96,13 @@ export function Feed() {
           <section key={date} className="section">
             <h2 className="section__title">{friendlyDate(date)}</h2>
             <div className="list">
-              {transactions.map((transaction) => (
-                <TransactionRow key={transaction.id} transaction={transaction} onPress={open} />
+              {transactions.map((transaction, index) => (
+                <TransactionRow
+                  key={transaction.id}
+                  transaction={transaction}
+                  onPress={open}
+                  enterIndex={Math.min(index, 10)}
+                />
               ))}
             </div>
           </section>

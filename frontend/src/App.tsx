@@ -5,8 +5,6 @@
  */
 import { useCallback, useEffect, useState } from 'react';
 import { Navigate, Route, Routes, useNavigate } from 'react-router-dom';
-import { Capacitor } from '@capacitor/core';
-import { StatusBar, Style } from '@capacitor/status-bar';
 import { watchAuth } from '@/lib/firebase';
 import { useLedgerStore } from '@/store/useLedgerStore';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
@@ -27,12 +25,7 @@ export function App() {
   const clearSession = useLedgerStore((s) => s.clearSession);
   const [signedIn, setSignedIn] = useState(false);
 
-  useEffect(() => {
-    if (Capacitor.isNativePlatform()) {
-      // Dark status-bar text over the white app chrome.
-      void StatusBar.setStyle({ style: Style.Light }).catch(() => undefined);
-    }
-  }, []);
+  // Status-bar styling lives in ThemeProvider — it follows the theme.
 
   useEffect(() => {
     const unsubscribe = watchAuth((firebaseUser) => {

@@ -1,0 +1,34 @@
+@use '../../styles/variables' as *;
+
+.theme-toggle {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: $radius-pill;
+  background: $surface-sunken;
+  color: $ink;
+  @include press-state;
+
+  &__icon {
+    width: 19px;
+    height: 19px;
+    animation: theme-toggle-spin $dur-med $ease-out;
+
+    svg {
+      width: 100%;
+      height: 100%;
+    }
+  }
+}
+
+@keyframes theme-toggle-spin {
+  from {
+    transform: rotate(-90deg) scale(0.6);
+    opacity: 0;
+  }
+  to {
+    transform: rotate(0) scale(1);
+    opacity: 1;
+  }
+}

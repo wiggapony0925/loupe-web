@@ -4,7 +4,7 @@
   &__header {
     display: flex;
     flex-direction: column;
-    padding: $space-2 $space-4 $space-4;
+    padding: $space-2 $space-5 $space-4;
     border-bottom: $hairline;
   }
 
@@ -21,21 +21,21 @@
     @include tabular-nums;
 
     &--credit {
-      color: $color-black; // credits stay monochrome; red is for errors only
+      color: $positive;
     }
   }
 
   &__meta {
     margin-top: $space-1;
     font-size: $text-sm;
-    color: $color-ink-dim;
+    color: $ink-dim;
   }
 
   &__hint {
-    margin-top: $space-2;
+    margin-top: $space-3;
     font-size: $text-sm;
-    color: $color-black;
-    background: $color-off-white;
+    color: $ink;
+    background: $surface-sunken;
     padding: $space-2 $space-3;
     border-radius: $radius-control;
   }
@@ -44,7 +44,7 @@
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: $space-2;
-    padding: $space-4;
+    padding: $space-4 $space-5;
   }
 
   &__option {
@@ -52,19 +52,28 @@
     flex-direction: column;
     align-items: flex-start;
     gap: 2px;
-    padding: $space-3;
-    border: 1px solid $color-border;
-    border-radius: $radius-control;
-    background: $color-white;
+    padding: $space-3 $space-4;
+    border: $hairline;
+    border-radius: $radius-card - 4px;
+    background: $surface;
+    transition:
+      background-color $dur-med $ease-out,
+      border-color $dur-med $ease-out,
+      box-shadow $dur-med $ease-out;
     @include press-state;
 
     &--active {
-      background: $color-black;
-      border-color: $color-black;
+      background: $accent;
+      border-color: $accent;
+      box-shadow: $shadow-card;
 
-      .tag-sheet__option-label,
+      .tag-sheet__option-label {
+        color: $on-accent;
+      }
+
       .tag-sheet__option-hint {
-        color: $color-white;
+        color: $on-accent;
+        opacity: 0.65;
       }
     }
 
@@ -81,7 +90,7 @@
 
   &__option-hint {
     font-size: $text-xs;
-    color: $color-ink-dim;
+    color: $ink-dim;
   }
 
   &__section {
@@ -90,14 +99,14 @@
 
   &__section-title {
     display: block;
-    padding: 0 $space-4 $space-1;
+    padding: 0 $space-5 $space-1;
     font-size: $text-xs;
     font-weight: $weight-semibold;
     letter-spacing: 0.08em;
-    color: $color-ink-dim;
+    color: $ink-faint;
   }
 
   &__footer {
-    padding: $space-4;
+    padding: $space-4 $space-5;
   }
 }

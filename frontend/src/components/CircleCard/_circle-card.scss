@@ -7,9 +7,13 @@
   width: 100%;
   padding: $space-4;
   text-align: left;
-  border-bottom: $hairline;
-  background: $color-white;
+  background: $surface;
+  transition: background-color $dur-fast $ease-out;
   @include press-state;
+
+  &:active {
+    background: $surface-sunken;
+  }
 
   &__main {
     flex: 1;
@@ -27,7 +31,7 @@
     display: block;
     margin-top: 2px;
     font-size: $text-sm;
-    color: $color-ink-dim;
+    color: $ink-dim;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -35,16 +39,22 @@
 
   &__net {
     flex: none;
+    padding: $space-1 $space-3;
+    border-radius: $radius-pill;
     font-size: $text-sm;
     font-weight: $weight-semibold;
+    background: $positive-soft;
+    color: $positive;
     @include tabular-nums;
 
     &--owing {
-      color: $color-red;
+      background: $negative-soft;
+      color: $negative;
     }
 
     &--even {
-      color: $color-ink-faint;
+      background: $surface-sunken;
+      color: $ink-faint;
       font-weight: $weight-regular;
     }
   }

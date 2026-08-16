@@ -1,15 +1,76 @@
-// trackify design tokens — the Square palette, verbatim from the spec.
-// Monochrome by law: #FF3B30 exists ONLY for errors and negative balances.
-// No gradients. No drop shadows.
+// trackify design tokens.
+//
+// Theme = CSS custom properties on <html data-theme="light|dark"> (the loupe
+// pattern): index.html resolves the attribute pre-paint, ThemeProvider keeps
+// it current, and every SCSS alias below points at a var() so components are
+// theme-blind. Red/green are FINANCIAL semantics (loss/gain, owe/owed) with
+// the sign always present in text — color never carries meaning alone.
 
-// Color
-$color-black: #000000;
-$color-white: #ffffff;
-$color-off-white: #f5f5f5;
-$color-border: #e0e0e0;
-$color-red: #ff3b30;
-$color-ink-dim: #666666; // secondary text (still monochrome)
-$color-ink-faint: #999999;
+:root {
+  color-scheme: light;
+
+  --bg: #f2f3f5; // page ground
+  --surface: #ffffff; // cards
+  --surface-raised: #ffffff; // sheets, floating bars
+  --surface-sunken: #e9ebee; // chips, inputs, avatars
+  --border: #e3e5e9;
+  --ink: #0b0c0e;
+  --ink-dim: #5f6672;
+  --ink-faint: #9aa1ab;
+  --accent: #0b0c0e; // primary action (monochrome brand: ink)
+  --on-accent: #ffffff;
+  --positive: #008a50;
+  --negative: #e02d22;
+  --positive-soft: rgba(0, 138, 80, 0.12);
+  --negative-soft: rgba(224, 45, 34, 0.1);
+  --backdrop: rgba(10, 11, 13, 0.45);
+  --blur-surface: rgba(255, 255, 255, 0.85);
+  --shadow-card: 0 1px 2px rgba(10, 12, 14, 0.04), 0 8px 24px rgba(10, 12, 14, 0.06);
+  --shadow-float: 0 2px 8px rgba(10, 12, 14, 0.08), 0 12px 32px rgba(10, 12, 14, 0.12);
+}
+
+html[data-theme='dark'] {
+  color-scheme: dark;
+
+  --bg: #0b0c0e;
+  --surface: #16181c;
+  --surface-raised: #1c1e24;
+  --surface-sunken: #101114;
+  --border: #26282e;
+  --ink: #f3f4f6;
+  --ink-dim: #9ba2ad;
+  --ink-faint: #626973;
+  --accent: #f3f4f6; // primary inverts: white pill, ink text
+  --on-accent: #0b0c0e;
+  --positive: #00d07e;
+  --negative: #ff6159;
+  --positive-soft: rgba(0, 208, 126, 0.14);
+  --negative-soft: rgba(255, 97, 89, 0.14);
+  --backdrop: rgba(0, 0, 0, 0.6);
+  --blur-surface: rgba(22, 24, 28, 0.82);
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.35), 0 8px 24px rgba(0, 0, 0, 0.35);
+  --shadow-float: 0 2px 8px rgba(0, 0, 0, 0.45), 0 16px 40px rgba(0, 0, 0, 0.55);
+}
+
+// ── SCSS aliases (components use these, never raw hex) ──────────────────────
+$bg: var(--bg);
+$surface: var(--surface);
+$surface-raised: var(--surface-raised);
+$surface-sunken: var(--surface-sunken);
+$border: var(--border);
+$ink: var(--ink);
+$ink-dim: var(--ink-dim);
+$ink-faint: var(--ink-faint);
+$accent: var(--accent);
+$on-accent: var(--on-accent);
+$positive: var(--positive);
+$negative: var(--negative);
+$positive-soft: var(--positive-soft);
+$negative-soft: var(--negative-soft);
+$backdrop: var(--backdrop);
+$blur-surface: var(--blur-surface);
+$shadow-card: var(--shadow-card);
+$shadow-float: var(--shadow-float);
 
 // Type
 $font-stack:
@@ -24,16 +85,16 @@ $font-stack:
 
 $weight-regular: 400;
 $weight-semibold: 600;
-$weight-heavy: 800; // currency balances
+$weight-heavy: 800;
 
 $text-xs: 11px;
 $text-sm: 13px;
 $text-md: 15px;
 $text-lg: 17px;
 $text-xl: 22px;
-$text-hero: 40px; // the net-worth number
+$text-hero: 42px;
 
-// Spacing — brutalist 4px grid
+// Spacing — 4px grid
 $space-1: 4px;
 $space-2: 8px;
 $space-3: 12px;
@@ -44,16 +105,26 @@ $space-8: 32px;
 $space-10: 40px;
 
 // Structure
-$radius-sheet: 16px; // bottom sheets only
-$radius-control: 6px; // buttons/chips
-$tab-bar-height: 56px;
-$hairline: 1px solid $color-border;
+$radius-card: 18px;
+$radius-control: 12px;
+$radius-pill: 999px;
+$radius-sheet: 24px;
+$tab-bar-height: 64px;
+$hairline: 1px solid $border;
+
+// Motion
+$ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+$ease-spring: cubic-bezier(0.32, 0.72, 0, 1);
+$dur-fast: 150ms;
+$dur-med: 260ms;
+$dur-slow: 480ms;
 
 // Layers
 $z-sheet: 100;
 $z-tab-bar: 50;
+$z-tooltip: 60;
 
-// Safe areas (Capacitor edge-to-edge)
+// Safe areas
 $safe-top: env(safe-area-inset-top, 0px);
 $safe-bottom: env(safe-area-inset-bottom, 0px);
 
@@ -62,9 +133,27 @@ $safe-bottom: env(safe-area-inset-bottom, 0px);
   font-feature-settings: 'tnum';
 }
 
+// Tactile press: scale, not opacity — the modern-app feel.
 @mixin press-state {
-  transition: opacity 80ms ease;
+  transition:
+    transform $dur-fast $ease-out,
+    opacity $dur-fast $ease-out,
+    background-color $dur-fast $ease-out;
   &:active {
-    opacity: 0.6;
+    transform: scale(0.97);
   }
+}
+
+@mixin card {
+  background: $surface;
+  border: $hairline;
+  border-radius: $radius-card;
+  box-shadow: $shadow-card;
+  overflow: hidden;
+}
+
+@mixin blur-bar {
+  background: $blur-surface;
+  -webkit-backdrop-filter: saturate(1.6) blur(18px);
+  backdrop-filter: saturate(1.6) blur(18px);
 }

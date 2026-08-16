@@ -1,10 +1,15 @@
 @use '../../styles/variables' as *;
 
+// The excel view, modernized: a rounded card containing a sticky-header
+// table; subtle zebra, colored amounts, sortable headers.
 .sheet-grid {
-  border-top: $hairline;
+  margin: $space-3 $space-4 0;
+  @include card;
 
   &__scroll {
     overflow-x: auto;
+    max-height: 60dvh;
+    overflow-y: auto;
     -webkit-overflow-scrolling: touch;
   }
 
@@ -15,21 +20,20 @@
     font-size: $text-sm;
   }
 
-  &__head-row {
-    background: $color-black;
-  }
-
   &__head-cell {
     position: sticky;
     top: 0;
-    padding: $space-2 $space-3;
-    color: $color-white;
+    z-index: 1;
+    padding: $space-3;
+    background: $surface-raised;
+    color: $ink-faint;
     font-size: $text-xs;
     font-weight: $weight-semibold;
     letter-spacing: 0.06em;
     text-transform: uppercase;
     text-align: left;
     white-space: nowrap;
+    border-bottom: $hairline;
 
     &--number {
       text-align: right;
@@ -44,6 +48,11 @@
     display: inline-flex;
     align-items: center;
     gap: $space-1;
+    transition: color $dur-fast $ease-out;
+
+    &:active {
+      color: $ink;
+    }
   }
 
   &__sort-arrow {
@@ -53,13 +62,14 @@
   &__row {
     cursor: pointer;
     border-bottom: $hairline;
+    transition: background-color $dur-fast $ease-out;
 
     &:nth-child(even) {
-      background: $color-off-white;
+      background: $surface-sunken;
     }
 
     &:active {
-      opacity: 0.6;
+      background: $border;
     }
   }
 
@@ -83,16 +93,19 @@
     }
 
     &--credit {
-      // A credit is money back — still monochrome; red stays reserved.
+      color: $positive;
       font-weight: $weight-heavy;
     }
   }
 
   &__total-row {
-    border-top: 2px solid $color-black;
+    border-top: 2px solid $ink;
 
     .sheet-grid__cell {
       padding: $space-3;
+      background: $surface;
+      position: sticky;
+      bottom: 0;
     }
   }
 }

@@ -9,6 +9,8 @@ import { NetWorthChart } from '@/components/NetWorthChart/NetWorthChart';
 import { AccountCard } from '@/components/AccountCard/AccountCard';
 import { BottomSheet } from '@/components/BottomSheet/BottomSheet';
 import { EmptyState } from '@/components/EmptyState/EmptyState';
+import { ThemeToggle } from '@/components/ThemeToggle/ThemeToggle';
+import { AnimatedNumber } from '@/components/AnimatedNumber/AnimatedNumber';
 import { useLedgerStore } from '@/store/useLedgerStore';
 import { useHaptics } from '@/hooks/useHaptics';
 import { money, moneyHero, moneyOrDash, signedMoney } from '@/lib/format';
@@ -94,11 +96,27 @@ export function Home() {
 
   return (
     <div className="page home">
-      <header className="home__hero">
+      <header className="page__header">
+        <span className="home__brand">trackify</span>
+        <div className="page__actions">
+          <ThemeToggle />
+        </div>
+      </header>
+
+      <div className="home__hero">
         <span className="home__eyebrow">NET WORTH</span>
-        <span className="home__value">{heroCents === null ? '—' : moneyHero(heroCents)}</span>
+        <span className="home__value">
+          {heroCents === null ? (
+            '—'
+          ) : (
+            <AnimatedNumber value={heroCents} format={moneyHero} instant={scrub !== null} />
+          )}
+        </span>
         {delta ? (
           <span className={`home__delta${delta.diff < 0 ? ' home__delta--down' : ''}`}>
+            <span className="home__delta-arrow" aria-hidden="true">
+              {delta.diff < 0 ? '▼' : '▲'}
+            </span>
             {signedMoney(delta.diff)}
             {delta.pct !== null ? ` (${delta.pct >= 0 ? '+' : ''}${delta.pct.toFixed(1)}%)` : ''} · {range}
           </span>
@@ -107,7 +125,7 @@ export function Home() {
             {scrub ? new Date(scrub.t).toLocaleDateString() : 'as of today'}
           </span>
         )}
-      </header>
+      </div>
 
       <NetWorthChart points={points} range={range} onRangeChange={onRangeChange} onScrub={setScrub} />
 
@@ -142,8 +160,13 @@ export function Home() {
           />
         ) : (
           <div className="list">
-            {visibleAccounts.map((account) => (
-              <AccountCard key={account.id} account={account} onPress={setSelectedAccount} />
+            {visibleAccounts.map((account, index) => (
+              <AccountCard
+                key={account.id}
+                account={account}
+                onPress={setSelectedAccount}
+                enterIndex={Math.min(index, 10)}
+              />
             ))}
           </div>
         )}
