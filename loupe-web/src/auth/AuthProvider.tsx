@@ -7,7 +7,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { api, configureApi, type User } from "@loupe/core";
+import { ApiError, api, configureApi, type User } from "@loupe/core";
 import { notify } from "@/stores/noticeStore";
 import { setSentryUser } from "@/observability/sentry";
 
@@ -211,7 +211,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     api.me
       .get()
       .then(setUser)
-      .catch(() => {
+      .catch((err: unknown) => {
+        // ONLY AN AUTH FAILURE MAY END THE SESSION. This used to catch
+        // everything and log out, which means any reason `me` did not answer —
+        // a flaky connection, a 500, a cold backend, or a CSP that blocked the
+        // request before it was even sent — silently destroyed a perfectly
+        // valid token. During the connect-src outage that was every page load:
+        // sign in, get bounced, sign in again.
+        //
+        // A real 401 already has a home: `onUnauthorized` above, which knows
+        // the difference between a lapsed session and an expiring
+        // impersonation, and says so to the user. Anything else leaves the
+        // token alone — `user` stays null for this render, and the next
+        // request re-resolves it.
+        const status = err instanceof ApiError ? err.status : 0;
+        if (status !== 401 && status !== 403) return;
         if (isImpersonatingNow()) exitImpersonation();
         else logout();
       })
