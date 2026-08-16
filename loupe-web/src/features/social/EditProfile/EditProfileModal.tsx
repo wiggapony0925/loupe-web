@@ -5,10 +5,15 @@ import {
   useUploadSocialAvatar,
   type SocialProfile,
 } from "@loupe/core";
-import { useModeratedSubmit } from "moderato/react";
+import { useModeratedField, useModeratedSubmit } from "moderato/react";
 import { ModeratedUpload } from "moderato/web";
 import { Button, Modal, Switch, TextField } from "@/components";
 import { SocialAvatar } from "../components/SocialAvatar";
+import {
+  IDENTITY_HINT,
+  IDENTITY_POLICY,
+  moderationEngine,
+} from "../moderation";
 import { SOCIAL_PLATFORMS } from "../socialLinks";
 import styles from "./EditProfileModal.module.scss";
 
@@ -34,6 +39,18 @@ export function EditProfileModal({
   accountName,
 }: EditProfileModalProps) {
   const [username, setUsername] = useState(profile?.username ?? "");
+  // The handle is screened as it is typed. Not enforcement — the server
+  // refuses on save either way — but a handle is permanent public identity,
+  // and finding out at the keyboard beats finding out after filling in the
+  // whole form. Controlled, so the existing `username` state stays the one
+  // source of truth for validation and submit.
+  const handleField = useModeratedField({
+    engine: moderationEngine,
+    value: username,
+    onChange: setUsername,
+    policy: IDENTITY_POLICY,
+    message: IDENTITY_HINT,
+  });
   const [bio, setBio] = useState(profile?.bio ?? "");
   const [location, setLocation] = useState(profile?.location ?? "");
   const [isPrivate, setIsPrivate] = useState(profile?.isPrivate ?? false);
@@ -68,7 +85,7 @@ export function EditProfileModal({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, profile]);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     const handle = username.trim();
     if (!USERNAME_RE.test(handle)) {
       setFormError(
@@ -77,6 +94,10 @@ export function EditProfileModal({
       return;
     }
     setFormError(null);
+    // Flush the debounce before submitting: without this, typing a slur and
+    // hitting Save inside the quiet window skips the check entirely. The
+    // server would still refuse — this just makes the refusal instant.
+    if (!(await handleField.check()).ok) return;
     save.submit({
       username: handle,
       bio: bio.trim() || null,
@@ -104,7 +125,11 @@ export function EditProfileModal({
           : "Pick a username so other collectors can find and follow you."
       }
       footer={
-        <Button block onClick={handleSave} disabled={save.pending}>
+        <Button
+          block
+          onClick={() => void handleSave()}
+          disabled={save.pending || handleField.blocked}
+        >
           {save.pending ? "Saving…" : claimed ? "Save changes" : "Claim username"}
         </Button>
       }
@@ -144,9 +169,11 @@ export function EditProfileModal({
           label="Username"
           value={username}
           onChange={(e) => {
-            setUsername(e.target.value);
+            handleField.inputProps.onChange(e);
             if (save.refusal) save.dismiss();
           }}
+          onBlur={handleField.inputProps.onBlur}
+          error={handleField.message ?? undefined}
           placeholder="e.g. jeffcollects"
           autoCapitalize="none"
           autoCorrect="off"
