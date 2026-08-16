@@ -1,0 +1,322 @@
+// Page-level BEM blocks: .home, .feed, .sheet-page, .ledger, .circles, .auth
+@use 'variables' as *;
+
+// ── Home ─────────────────────────────────────────────────────────────────────
+.home {
+  &__hero {
+    display: flex;
+    flex-direction: column;
+    padding: $space-2 $space-4 $space-4;
+  }
+
+  &__eyebrow {
+    font-size: $text-xs;
+    font-weight: $weight-semibold;
+    letter-spacing: 0.12em;
+    color: $color-ink-dim;
+  }
+
+  &__value {
+    margin-top: $space-1;
+    font-size: $text-hero;
+    font-weight: $weight-heavy;
+    letter-spacing: -0.03em;
+    @include tabular-nums;
+  }
+
+  &__delta {
+    margin-top: $space-1;
+    font-size: $text-sm;
+    font-weight: $weight-semibold;
+    @include tabular-nums;
+
+    &--down {
+      color: $color-red;
+    }
+
+    &--quiet {
+      color: $color-ink-dim;
+      font-weight: $weight-regular;
+    }
+  }
+
+  &__stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    border-top: $hairline;
+    border-bottom: $hairline;
+    margin-top: $space-4;
+  }
+
+  &__stat {
+    display: flex;
+    flex-direction: column;
+    padding: $space-3 $space-4;
+
+    &:last-child {
+      border-left: $hairline;
+    }
+  }
+
+  &__stat-label {
+    font-size: $text-xs;
+    font-weight: $weight-semibold;
+    letter-spacing: 0.08em;
+    color: $color-ink-dim;
+  }
+
+  &__stat-value {
+    margin-top: 2px;
+    font-size: $text-lg;
+    font-weight: $weight-heavy;
+    @include tabular-nums;
+
+    &--liability {
+      color: $color-red;
+    }
+  }
+
+  &__link {
+    padding: $space-4;
+  }
+
+  &__account-balance {
+    font-size: $text-xl;
+    font-weight: $weight-heavy;
+    @include tabular-nums;
+  }
+
+  &__holding {
+    display: flex;
+    justify-content: space-between;
+    padding: $space-2 $space-4;
+    border-bottom: $hairline;
+    font-size: $text-sm;
+  }
+
+  &__holding-symbol {
+    font-weight: $weight-semibold;
+  }
+
+  &__holding-value {
+    @include tabular-nums;
+  }
+
+  &__account-actions {
+    padding: $space-4;
+  }
+}
+
+// ── Feed ─────────────────────────────────────────────────────────────────────
+.feed {
+  &__needs-tagging {
+    .section__title {
+      color: $color-red;
+    }
+  }
+
+  &__more {
+    padding: $space-4;
+  }
+}
+
+// ── Sheet ────────────────────────────────────────────────────────────────────
+.sheet-page {
+  &__filters {
+    padding-bottom: $space-2;
+    border-bottom: $hairline;
+  }
+
+  &__exports {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: $space-2;
+    padding: $space-4;
+  }
+
+  &__sheet-link {
+    font-weight: $weight-semibold;
+    text-decoration: underline;
+  }
+}
+
+// ── Ledger ───────────────────────────────────────────────────────────────────
+.ledger {
+  &__member {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: $space-3 $space-4;
+    border-bottom: $hairline;
+  }
+
+  &__member-name {
+    font-size: $text-md;
+    font-weight: $weight-semibold;
+  }
+
+  &__member-net {
+    font-size: $text-sm;
+    font-weight: $weight-semibold;
+    @include tabular-nums;
+
+    &--owing {
+      color: $color-red;
+    }
+
+    &--even {
+      color: $color-ink-faint;
+      font-weight: $weight-regular;
+    }
+  }
+
+  &__caption {
+    padding: $space-2 $space-4;
+    font-size: $text-xs;
+    color: $color-ink-faint;
+  }
+
+  &__suggestion {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: $space-3;
+    padding: $space-3 $space-4;
+    border-bottom: $hairline;
+  }
+
+  &__suggestion-text {
+    font-size: $text-sm;
+  }
+
+  &__suggestion-amount {
+    font-weight: $weight-heavy;
+    @include tabular-nums;
+  }
+
+  &__history-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: $space-2 $space-4;
+    border-bottom: $hairline;
+  }
+
+  &__history-text {
+    font-size: $text-sm;
+  }
+
+  &__history-meta {
+    font-size: $text-sm;
+    color: $color-ink-dim;
+    @include tabular-nums;
+  }
+}
+
+// ── Circles ──────────────────────────────────────────────────────────────────
+.circles {
+  &__create {
+    padding: $space-4;
+  }
+
+  &__form {
+    padding-bottom: $space-2;
+  }
+
+  &__form-footer {
+    padding: $space-4;
+  }
+
+  &__member {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: $space-3 $space-4;
+    border-bottom: $hairline;
+  }
+
+  &__member-name {
+    display: block;
+    font-size: $text-md;
+    font-weight: $weight-semibold;
+  }
+
+  &__member-phone {
+    display: block;
+    font-size: $text-xs;
+    color: $color-ink-faint;
+  }
+
+  &__invite {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: $space-3 $space-4;
+    background: $color-off-white;
+    border-radius: $radius-control;
+    margin: 0 $space-4 $space-4;
+    width: calc(100% - #{$space-4 * 2});
+    @include press-state;
+  }
+
+  &__invite-code {
+    font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+    font-size: $text-sm;
+    font-weight: $weight-semibold;
+    letter-spacing: 0.04em;
+  }
+
+  &__invite-hint {
+    font-size: $text-xs;
+    color: $color-ink-dim;
+  }
+}
+
+// ── Auth ─────────────────────────────────────────────────────────────────────
+.auth {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding-top: calc(#{$safe-top} + #{$space-10});
+  padding-bottom: calc(#{$safe-bottom} + #{$space-4});
+
+  &__brand {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: $space-2;
+  }
+
+  &__wordmark {
+    font-size: 34px;
+    font-weight: $weight-heavy;
+    letter-spacing: -0.04em;
+  }
+
+  &__tagline {
+    font-size: $text-sm;
+    color: $color-ink-dim;
+  }
+
+  &__form {
+    display: flex;
+    flex-direction: column;
+    gap: $space-4;
+    padding: $space-4;
+  }
+
+  &__back {
+    font-size: $text-sm;
+    color: $color-ink-dim;
+    text-align: center;
+    @include press-state;
+  }
+
+  &__footer {
+    text-align: center;
+    font-size: $text-xs;
+    color: $color-ink-faint;
+  }
+}

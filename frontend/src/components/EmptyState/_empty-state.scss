@@ -1,0 +1,21 @@
+@use '../../styles/variables' as *;
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: $space-3;
+  padding: $space-10 $space-6;
+  text-align: center;
+
+  &__title {
+    font-size: $text-lg;
+    font-weight: $weight-heavy;
+  }
+
+  &__body {
+    font-size: $text-sm;
+    color: $color-ink-dim;
+    max-width: 280px;
+  }
+}

@@ -1,0 +1,33 @@
+# Dependencies
+node_modules/
+
+# Builds
+dist/
+build/
+*.tsbuildinfo
+
+# Environment & secrets — never commit these
+.env
+.env.*
+!.env.example
+*.pem
+*service-account*.json
+firebase-adminsdk*.json
+
+# Prisma
+backend/src/generated/
+
+# Capacitor native build output (native shells are generated with `npx cap add`)
+frontend/ios/App/Pods/
+frontend/ios/App/build/
+frontend/ios/DerivedData/
+frontend/android/.gradle/
+frontend/android/app/build/
+frontend/android/build/
+
+# Tooling
+.DS_Store
+*.log
+coverage/
+.vite/
+.turbo/

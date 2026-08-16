@@ -1,0 +1,70 @@
+// trackify design tokens — the Square palette, verbatim from the spec.
+// Monochrome by law: #FF3B30 exists ONLY for errors and negative balances.
+// No gradients. No drop shadows.
+
+// Color
+$color-black: #000000;
+$color-white: #ffffff;
+$color-off-white: #f5f5f5;
+$color-border: #e0e0e0;
+$color-red: #ff3b30;
+$color-ink-dim: #666666; // secondary text (still monochrome)
+$color-ink-faint: #999999;
+
+// Type
+$font-stack:
+  -apple-system,
+  BlinkMacSystemFont,
+  'SF Pro Text',
+  'Inter',
+  'Segoe UI',
+  Roboto,
+  system-ui,
+  sans-serif;
+
+$weight-regular: 400;
+$weight-semibold: 600;
+$weight-heavy: 800; // currency balances
+
+$text-xs: 11px;
+$text-sm: 13px;
+$text-md: 15px;
+$text-lg: 17px;
+$text-xl: 22px;
+$text-hero: 40px; // the net-worth number
+
+// Spacing — brutalist 4px grid
+$space-1: 4px;
+$space-2: 8px;
+$space-3: 12px;
+$space-4: 16px;
+$space-5: 20px;
+$space-6: 24px;
+$space-8: 32px;
+$space-10: 40px;
+
+// Structure
+$radius-sheet: 16px; // bottom sheets only
+$radius-control: 6px; // buttons/chips
+$tab-bar-height: 56px;
+$hairline: 1px solid $color-border;
+
+// Layers
+$z-sheet: 100;
+$z-tab-bar: 50;
+
+// Safe areas (Capacitor edge-to-edge)
+$safe-top: env(safe-area-inset-top, 0px);
+$safe-bottom: env(safe-area-inset-bottom, 0px);
+
+@mixin tabular-nums {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum';
+}
+
+@mixin press-state {
+  transition: opacity 80ms ease;
+  &:active {
+    opacity: 0.6;
+  }
+}

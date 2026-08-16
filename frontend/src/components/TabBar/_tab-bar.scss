@@ -1,0 +1,44 @@
+@use '../../styles/variables' as *;
+
+.tab-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: $z-tab-bar;
+  display: flex;
+  background: $color-white;
+  border-top: $hairline;
+  padding-bottom: $safe-bottom;
+
+  &__item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    padding: $space-2 0 $space-1;
+    color: $color-ink-faint;
+    @include press-state;
+
+    &--active {
+      color: $color-black;
+    }
+  }
+
+  &__icon {
+    width: 24px;
+    height: 24px;
+
+    svg {
+      width: 100%;
+      height: 100%;
+    }
+  }
+
+  &__label {
+    font-size: 10px;
+    font-weight: $weight-semibold;
+    letter-spacing: 0.02em;
+  }
+}

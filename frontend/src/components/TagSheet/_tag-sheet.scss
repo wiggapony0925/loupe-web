@@ -1,0 +1,103 @@
+@use '../../styles/variables' as *;
+
+.tag-sheet {
+  &__header {
+    display: flex;
+    flex-direction: column;
+    padding: $space-2 $space-4 $space-4;
+    border-bottom: $hairline;
+  }
+
+  &__merchant {
+    font-size: $text-lg;
+    font-weight: $weight-semibold;
+  }
+
+  &__amount {
+    margin-top: $space-1;
+    font-size: $text-hero;
+    font-weight: $weight-heavy;
+    letter-spacing: -0.03em;
+    @include tabular-nums;
+
+    &--credit {
+      color: $color-black; // credits stay monochrome; red is for errors only
+    }
+  }
+
+  &__meta {
+    margin-top: $space-1;
+    font-size: $text-sm;
+    color: $color-ink-dim;
+  }
+
+  &__hint {
+    margin-top: $space-2;
+    font-size: $text-sm;
+    color: $color-black;
+    background: $color-off-white;
+    padding: $space-2 $space-3;
+    border-radius: $radius-control;
+  }
+
+  &__options {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: $space-2;
+    padding: $space-4;
+  }
+
+  &__option {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+    padding: $space-3;
+    border: 1px solid $color-border;
+    border-radius: $radius-control;
+    background: $color-white;
+    @include press-state;
+
+    &--active {
+      background: $color-black;
+      border-color: $color-black;
+
+      .tag-sheet__option-label,
+      .tag-sheet__option-hint {
+        color: $color-white;
+      }
+    }
+
+    &--disabled {
+      opacity: 0.35;
+      pointer-events: none;
+    }
+  }
+
+  &__option-label {
+    font-size: $text-md;
+    font-weight: $weight-semibold;
+  }
+
+  &__option-hint {
+    font-size: $text-xs;
+    color: $color-ink-dim;
+  }
+
+  &__section {
+    padding: $space-2 0;
+  }
+
+  &__section-title {
+    display: block;
+    padding: 0 $space-4 $space-1;
+    font-size: $text-xs;
+    font-weight: $weight-semibold;
+    letter-spacing: 0.08em;
+    color: $color-ink-dim;
+  }
+
+  &__footer {
+    padding: $space-4;
+  }
+}

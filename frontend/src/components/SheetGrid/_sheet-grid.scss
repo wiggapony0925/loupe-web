@@ -1,0 +1,98 @@
+@use '../../styles/variables' as *;
+
+.sheet-grid {
+  border-top: $hairline;
+
+  &__scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  &__table {
+    min-width: 880px;
+    width: 100%;
+    border-collapse: collapse;
+    font-size: $text-sm;
+  }
+
+  &__head-row {
+    background: $color-black;
+  }
+
+  &__head-cell {
+    position: sticky;
+    top: 0;
+    padding: $space-2 $space-3;
+    color: $color-white;
+    font-size: $text-xs;
+    font-weight: $weight-semibold;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    text-align: left;
+    white-space: nowrap;
+
+    &--number {
+      text-align: right;
+    }
+  }
+
+  &__sort {
+    color: inherit;
+    font: inherit;
+    letter-spacing: inherit;
+    text-transform: inherit;
+    display: inline-flex;
+    align-items: center;
+    gap: $space-1;
+  }
+
+  &__sort-arrow {
+    font-size: 8px;
+  }
+
+  &__row {
+    cursor: pointer;
+    border-bottom: $hairline;
+
+    &:nth-child(even) {
+      background: $color-off-white;
+    }
+
+    &:active {
+      opacity: 0.6;
+    }
+  }
+
+  &__cell {
+    padding: $space-2 $space-3;
+    vertical-align: top;
+
+    &--nowrap {
+      white-space: nowrap;
+    }
+
+    &--strong {
+      font-weight: $weight-semibold;
+    }
+
+    &--number {
+      text-align: right;
+      font-weight: $weight-semibold;
+      @include tabular-nums;
+      white-space: nowrap;
+    }
+
+    &--credit {
+      // A credit is money back — still monochrome; red stays reserved.
+      font-weight: $weight-heavy;
+    }
+  }
+
+  &__total-row {
+    border-top: 2px solid $color-black;
+
+    .sheet-grid__cell {
+      padding: $space-3;
+    }
+  }
+}

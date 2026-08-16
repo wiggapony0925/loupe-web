@@ -1,0 +1,133 @@
+# trackify — CI + Cloud Run deploy
+#
+# Order is the loupe rule: test → build image → MIGRATE → deploy → smoke-test.
+# Auth is Workload Identity Federation (OIDC) — no service-account JSON keys
+# live in GitHub. One-time GCP setup is documented in README.md §Deploy.
+#
+# Required repository variables (Settings → Secrets and variables → Actions):
+#   GCP_PROJECT_ID              e.g. trackify-jfm
+#   GCP_REGION                  e.g. us-central1
+#   GCP_WORKLOAD_IDENTITY_PROVIDER  projects/…/workloadIdentityPools/github/providers/github
+#   GCP_SERVICE_ACCOUNT         deployer@trackify-jfm.iam.gserviceaccount.com
+#   CLOUD_SQL_INSTANCE          trackify-jfm:us-central1:trackify-pg
+
+name: google-cloud-run-deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: false # never kill a deploy mid-migration
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+      - name: Install backend
+        working-directory: backend
+        run: npm ci
+      - name: Prisma generate
+        working-directory: backend
+        run: npx prisma generate
+      - name: Typecheck
+        working-directory: backend
+        run: npm run typecheck
+      - name: Unit tests
+        working-directory: backend
+        run: npm test
+
+  build-frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Install frontend
+        working-directory: frontend
+        run: npm ci
+      - name: Typecheck + build (Capacitor web bundle)
+        working-directory: frontend
+        run: npm run build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: web-dist
+          path: frontend/dist
+          retention-days: 7
+
+  deploy-api:
+    needs: [test]
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write # OIDC — no long-lived keys
+    steps:
+      - uses: actions/checkout@v4
+
+      - id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ vars.GCP_SERVICE_ACCOUNT }}
+
+      - uses: google-github-actions/setup-gcloud@v2
+
+      - name: Build & push image (Cloud Build → Artifact Registry)
+        run: |
+          gcloud builds submit backend \
+            --project "${{ vars.GCP_PROJECT_ID }}" \
+            --tag "${{ vars.GCP_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/trackify/api:${{ github.sha }}"
+
+      - name: Run database migrations (Cloud Run job)
+        run: |
+          gcloud run jobs deploy trackify-migrate \
+            --project "${{ vars.GCP_PROJECT_ID }}" \
+            --region "${{ vars.GCP_REGION }}" \
+            --image "${{ vars.GCP_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/trackify/api:${{ github.sha }}" \
+            --set-cloudsql-instances "${{ vars.CLOUD_SQL_INSTANCE }}" \
+            --set-secrets "DATABASE_URL=DATABASE_URL:latest" \
+            --command npx --args prisma,migrate,deploy \
+            --max-retries 0
+          gcloud run jobs execute trackify-migrate \
+            --project "${{ vars.GCP_PROJECT_ID }}" \
+            --region "${{ vars.GCP_REGION }}" \
+            --wait
+
+      - name: Deploy API to Cloud Run
+        run: |
+          gcloud run deploy trackify-api \
+            --project "${{ vars.GCP_PROJECT_ID }}" \
+            --region "${{ vars.GCP_REGION }}" \
+            --image "${{ vars.GCP_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/trackify/api:${{ github.sha }}" \
+            --set-cloudsql-instances "${{ vars.CLOUD_SQL_INSTANCE }}" \
+            --set-env-vars "NODE_ENV=production,PLAID_ENV=production,PLAID_WEBHOOK_VERIFY=true,FIREBASE_PROJECT_ID=${{ vars.GCP_PROJECT_ID }}" \
+            --set-secrets "DATABASE_URL=DATABASE_URL:latest,ENCRYPTION_KEY=ENCRYPTION_KEY:latest,PLAID_CLIENT_ID=PLAID_CLIENT_ID:latest,PLAID_SECRET=PLAID_SECRET:latest,EMAIL_WEBHOOK_TOKEN=EMAIL_WEBHOOK_TOKEN:latest,CRON_KEY=CRON_KEY:latest" \
+            --cpu 1 --memory 512Mi \
+            --min-instances 0 --max-instances 10 \
+            --allow-unauthenticated
+
+      - name: Smoke test /healthz
+        run: |
+          URL=$(gcloud run services describe trackify-api \
+            --project "${{ vars.GCP_PROJECT_ID }}" \
+            --region "${{ vars.GCP_REGION }}" \
+            --format 'value(status.url)')
+          for i in 1 2 3 4 5; do
+            if curl -fsS "$URL/healthz" | grep -q '"ok":true'; then
+              echo "healthy: $URL"; exit 0
+            fi
+            sleep 5
+          done
+          echo "service failed smoke test" >&2; exit 1

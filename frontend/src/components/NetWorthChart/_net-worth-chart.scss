@@ -1,0 +1,72 @@
+@use '../../styles/variables' as *;
+
+.net-worth-chart {
+  &__plot {
+    position: relative;
+    height: 180px;
+    touch-action: pan-y; // vertical page scroll still works; horizontal scrubs
+  }
+
+  &__svg {
+    display: block;
+  }
+
+  &__line {
+    fill: none;
+    stroke: $color-black;
+    stroke-width: 2;
+    stroke-linejoin: round;
+    stroke-linecap: round;
+  }
+
+  &__baseline {
+    stroke: $color-border;
+    stroke-width: 1;
+    stroke-dasharray: 2 4;
+  }
+
+  &__crosshair {
+    stroke: $color-ink-faint;
+    stroke-width: 1;
+  }
+
+  &__dot {
+    fill: $color-black;
+    stroke: $color-white;
+    stroke-width: 2;
+  }
+
+  &__empty {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 $space-8;
+    text-align: center;
+    font-size: $text-sm;
+    color: $color-ink-dim;
+    border-top: $hairline;
+    border-bottom: $hairline;
+  }
+
+  &__ranges {
+    display: flex;
+    justify-content: space-between;
+    padding: $space-3 $space-4 0;
+  }
+
+  &__range {
+    padding: $space-1 $space-3;
+    font-size: $text-xs;
+    font-weight: $weight-semibold;
+    letter-spacing: 0.04em;
+    color: $color-ink-dim;
+    border-radius: $radius-control;
+    @include press-state;
+
+    &--active {
+      background: $color-black;
+      color: $color-white;
+    }
+  }
+}

@@ -1,0 +1,88 @@
+@use '../../styles/variables' as *;
+
+.transaction-row {
+  display: flex;
+  align-items: center;
+  gap: $space-3;
+  width: 100%;
+  padding: $space-3 $space-4;
+  text-align: left;
+  border-bottom: $hairline;
+  background: $color-white;
+  @include press-state;
+
+  &__main {
+    flex: 1;
+    min-width: 0;
+  }
+
+  &__top {
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+  }
+
+  &__live-dot {
+    flex: none;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: $color-black;
+    animation: transaction-row-pulse 1.6s ease-in-out infinite;
+  }
+
+  &__merchant {
+    font-size: $text-md;
+    font-weight: $weight-semibold;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &__meta {
+    margin-top: 2px;
+    font-size: $text-sm;
+    color: $color-ink-dim;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &__badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $space-1;
+    margin-top: $space-1;
+
+    &:empty {
+      display: none;
+    }
+  }
+
+  &__amount {
+    flex: none;
+    font-size: $text-md;
+    font-weight: $weight-heavy;
+    @include tabular-nums;
+
+    &--credit::before {
+      content: '';
+    }
+
+    &--settled {
+      color: $color-ink-faint;
+      font-weight: $weight-regular;
+      text-decoration: line-through;
+    }
+  }
+}
+
+@keyframes transaction-row-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.25;
+  }
+}

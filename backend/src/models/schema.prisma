@@ -1,0 +1,388 @@
+// trackify — PostgreSQL schema (Cloud SQL).
+//
+// Money convention: `Transaction.amount` is POSITIVE for money out (charges)
+// and NEGATIVE for money in (refunds/credits) — Plaid's sign convention, kept
+// end-to-end so no layer ever guesses. Balances follow the account's nature:
+// a credit-card `currentBalance` is what is owed on it.
+//
+// "Unknown" is never stored as zero: nullable money columns mean *we don't
+// know*, and every aggregate in the service layer skips NULLs instead of
+// coercing them — a missing balance must not silently subtract from net worth.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ── Enums ────────────────────────────────────────────────────────────────────
+
+enum CircleRole {
+  OWNER
+  ADMIN
+  MEMBER
+  VIEWER
+}
+
+enum SplitType {
+  MINE // cardholder's own expense — no debt created
+  PARTNER // fully the tagged member's expense — they owe the cardholder 100%
+  SPLIT // shared 50/50 (evenly across circle members) — others owe their share
+  REIMBURSE // receivable ("Mom owed") — tagged member owes 100%, excluded from spend analytics
+}
+
+enum SettlementStatus {
+  NONE // untagged / MINE — nothing to settle
+  UNSETTLED
+  PENDING // included in a recorded settlement that isn't confirmed yet
+  SETTLED
+}
+
+enum TransactionStatus {
+  PENDING // ingested from a real-time alert email; Plaid hasn't posted it yet
+  REQUIRES_TAGGING // Chase shared-card charge whose spender couldn't be resolved
+  POSTED // confirmed by Plaid (or manually entered as final)
+}
+
+enum TransactionSource {
+  EMAIL // created by the real-time email ingestion engine
+  PLAID // created by Plaid sync with no email predecessor
+  MERGED // email-first, later reconciled with its Plaid twin
+  MANUAL
+}
+
+enum AccountType {
+  DEPOSITORY
+  CREDIT
+  INVESTMENT
+  LOAN
+  OTHER
+}
+
+enum AlertProvider {
+  AMEX
+  CHASE
+  UNKNOWN
+}
+
+enum IngestStatus {
+  PARSED
+  DUPLICATE
+  UNMATCHED_ACCOUNT // parsed fine but no bank account claims that card
+  FAILED
+}
+
+enum StatementFormat {
+  PDF
+  XLSX
+  CSV
+}
+
+enum DevicePlatform {
+  IOS
+  ANDROID
+  WEB
+}
+
+enum TransferStatus {
+  PENDING
+  CONFIRMED
+}
+
+// ── Core tables ──────────────────────────────────────────────────────────────
+
+model User {
+  id          String   @id @default(uuid()) @db.Uuid
+  firebaseUid String   @unique @map("firebase_uid")
+  phoneNumber String   @unique @map("phone_number")
+  displayName String   @map("display_name")
+  email       String?
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  circlesCreated     Circle[]           @relation("CircleCreator")
+  memberships        CircleMember[]
+  bankAccounts       BankAccount[]
+  taggedTransactions Transaction[]      @relation("TaggedOwner")
+  labels             Label[]
+  cardMappings       CardMapping[]
+  deviceTokens       DeviceToken[]
+  netWorthSnapshots  NetWorthSnapshot[]
+  settlementsFrom    Settlement[]       @relation("SettlementFrom")
+  settlementsTo      Settlement[]       @relation("SettlementTo")
+  statements         Statement[]
+
+  @@map("users")
+}
+
+model Circle {
+  id          String   @id @default(uuid()) @db.Uuid
+  name        String
+  inviteCode  String   @unique @default(cuid()) @map("invite_code")
+  createdById String   @map("created_by") @db.Uuid
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  createdBy    User           @relation("CircleCreator", fields: [createdById], references: [id])
+  members      CircleMember[]
+  transactions Transaction[]
+  settlements  Settlement[]
+  statements   Statement[]
+
+  @@map("circles")
+}
+
+model CircleMember {
+  circleId String     @map("circle_id") @db.Uuid
+  userId   String     @map("user_id") @db.Uuid
+  role     CircleRole @default(MEMBER)
+  // JSONB array of Permission strings (see utils/rbac.ts). Role OWNER/ADMIN
+  // short-circuits the check; this array is the granular grant for MEMBER/VIEWER.
+  permissions Json     @default("[\"VIEW_BALANCES\", \"VIEW_TRANSACTIONS\", \"EDIT_TAGS\"]")
+  joinedAt    DateTime @default(now()) @map("joined_at")
+
+  circle Circle @relation(fields: [circleId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([circleId, userId])
+  @@map("circle_members")
+}
+
+model BankAccount {
+  id             String  @id @default(uuid()) @db.Uuid
+  userId         String  @map("user_id") @db.Uuid
+  plaidItemId    String? @map("plaid_item_id")
+  plaidAccountId String? @unique @map("plaid_account_id")
+  // AES-256-GCM ciphertext (utils/crypto.ts). The raw token never touches disk.
+  plaidAccessToken String? @map("plaid_access_token")
+  // /transactions/sync cursor. Plaid scopes it per *item*; we mirror it onto
+  // every account row of that item so any row can resume the stream.
+  plaidSyncCursor  String? @map("plaid_sync_cursor")
+  mask             String? // card/account "last 4"
+  institutionName  String  @map("institution_name")
+  name             String
+  type             AccountType @default(OTHER)
+  subtype          String?
+  // Nullable on purpose: NULL = balance unknown (e.g. link just created),
+  // which must never render or aggregate as $0.
+  currentBalance   Decimal? @map("current_balance") @db.Decimal(14, 2)
+  availableBalance Decimal? @map("available_balance") @db.Decimal(14, 2)
+  currencyCode     String   @default("USD") @map("currency_code")
+  isHidden         Boolean  @default(false) @map("is_hidden")
+  lastSyncedAt     DateTime? @map("last_synced_at")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions Transaction[]
+  holdings     Holding[]
+  cardMappings CardMapping[]
+
+  @@index([userId])
+  @@index([plaidItemId])
+  @@map("bank_accounts")
+}
+
+// Maps a physical card to the human who spends on it.
+// Amex: authorized users get distinct last-4s → map by `last4`.
+// Chase: authorized users share one PAN → map by Apple Pay `deviceName`
+// parsed out of the alert email ("…using Apple Pay on Nicol's iPhone").
+model CardMapping {
+  id            String   @id @default(uuid()) @db.Uuid
+  bankAccountId String   @map("bank_account_id") @db.Uuid
+  userId        String   @map("user_id") @db.Uuid
+  last4         String?
+  deviceName    String?  @map("device_name")
+  label         String?
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  bankAccount BankAccount @relation(fields: [bankAccountId], references: [id], onDelete: Cascade)
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([bankAccountId, last4])
+  @@unique([bankAccountId, deviceName])
+  @@map("card_mappings")
+}
+
+model Transaction {
+  id                 String  @id @default(uuid()) @db.Uuid
+  accountId          String  @map("account_id") @db.Uuid
+  plaidTransactionId String? @unique @map("plaid_transaction_id")
+  amount             Decimal @db.Decimal(14, 2)
+  merchantName       String  @map("merchant_name")
+  // Uppercased/stripped form used for fuzzy email↔Plaid reconciliation.
+  merchantNormalized String   @map("merchant_normalized")
+  date               DateTime @db.Date
+  category           String?
+  cardLast4          String?  @map("card_last4")
+  applePayDevice     String?  @map("apple_pay_device")
+  taggedOwnerId      String?  @map("tagged_owner_id") @db.Uuid
+  splitType          SplitType? @map("split_type")
+  settlementStatus   SettlementStatus  @default(NONE) @map("settlement_status")
+  status             TransactionStatus @default(PENDING)
+  source             TransactionSource @default(MANUAL)
+  circleId           String?           @map("circle_id") @db.Uuid
+  settlementId       String?           @map("settlement_id") @db.Uuid
+  notes              String?
+  pendingPlaid       Boolean           @default(false) @map("pending_plaid")
+  createdAt          DateTime          @default(now()) @map("created_at")
+  updatedAt          DateTime          @updatedAt @map("updated_at")
+
+  account      BankAccount        @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  taggedOwner  User?              @relation("TaggedOwner", fields: [taggedOwnerId], references: [id], onDelete: SetNull)
+  circle       Circle?            @relation(fields: [circleId], references: [id], onDelete: SetNull)
+  settlement   Settlement?        @relation(fields: [settlementId], references: [id], onDelete: SetNull)
+  labels       TransactionLabel[]
+  ingestEvents EmailIngestEvent[]
+
+  @@index([accountId, date(sort: Desc)])
+  @@index([status])
+  @@index([circleId, settlementStatus])
+  @@map("transactions")
+}
+
+model Label {
+  id          String   @id @default(uuid()) @db.Uuid
+  createdById String   @map("created_by") @db.Uuid
+  name        String
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  createdBy    User               @relation(fields: [createdById], references: [id], onDelete: Cascade)
+  transactions TransactionLabel[]
+
+  @@unique([createdById, name])
+  @@map("labels")
+}
+
+model TransactionLabel {
+  transactionId String @map("transaction_id") @db.Uuid
+  labelId       String @map("label_id") @db.Uuid
+
+  transaction Transaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+  label       Label       @relation(fields: [labelId], references: [id], onDelete: Cascade)
+
+  @@id([transactionId, labelId])
+  @@map("transaction_labels")
+}
+
+// Investment positions (Robinhood, Fidelity, … via Plaid /investments).
+model Holding {
+  id               String   @id @default(uuid()) @db.Uuid
+  accountId        String   @map("account_id") @db.Uuid
+  securityId       String?  @map("security_id")
+  symbol           String?
+  name             String?
+  quantity         Decimal  @db.Decimal(18, 6)
+  costBasis        Decimal? @map("cost_basis") @db.Decimal(14, 2)
+  institutionPrice Decimal? @map("institution_price") @db.Decimal(14, 4)
+  institutionValue Decimal? @map("institution_value") @db.Decimal(14, 2)
+  asOf             DateTime @map("as_of")
+
+  account BankAccount @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@unique([accountId, securityId])
+  @@map("holdings")
+}
+
+// Point-in-time net-worth rows powering the home chart. Captured write-on-read
+// (throttled in netWorthService) so the series exists without a scheduler;
+// the optional daily cron just guarantees a row on days the app isn't opened.
+model NetWorthSnapshot {
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String   @map("user_id") @db.Uuid
+  capturedAt  DateTime @default(now()) @map("captured_at")
+  assets      Decimal  @db.Decimal(14, 2)
+  liabilities Decimal  @db.Decimal(14, 2)
+  netWorth    Decimal  @map("net_worth") @db.Decimal(14, 2)
+  // { [accountId]: "1234.56" } at capture time — lets the UI explain any point.
+  breakdown Json
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, capturedAt])
+  @@map("net_worth_snapshots")
+}
+
+// A recorded settle-up between two circle members. Confirming one flips the
+// covered transactions PENDING → SETTLED (settlementEngine.applySettlement).
+model Settlement {
+  id         String         @id @default(uuid()) @db.Uuid
+  circleId   String         @map("circle_id") @db.Uuid
+  fromUserId String         @map("from_user_id") @db.Uuid
+  toUserId   String         @map("to_user_id") @db.Uuid
+  amount     Decimal        @db.Decimal(14, 2)
+  // Portion of `amount` that could not be pinned to specific transaction rows
+  // (SPLIT rows in circles of 3+ contribute to several pairs at once, so a
+  // pair settlement can't flip them). The ledger subtracts this instead of
+  // re-deriving it — subtracting the full amount would double-count the rows
+  // that WERE flipped.
+  unattributedAmount Decimal @default(0) @map("unattributed_amount") @db.Decimal(14, 2)
+  status     TransferStatus @default(PENDING)
+  note       String?
+  createdAt  DateTime       @default(now()) @map("created_at")
+  confirmedAt DateTime?     @map("confirmed_at")
+
+  circle       Circle        @relation(fields: [circleId], references: [id], onDelete: Cascade)
+  fromUser     User          @relation("SettlementFrom", fields: [fromUserId], references: [id])
+  toUser       User          @relation("SettlementTo", fields: [toUserId], references: [id])
+  transactions Transaction[]
+
+  @@index([circleId])
+  @@map("settlements")
+}
+
+model Statement {
+  id          String          @id @default(uuid()) @db.Uuid
+  userId      String          @map("user_id") @db.Uuid
+  circleId    String?         @map("circle_id") @db.Uuid
+  periodStart DateTime        @map("period_start") @db.Date
+  periodEnd   DateTime        @map("period_end") @db.Date
+  format      StatementFormat
+  // GCS object path when archived; NULL for direct-download-only statements.
+  storagePath String?  @map("storage_path")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  circle Circle? @relation(fields: [circleId], references: [id], onDelete: SetNull)
+
+  @@index([userId, createdAt])
+  @@map("statements")
+}
+
+model DeviceToken {
+  id         String         @id @default(uuid()) @db.Uuid
+  userId     String         @map("user_id") @db.Uuid
+  token      String         @unique
+  platform   DevicePlatform
+  createdAt  DateTime       @default(now()) @map("created_at")
+  lastSeenAt DateTime       @default(now()) @map("last_seen_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("device_tokens")
+}
+
+// Audit log of every inbound alert email: the raw payload is kept beside what
+// we parsed out of it, so a regex miss is diagnosable months later.
+model EmailIngestEvent {
+  id          String        @id @default(uuid()) @db.Uuid
+  provider    AlertProvider @default(UNKNOWN)
+  fromAddress String?       @map("from_address")
+  subject     String?
+  rawBody     String        @map("raw_body") @db.Text
+  bodyHash    String        @map("body_hash")
+  parsed      Json?
+  status      IngestStatus
+  error       String?
+  transactionId String?   @map("transaction_id") @db.Uuid
+  receivedAt    DateTime  @default(now()) @map("received_at")
+
+  transaction Transaction? @relation(fields: [transactionId], references: [id], onDelete: SetNull)
+
+  @@index([bodyHash])
+  @@index([receivedAt])
+  @@map("email_ingest_events")
+}

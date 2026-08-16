@@ -1,0 +1,18 @@
+// trackify global stylesheet — Square variables + strict BEM component
+// partials. This is the ONLY stylesheet the app loads; components never
+// carry inline styles.
+@use 'variables' as *;
+@use 'reset';
+@use 'base';
+@use 'pages';
+
+// Component partials (co-located with their components)
+@use '../components/BottomSheet/bottom-sheet';
+@use '../components/TransactionRow/transaction-row';
+@use '../components/TagSheet/tag-sheet';
+@use '../components/NetWorthChart/net-worth-chart';
+@use '../components/SheetGrid/sheet-grid';
+@use '../components/AccountCard/account-card';
+@use '../components/CircleCard/circle-card';
+@use '../components/TabBar/tab-bar';
+@use '../components/EmptyState/empty-state';

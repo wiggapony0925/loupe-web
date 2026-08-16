@@ -1,0 +1,89 @@
+@use '../../styles/variables' as *;
+
+.bottom-sheet {
+  position: fixed;
+  inset: 0;
+  z-index: $z-sheet;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+
+  &__backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    animation: bottom-sheet-fade 180ms ease;
+  }
+
+  &__panel {
+    position: relative;
+    background: $color-white;
+    border-radius: $radius-sheet $radius-sheet 0 0;
+    border-top: $hairline;
+    padding-bottom: calc(#{$safe-bottom} + #{$space-4});
+    max-height: 88dvh;
+    display: flex;
+    flex-direction: column;
+    animation: bottom-sheet-rise 220ms cubic-bezier(0.2, 0.9, 0.3, 1);
+    transition: transform 180ms ease;
+
+    &--dragging {
+      transition: none;
+    }
+  }
+
+  &--closing &__panel {
+    transform: translateY(100%);
+    transition: transform 220ms ease-in;
+  }
+
+  &--closing &__backdrop {
+    opacity: 0;
+    transition: opacity 220ms ease;
+  }
+
+  &__grip {
+    padding: $space-3 0 $space-2;
+    display: flex;
+    justify-content: center;
+    touch-action: none;
+    cursor: grab;
+  }
+
+  &__handle {
+    width: 36px;
+    height: 4px;
+    border-radius: 2px;
+    background: $color-border;
+  }
+
+  &__title {
+    padding: 0 $space-4 $space-2;
+    font-size: $text-lg;
+    font-weight: $weight-heavy;
+    letter-spacing: -0.01em;
+  }
+
+  &__content {
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+}
+
+@keyframes bottom-sheet-rise {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes bottom-sheet-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}

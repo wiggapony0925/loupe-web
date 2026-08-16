@@ -1,0 +1,213 @@
+// Shared primitives: full-width block buttons, chips, edge-to-edge lists,
+// section headers. Strict BEM; state via modifiers, never inline styles.
+@use 'variables' as *;
+
+.app-shell {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background: $color-white;
+
+  &__main {
+    flex: 1;
+    padding-bottom: calc(#{$tab-bar-height} + #{$safe-bottom} + #{$space-6});
+  }
+}
+
+.page {
+  padding-top: calc(#{$safe-top} + #{$space-4});
+
+  &__header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    padding: 0 $space-4 $space-3;
+  }
+
+  &__title {
+    font-size: $text-xl;
+    font-weight: $weight-heavy;
+    letter-spacing: -0.02em;
+  }
+
+  &__action {
+    font-size: $text-sm;
+    font-weight: $weight-semibold;
+    @include press-state;
+  }
+}
+
+.button {
+  display: block;
+  width: 100%;
+  padding: $space-4;
+  font-size: $text-md;
+  font-weight: $weight-semibold;
+  text-align: center;
+  border-radius: $radius-control;
+  @include press-state;
+
+  &--primary {
+    background: $color-black;
+    color: $color-white;
+  }
+
+  &--ghost {
+    background: $color-off-white;
+    color: $color-black;
+  }
+
+  &--danger {
+    background: $color-white;
+    color: $color-red;
+    border: 1px solid $color-border;
+  }
+
+  &--disabled {
+    opacity: 0.35;
+    pointer-events: none;
+  }
+
+  &--inline {
+    display: inline-block;
+    width: auto;
+    padding: $space-2 $space-4;
+    font-size: $text-sm;
+  }
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: $space-1;
+  padding: $space-2 $space-3;
+  font-size: $text-sm;
+  font-weight: $weight-semibold;
+  color: $color-black;
+  background: $color-white;
+  border: 1px solid $color-border;
+  border-radius: $radius-control;
+  white-space: nowrap;
+  @include press-state;
+
+  &--active {
+    background: $color-black;
+    color: $color-white;
+    border-color: $color-black;
+  }
+}
+
+.chip-row {
+  display: flex;
+  gap: $space-2;
+  padding: $space-2 $space-4;
+  overflow-x: auto;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.section {
+  &__title {
+    padding: $space-5 $space-4 $space-2;
+    font-size: $text-xs;
+    font-weight: $weight-semibold;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: $color-ink-dim;
+  }
+}
+
+// Edge-to-edge list: hairline separators, no side insets on the rule.
+.list {
+  border-top: $hairline;
+
+  &__empty {
+    padding: $space-8 $space-4;
+    text-align: center;
+    color: $color-ink-dim;
+    font-size: $text-sm;
+  }
+}
+
+.field {
+  padding: $space-3 $space-4;
+  border-bottom: $hairline;
+
+  &__label {
+    display: block;
+    font-size: $text-xs;
+    font-weight: $weight-semibold;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: $color-ink-dim;
+    margin-bottom: $space-1;
+  }
+
+  &__input {
+    width: 100%;
+    padding: $space-2 0;
+    font-size: $text-lg;
+    border: none;
+    outline: none;
+    background: transparent;
+
+    &::placeholder {
+      color: $color-ink-faint;
+    }
+  }
+}
+
+.badge {
+  display: inline-block;
+  padding: 2px $space-2;
+  font-size: $text-xs;
+  font-weight: $weight-semibold;
+  border-radius: $radius-control;
+
+  &--outline {
+    border: 1px solid $color-border;
+    color: $color-ink-dim;
+  }
+
+  &--solid {
+    background: $color-black;
+    color: $color-white;
+  }
+
+  &--alert {
+    background: $color-red;
+    color: $color-white;
+  }
+}
+
+.amount {
+  font-weight: $weight-heavy;
+  @include tabular-nums;
+
+  &--negative {
+    color: $color-red;
+  }
+
+  &--muted {
+    color: $color-ink-faint;
+    font-weight: $weight-regular;
+  }
+}
+
+.notice {
+  margin: $space-3 $space-4;
+  padding: $space-3;
+  font-size: $text-sm;
+  background: $color-off-white;
+  border-radius: $radius-control;
+  color: $color-ink-dim;
+
+  &--error {
+    color: $color-red;
+    background: $color-white;
+    border: 1px solid $color-red;
+  }
+}

@@ -1,0 +1,49 @@
+@use '../../styles/variables' as *;
+
+.account-card {
+  display: flex;
+  align-items: center;
+  gap: $space-3;
+  width: 100%;
+  padding: $space-3 $space-4;
+  text-align: left;
+  border-bottom: $hairline;
+  background: $color-white;
+  @include press-state;
+
+  &__main {
+    flex: 1;
+    min-width: 0;
+  }
+
+  &__name {
+    display: block;
+    font-size: $text-md;
+    font-weight: $weight-semibold;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &__meta {
+    display: block;
+    margin-top: 2px;
+    font-size: $text-sm;
+    color: $color-ink-dim;
+  }
+
+  &__balance {
+    font-size: $text-md;
+    font-weight: $weight-heavy;
+    @include tabular-nums;
+
+    &--liability {
+      color: $color-red;
+    }
+
+    &--unknown {
+      color: $color-ink-faint;
+      font-weight: $weight-regular;
+    }
+  }
+}

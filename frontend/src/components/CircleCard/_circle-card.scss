@@ -1,0 +1,51 @@
+@use '../../styles/variables' as *;
+
+.circle-card {
+  display: flex;
+  align-items: center;
+  gap: $space-3;
+  width: 100%;
+  padding: $space-4;
+  text-align: left;
+  border-bottom: $hairline;
+  background: $color-white;
+  @include press-state;
+
+  &__main {
+    flex: 1;
+    min-width: 0;
+  }
+
+  &__name {
+    display: block;
+    font-size: $text-lg;
+    font-weight: $weight-heavy;
+    letter-spacing: -0.01em;
+  }
+
+  &__members {
+    display: block;
+    margin-top: 2px;
+    font-size: $text-sm;
+    color: $color-ink-dim;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &__net {
+    flex: none;
+    font-size: $text-sm;
+    font-weight: $weight-semibold;
+    @include tabular-nums;
+
+    &--owing {
+      color: $color-red;
+    }
+
+    &--even {
+      color: $color-ink-faint;
+      font-weight: $weight-regular;
+    }
+  }
+}
