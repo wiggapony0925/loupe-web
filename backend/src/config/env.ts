@@ -30,6 +30,8 @@ const EnvSchema = z.object({
   PLAID_WEBHOOK_VERIFY: boolFromString,
   /** Public URL Plaid calls back, e.g. https://api.trackify.app/v1/webhooks/plaid */
   PLAID_WEBHOOK_URL: z.string().default(''),
+  /** Overrides the Plaid API origin — integration tests point this at a local emulator. */
+  PLAID_BASE_URL: z.string().default(''),
 
   EMAIL_WEBHOOK_TOKEN: z.string().default(''),
   CRON_KEY: z.string().default(''),

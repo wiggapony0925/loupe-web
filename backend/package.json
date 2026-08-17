@@ -17,6 +17,7 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:integration": "TEST_DATABASE_URL=${TEST_DATABASE_URL:-postgresql://trackify:trackify@localhost:5433/trackify_test} vitest run plaidIntegration",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:deploy": "prisma migrate deploy",

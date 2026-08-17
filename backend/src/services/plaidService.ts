@@ -41,7 +41,7 @@ function client(): PlaidApi {
   if (!cachedClient) {
     cachedClient = new PlaidApi(
       new Configuration({
-        basePath: PlaidEnvironments[e.PLAID_ENV],
+        basePath: e.PLAID_BASE_URL || PlaidEnvironments[e.PLAID_ENV],
         baseOptions: {
           headers: {
             'PLAID-CLIENT-ID': e.PLAID_CLIENT_ID,
@@ -52,6 +52,33 @@ function client(): PlaidApi {
     );
   }
   return cachedClient;
+}
+
+/** Test hook — drops the memoized client after env changes. */
+export function resetPlaidClientCache(): void {
+  cachedClient = null;
+}
+
+function plaidErrorCode(err: unknown): string | null {
+  const data = (err as { response?: { data?: { error_code?: string } } })?.response?.data;
+  return data?.error_code ?? null;
+}
+
+/**
+ * Right after linking, Plaid returns PRODUCT_NOT_READY until its first pull
+ * from the bank finishes (usually seconds). The webhook covers production;
+ * this bounded retry covers the initial sync and webhook-less local dev.
+ */
+async function syncPage(accessToken: string, cursor: string | undefined, attempt = 0) {
+  try {
+    return await client().transactionsSync({ access_token: accessToken, cursor, count: 500 });
+  } catch (err) {
+    if (plaidErrorCode(err) === 'PRODUCT_NOT_READY' && attempt < 5) {
+      await new Promise((resolve) => setTimeout(resolve, 1500 * (attempt + 1)));
+      return syncPage(accessToken, cursor, attempt + 1);
+    }
+    throw err;
+  }
 }
 
 function toAccountType(plaidType: string | null | undefined): AccountType {
@@ -188,11 +215,7 @@ export async function syncItemTransactions(
   let hasMore = true;
 
   while (hasMore) {
-    const response = await client().transactionsSync({
-      access_token: ctx.accessToken,
-      cursor,
-      count: 500,
-    });
+    const response = await syncPage(ctx.accessToken, cursor);
     const { added, modified, removed, next_cursor, has_more } = response.data;
 
     for (const txn of [...added, ...modified]) {
