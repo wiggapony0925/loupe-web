@@ -4,6 +4,7 @@
  * Plaid Link entry point (banks, cards, Robinhood via Plaid Investments).
  */
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { usePlaidLink } from 'react-plaid-link';
 import { NetWorthChart } from '@/components/NetWorthChart/NetWorthChart';
 import { AccountCard } from '@/components/AccountCard/AccountCard';
@@ -41,6 +42,11 @@ function PlaidLauncher({
 
 export function Home() {
   const haptics = useHaptics();
+  const navigate = useNavigate();
+  const recurring = useLedgerStore((s) => s.recurring);
+  const institutions = useLedgerStore((s) => s.institutions);
+  const institutionsLoading = useLedgerStore((s) => s.institutionsLoading);
+  const searchInstitutions = useLedgerStore((s) => s.searchInstitutions);
   const netWorth = useLedgerStore((s) => s.netWorth);
   const history = useLedgerStore((s) => s.netWorthHistory);
   const range = useLedgerStore((s) => s.netWorthRange);
@@ -53,6 +59,8 @@ export function Home() {
   const [scrub, setScrub] = useState<{ t: number; v: number } | null>(null);
   const [linkToken, setLinkToken] = useState<string | null>(null);
   const [linkError, setLinkError] = useState<string | null>(null);
+  const [institutionsOpen, setInstitutionsOpen] = useState(false);
+  const [instQuery, setInstQuery] = useState('');
   const [selectedAccount, setSelectedAccount] = useState<Account | null>(null);
   const [syncing, setSyncing] = useState(false);
 
@@ -79,6 +87,27 @@ export function Home() {
 
   const onRangeChange = (next: NetWorthRange): void => {
     void loadNetWorth(next);
+  };
+
+  const openInstitutions = (): void => {
+    haptics.impactLight();
+    setInstQuery('');
+    setInstitutionsOpen(true);
+  };
+
+  // Debounced institution search while the picker is open.
+  useEffect(() => {
+    if (!institutionsOpen) return;
+    const timer = window.setTimeout(() => {
+      void searchInstitutions(instQuery).catch(() => undefined);
+    }, 250);
+    return () => window.clearTimeout(timer);
+  }, [instQuery, institutionsOpen, searchInstitutions]);
+
+  const pickInstitution = (): void => {
+    haptics.impactLight();
+    setInstitutionsOpen(false);
+    void startLink();
   };
 
   const doSync = async (account: Account): Promise<void> => {
@@ -127,6 +156,35 @@ export function Home() {
         )}
       </div>
 
+      <div className="home__quick-row">
+        <button type="button" className="home__quick" onClick={openInstitutions}>
+          <svg viewBox="0 0 24 24" className="home__quick-icon"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" /></svg>
+          Link
+        </button>
+        <button
+          type="button"
+          className="home__quick"
+          onClick={() => {
+            haptics.impactLight();
+            navigate('/recurring');
+          }}
+        >
+          <svg viewBox="0 0 24 24" className="home__quick-icon"><path d="M4 9a8 8 0 0 1 14-3l2 2M20 15a8 8 0 0 1-14 3l-2-2M20 4v4h-4M4 20v-4h4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>
+          Recurring
+        </button>
+        <button
+          type="button"
+          className="home__quick"
+          onClick={() => {
+            haptics.impactLight();
+            navigate('/ledger');
+          }}
+        >
+          <svg viewBox="0 0 24 24" className="home__quick-icon"><path d="M7 20V10M12 20V4M17 20v-7" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" /></svg>
+          Settle up
+        </button>
+      </div>
+
       <NetWorthChart points={points} range={range} onRangeChange={onRangeChange} onScrub={setScrub} />
 
       {netWorth ? (
@@ -142,6 +200,26 @@ export function Home() {
             </span>
           </div>
         </div>
+      ) : null}
+
+      {recurring && recurring.items.length > 0 ? (
+        <button
+          type="button"
+          className="home__subs"
+          onClick={() => {
+            haptics.impactLight();
+            navigate('/recurring');
+          }}
+        >
+          <span className="home__subs-main">
+            <span className="home__subs-title">Recurring</span>
+            <span className="home__subs-meta">
+              {recurring.items.length} subscription{recurring.items.length === 1 ? '' : 's'} across your
+              cards
+            </span>
+          </span>
+          <span className="home__subs-amount">{money(recurring.monthlyTotalCents)}/mo</span>
+        </button>
       ) : null}
 
       {netWorth && netWorth.unknownAccountIds.length > 0 ? (
@@ -171,7 +249,7 @@ export function Home() {
           </div>
         )}
         <div className="home__link">
-          <button type="button" className="button button--primary" onClick={() => void startLink()}>
+          <button type="button" className="button button--primary" onClick={openInstitutions}>
             Link an account
           </button>
           {linkError ? <p className="notice notice--error">{linkError}</p> : null}
@@ -185,6 +263,61 @@ export function Home() {
           onDone={() => setLinkToken(null)}
         />
       ) : null}
+
+      <BottomSheet
+        open={institutionsOpen}
+        onClose={() => setInstitutionsOpen(false)}
+        title="Link an account"
+      >
+        <div className="institution-picker">
+          <div className="institution-picker__search">
+            <input
+              className="institution-picker__input"
+              placeholder="Search 13,000+ banks & brokerages"
+              value={instQuery}
+              autoCapitalize="none"
+              onChange={(e) => setInstQuery(e.target.value)}
+            />
+          </div>
+          <div className="institution-picker__grid">
+            {institutionsLoading && institutions.length === 0
+              ? Array.from({ length: 6 }).map((_, i) => (
+                  <div key={i} className="institution-picker__cell">
+                    <span className="skeleton institution-picker__logo" />
+                    <span className="skeleton institution-picker__line" />
+                  </div>
+                ))
+              : institutions.map((inst) => (
+                  <button
+                    key={inst.id}
+                    type="button"
+                    className="institution-picker__cell"
+                    onClick={pickInstitution}
+                  >
+                    {inst.logo ? (
+                      <img className="institution-picker__logo" src={inst.logo} alt="" />
+                    ) : (
+                      <span className="institution-picker__logo institution-picker__logo--fallback">
+                        {inst.name.charAt(0)}
+                      </span>
+                    )}
+                    <span className="institution-picker__name">{inst.name}</span>
+                  </button>
+                ))}
+          </div>
+          {!institutionsLoading && institutions.length === 0 ? (
+            <p className="notice">No matches here — Plaid Link can still find it.</p>
+          ) : null}
+          <div className="institution-picker__footer">
+            <button type="button" className="button button--primary" onClick={pickInstitution}>
+              Continue with Plaid
+            </button>
+            <span className="institution-picker__powered">
+              Secured by Plaid · 13,000+ institutions supported
+            </span>
+          </div>
+        </div>
+      </BottomSheet>
 
       <BottomSheet
         open={selectedAccount !== null}

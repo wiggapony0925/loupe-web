@@ -11,6 +11,9 @@ import type {
   CircleSchema,
   GoogleSheetExportSchema,
   HoldingSchema,
+  InstitutionSchema,
+  RecurringItemSchema,
+  RecurringSummarySchema,
   LabelSchema,
   LedgerSchema,
   LinkTokenSchema,
@@ -55,3 +58,6 @@ export type SheetRow = z.infer<typeof SheetRowSchema>;
 export type StatementRecord = z.infer<typeof StatementRecordSchema>;
 export type LinkToken = z.infer<typeof LinkTokenSchema>;
 export type GoogleSheetExport = z.infer<typeof GoogleSheetExportSchema>;
+export type RecurringItem = z.infer<typeof RecurringItemSchema>;
+export type RecurringSummary = z.infer<typeof RecurringSummarySchema>;
+export type Institution = z.infer<typeof InstitutionSchema>;

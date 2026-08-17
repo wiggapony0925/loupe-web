@@ -8,7 +8,7 @@
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { computeGeometry, nearestPointIndex, type SeriesPoint } from '@/lib/chartGeometry';
 import { useHaptics } from '@/hooks/useHaptics';
-import { money } from '@/lib/format';
+import { chartDate, money, moneyCompact } from '@/lib/format';
 import type { NetWorthRange } from '@/types/types';
 
 const RANGES: NetWorthRange[] = ['1W', '1M', '3M', 'YTD', '1Y', 'ALL'];
@@ -131,6 +131,19 @@ export function NetWorthChart({ points, range, onRangeChange, onScrub }: NetWort
                   <stop className="net-worth-chart__grad-bottom" offset="100%" />
                 </linearGradient>
               </defs>
+              {geometry.ticks.map((tick, index) => (
+                <g key={tick.valueCents}>
+                  <line className="net-worth-chart__grid" x1={0} x2={width} y1={tick.y} y2={tick.y} />
+                  <text
+                    className="net-worth-chart__grid-label"
+                    x={index === 0 ? 8 : width - 8}
+                    y={tick.y - 5}
+                    textAnchor={index === 0 ? 'start' : 'end'}
+                  >
+                    {moneyCompact(tick.valueCents)}
+                  </text>
+                </g>
+              ))}
               {geometry.baselineY !== null ? (
                 <line
                   className="net-worth-chart__baseline"
@@ -184,6 +197,13 @@ export function NetWorthChart({ points, range, onRangeChange, onScrub }: NetWort
           </div>
         )}
       </div>
+
+      {geometry ? (
+        <div className="net-worth-chart__dates" aria-hidden="true">
+          <span>{chartDate(geometry.points[0]?.t ?? Date.now())}</span>
+          <span>{chartDate(geometry.points[geometry.points.length - 1]?.t ?? Date.now())}</span>
+        </div>
+      ) : null}
 
       <div className="net-worth-chart__ranges" role="tablist" aria-label="Time range">
         {RANGES.map((option) => (

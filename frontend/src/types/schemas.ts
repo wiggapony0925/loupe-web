@@ -189,6 +189,31 @@ export const StatementRecordSchema = z.object({
   createdAt: z.string(),
 });
 
+export const RecurringItemSchema = z.object({
+  merchant: z.string(),
+  merchantNormalized: z.string(),
+  cadence: z.enum(['WEEKLY', 'MONTHLY', 'QUARTERLY', 'YEARLY']),
+  averageAmountCents: z.number(),
+  monthlyizedCents: z.number(),
+  lastDate: z.string(),
+  nextExpectedDate: z.string(),
+  occurrences: z.number(),
+  accounts: z.array(z.string()),
+});
+
+export const RecurringSummarySchema = z.object({
+  items: z.array(RecurringItemSchema),
+  monthlyTotalCents: z.number(),
+});
+
+export const InstitutionSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  logo: z.string().nullable(),
+  primaryColor: z.string().nullable(),
+  url: z.string().nullable(),
+});
+
 export const LinkTokenSchema = z.object({ linkToken: z.string(), expiration: z.string() });
 
 export const GoogleSheetExportSchema = z.object({

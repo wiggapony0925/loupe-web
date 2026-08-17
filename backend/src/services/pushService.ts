@@ -3,13 +3,15 @@
  *
  * The core promise of the real-time engine is "tag it from the lock screen":
  * the instant an alert email is ingested, everyone mapped to that card gets a
- * push with the transaction id in the data payload, and the iOS notification
- * category exposes tag actions.
+ * push carrying the transaction id AND their device's `actionKey`, so the
+ * iOS notification actions (Mine / Partner's / 50/50) can tag WITHOUT
+ * launching the app (see controllers/pushActionController.ts). Because the
+ * key is per-device, messages are built per-token and sent with sendEach.
  *
  * Push is best-effort BY DESIGN: a delivery failure logs and returns —
  * ingestion must never fail because APNs had a bad minute.
  */
-import { getMessaging } from 'firebase-admin/messaging';
+import { getMessaging, type Message } from 'firebase-admin/messaging';
 import { prisma } from '../config/db';
 import { initFirebase } from '../middleware/verifyFirebaseToken';
 import { formatUsd } from '../utils/money';
@@ -31,16 +33,19 @@ export async function notifyUsers(userIds: string[], content: PushContent): Prom
   if (userIds.length === 0) return;
   try {
     initFirebase();
-    const tokens = await prisma.deviceToken.findMany({
+    const devices = await prisma.deviceToken.findMany({
       where: { userId: { in: userIds } },
-      select: { token: true },
+      select: { token: true, actionKey: true },
     });
-    if (tokens.length === 0) return;
+    if (devices.length === 0) return;
 
-    const response = await getMessaging().sendEachForMulticast({
-      tokens: tokens.map((t) => t.token),
+    const messages: Message[] = devices.map((device) => ({
+      token: device.token,
       notification: { title: content.title, body: content.body },
-      data: content.data ?? {},
+      data: {
+        ...content.data,
+        ...(device.actionKey ? { actionKey: device.actionKey } : {}),
+      },
       apns: {
         payload: {
           aps: {
@@ -50,15 +55,17 @@ export async function notifyUsers(userIds: string[], content: PushContent): Prom
           },
         },
       },
-      android: { priority: 'high' },
-    });
+      android: { priority: 'high' as const },
+    }));
+
+    const response = await getMessaging().sendEach(messages);
 
     // Prune tokens FCM says are dead so the table doesn't accrete ghosts.
     const stale: string[] = [];
     response.responses.forEach((result, index) => {
       const code = result.error?.code;
       if (code && STALE_TOKEN_CODES.has(code)) {
-        const token = tokens[index]?.token;
+        const token = devices[index]?.token;
         if (token) stale.push(token);
       }
     });

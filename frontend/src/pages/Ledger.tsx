@@ -5,6 +5,7 @@
  * direction always spelled out in text).
  */
 import { useEffect, useMemo, useState } from 'react';
+import { Avatar } from '@/components/Avatar/Avatar';
 import { EmptyState } from '@/components/EmptyState/EmptyState';
 import { useLedgerStore } from '@/store/useLedgerStore';
 import { useHaptics } from '@/hooks/useHaptics';
@@ -137,7 +138,10 @@ export function Ledger() {
                       : `${isYou ? 'owe' : 'owes'} ${money(-member.netCents)}`;
                 return (
                   <div key={member.userId} className="ledger__member">
-                    <span className="ledger__member-name">{nameOf(member.userId)}</span>
+                    <span className="ledger__member-id">
+                      <Avatar name={member.displayName} size="sm" />
+                      <span className="ledger__member-name">{nameOf(member.userId)}</span>
+                    </span>
                     <span
                       className={`ledger__member-net${member.netCents < 0 ? ' ledger__member-net--owing' : ''}${member.netCents === 0 ? ' ledger__member-net--even' : ''}`}
                     >

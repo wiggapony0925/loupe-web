@@ -20,6 +20,8 @@ export interface ChartGeometry {
   min: number;
   max: number;
   trend: 'up' | 'down' | 'flat';
+  /** Dashed gridline levels (top/bottom of the range) with label values. */
+  ticks: Array<{ y: number; valueCents: number }>;
 }
 
 interface XY {
@@ -124,6 +126,8 @@ export function computeGeometry(
   const baselineY = padY + (1 - (first.v - min) / spanV) * usableHeight;
   const delta = last.v - first.v;
 
+  const yFor = (v: number): number => padY + (1 - (v - min) / spanV) * usableHeight;
+
   return {
     linePath,
     areaPath,
@@ -132,6 +136,10 @@ export function computeGeometry(
     min,
     max,
     trend: delta > 0 ? 'up' : delta < 0 ? 'down' : 'flat',
+    ticks: [
+      { y: yFor(max), valueCents: max },
+      { y: yFor(min), valueCents: min },
+    ],
   };
 }
 

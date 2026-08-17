@@ -4,8 +4,10 @@
  * (finance semantics — the sign is always in the text, never color alone).
  * Tap opens the tag sheet.
  */
-import type { CSSProperties } from 'react';
+import { useMemo, type CSSProperties } from 'react';
 import { money } from '@/lib/format';
+import { AvatarStack } from '@/components/Avatar/Avatar';
+import { useLedgerStore } from '@/store/useLedgerStore';
 import type { Transaction } from '@/types/types';
 
 export interface TransactionRowProps {
@@ -31,10 +33,27 @@ function splitLabel(transaction: Transaction): string | null {
 }
 
 export function TransactionRow({ transaction, onPress, enterIndex }: TransactionRowProps) {
+  const circles = useLedgerStore((s) => s.circles);
   const credit = transaction.amountCents < 0;
   const settled = transaction.settlementStatus === 'SETTLED';
   const tag = splitLabel(transaction);
   const monogram = transaction.merchant.replace(/[^a-z0-9]/gi, '').charAt(0).toUpperCase() || '•';
+
+  // Who's involved (the Figma avatar cluster): everyone for a SPLIT, the
+  // tagged member for PARTNER/REIMBURSE, nobody for MINE/untagged.
+  const participants = useMemo(() => {
+    if (transaction.splitType === 'SPLIT' && transaction.circle) {
+      const circle = circles.find((c) => c.id === transaction.circle?.id);
+      return circle ? circle.members.map((m) => m.displayName) : [];
+    }
+    if (
+      (transaction.splitType === 'PARTNER' || transaction.splitType === 'REIMBURSE') &&
+      transaction.taggedOwner
+    ) {
+      return [transaction.taggedOwner.displayName];
+    }
+    return [];
+  }, [circles, transaction.splitType, transaction.circle, transaction.taggedOwner]);
 
   const amountClass = [
     'transaction-row__amount',
@@ -66,6 +85,7 @@ export function TransactionRow({ transaction, onPress, enterIndex }: Transaction
           {transaction.applePayDevice ? ` ·  ${transaction.applePayDevice}` : ''}
         </span>
         <span className="transaction-row__badges">
+          {participants.length > 0 ? <AvatarStack names={participants} /> : null}
           {transaction.status === 'REQUIRES_TAGGING' ? (
             <span className="badge badge--alert">NEEDS TAG</span>
           ) : null}

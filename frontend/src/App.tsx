@@ -17,6 +17,7 @@ import { Feed } from '@/pages/Feed';
 import { Sheet } from '@/pages/Sheet';
 import { Ledger } from '@/pages/Ledger';
 import { Circles } from '@/pages/Circles';
+import { Recurring } from '@/pages/Recurring';
 import { Auth } from '@/pages/Auth';
 
 export function App() {
@@ -110,6 +111,7 @@ export function App() {
           <Route path="/sheet" element={<Sheet />} />
           <Route path="/ledger" element={<Ledger />} />
           <Route path="/circles" element={<Circles />} />
+          <Route path="/recurring" element={<Recurring />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>

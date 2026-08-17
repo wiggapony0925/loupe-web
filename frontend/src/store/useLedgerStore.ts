@@ -11,14 +11,17 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { z } from 'zod';
 import { apiFetch } from '@/lib/api';
+import { pushWidgetData } from '@/native/widget';
 import {
   AccountSchema,
   CircleSchema,
+  InstitutionSchema,
   LabelSchema,
   LedgerSchema,
   LinkTokenSchema,
   NetWorthHistorySchema,
   NetWorthSummarySchema,
+  RecurringSummarySchema,
   SheetRowSchema,
   TransactionSchema,
   UserSchema,
@@ -26,11 +29,13 @@ import {
 import type {
   Account,
   Circle,
+  Institution,
   Label,
   Ledger,
   NetWorthHistory,
   NetWorthRange,
   NetWorthSummary,
+  RecurringSummary,
   SheetRow,
   SplitType,
   Transaction,
@@ -98,6 +103,15 @@ interface LedgerStore {
   loadLabels: () => Promise<void>;
   createLabel: (name: string) => Promise<Label>;
 
+  // recurring (subscription manager)
+  recurring: RecurringSummary | null;
+  loadRecurring: () => Promise<void>;
+
+  // institution directory
+  institutions: Institution[];
+  institutionsLoading: boolean;
+  searchInstitutions: (query: string) => Promise<void>;
+
   // sheet
   sheetRows: SheetRow[];
   sheetLoading: boolean;
@@ -107,6 +121,22 @@ interface LedgerStore {
 }
 
 const EMPTY_FILTER: SheetFilter = { accountIds: [], circleIds: [], labelIds: [], from: null, to: null };
+
+/** Mirrors current state into the iOS home/lock-screen widget (no-op elsewhere). */
+function syncWidget(state: Pick<LedgerStore, 'netWorth' | 'netWorthHistory' | 'feed'>): void {
+  if (!state.netWorth) return;
+  const points = state.netWorthHistory?.points ?? [];
+  const stride = Math.max(1, Math.ceil(points.length / 24));
+  const sparkline = points.filter((_, i) => i % stride === 0).map((p) => p.netWorthCents);
+  const first = points[0]?.netWorthCents;
+  void pushWidgetData({
+    netWorthCents: state.netWorth.netWorthCents,
+    deltaCents: first === undefined ? null : state.netWorth.netWorthCents - first,
+    sparkline,
+    needsTaggingCount: state.feed.filter((t) => t.status === 'REQUIRES_TAGGING').length,
+    updatedAt: new Date().toISOString(),
+  });
+}
 
 function sheetQuery(filter: SheetFilter): Record<string, string | undefined> {
   return {
@@ -136,6 +166,7 @@ export const useLedgerStore = create<LedgerStore>()(
           get().loadNetWorth(),
           get().loadLabels(),
           get().loadFeed(true),
+          get().loadRecurring(),
         ]);
       },
 
@@ -151,6 +182,8 @@ export const useLedgerStore = create<LedgerStore>()(
           netWorthHistory: null,
           labels: [],
           sheetRows: [],
+          recurring: null,
+          institutions: [],
         }),
 
       // ── feed ───────────────────────────────────────────────────────────
@@ -171,6 +204,7 @@ export const useLedgerStore = create<LedgerStore>()(
             feed: reset ? data : [...get().feed, ...data],
             feedCursor: (meta?.nextCursor as string | null) ?? null,
           });
+          syncWidget(get());
         } finally {
           set({ feedLoading: false });
         }
@@ -323,6 +357,7 @@ export const useLedgerStore = create<LedgerStore>()(
         ]);
         if (summary.status === 'fulfilled') set({ netWorth: summary.value.data });
         if (history.status === 'fulfilled') set({ netWorthHistory: history.value.data });
+        syncWidget(get());
       },
 
       // ── labels ─────────────────────────────────────────────────────────
@@ -341,6 +376,31 @@ export const useLedgerStore = create<LedgerStore>()(
         });
         set({ labels: [...get().labels, data].sort((a, b) => a.name.localeCompare(b.name)) });
         return data;
+      },
+
+      // ── recurring ──────────────────────────────────────────────────────
+      recurring: null,
+
+      loadRecurring: async () => {
+        const { data } = await apiFetch('/v1/recurring', { schema: RecurringSummarySchema });
+        set({ recurring: data });
+      },
+
+      // ── institutions ───────────────────────────────────────────────────
+      institutions: [],
+      institutionsLoading: false,
+
+      searchInstitutions: async (query) => {
+        set({ institutionsLoading: true });
+        try {
+          const { data } = await apiFetch('/v1/accounts/institutions', {
+            query: { query },
+            schema: z.array(InstitutionSchema),
+          });
+          set({ institutions: data });
+        } finally {
+          set({ institutionsLoading: false });
+        }
       },
 
       // ── sheet ──────────────────────────────────────────────────────────

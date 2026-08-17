@@ -2,6 +2,7 @@
  * The current user: profile, and device-token registration for push.
  */
 import { Router } from 'express';
+import { randomBytes } from 'node:crypto';
 import { z } from 'zod';
 import { prisma } from '../config/db';
 import { asyncHandler } from '../utils/asyncHandler';
@@ -53,11 +54,23 @@ userRouter.post(
     const user = currentUser(req);
     const body = deviceTokenBody.parse(req.body);
     // Token may migrate between accounts on a shared device — last sign-in wins.
-    await prisma.deviceToken.upsert({
+    const device = await prisma.deviceToken.upsert({
       where: { token: body.token },
-      create: { userId: user.id, token: body.token, platform: body.platform },
+      create: {
+        userId: user.id,
+        token: body.token,
+        platform: body.platform,
+        actionKey: randomBytes(24).toString('base64url'),
+      },
       update: { userId: user.id, platform: body.platform, lastSeenAt: new Date() },
     });
+    // Devices registered before actionKey existed get one on next check-in.
+    if (!device.actionKey) {
+      await prisma.deviceToken.update({
+        where: { id: device.id },
+        data: { actionKey: randomBytes(24).toString('base64url') },
+      });
+    }
     ok(res, { registered: true }, null, 201);
   }),
 );

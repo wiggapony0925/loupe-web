@@ -352,12 +352,17 @@ model Statement {
 }
 
 model DeviceToken {
-  id         String         @id @default(uuid()) @db.Uuid
-  userId     String         @map("user_id") @db.Uuid
-  token      String         @unique
-  platform   DevicePlatform
-  createdAt  DateTime       @default(now()) @map("created_at")
-  lastSeenAt DateTime       @default(now()) @map("last_seen_at")
+  id       String         @id @default(uuid()) @db.Uuid
+  userId   String         @map("user_id") @db.Uuid
+  token    String         @unique
+  platform DevicePlatform
+  // Per-device secret carried in push payloads so iOS notification ACTIONS
+  // ("Mine" / "Partner's" / "50/50" on the lock screen) can tag a
+  // transaction WITHOUT launching the app: the Swift handler POSTs it to
+  // /v1/push-actions/tag. Nullable because it's minted on registration.
+  actionKey  String?  @unique @map("action_key")
+  createdAt  DateTime @default(now()) @map("created_at")
+  lastSeenAt DateTime @default(now()) @map("last_seen_at")
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 

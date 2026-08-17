@@ -63,6 +63,71 @@
     font-size: 10px;
   }
 
+  // Quick actions (the Figma "Exchange / Transfer" row)
+  &__quick-row {
+    display: flex;
+    gap: $space-2;
+    padding: $space-1 $space-4 $space-3;
+  }
+
+  &__quick {
+    flex: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: $space-2;
+    padding: $space-3 $space-2;
+    font-size: $text-sm;
+    font-weight: $weight-semibold;
+    background: $surface;
+    border: $hairline;
+    border-radius: $radius-pill;
+    box-shadow: $shadow-card;
+    @include press-state;
+  }
+
+  &__quick-icon {
+    width: 16px;
+    height: 16px;
+  }
+
+  // Recurring summary card → /recurring
+  &__subs {
+    display: flex;
+    align-items: center;
+    gap: $space-3;
+    width: calc(100% - #{$space-4 * 2});
+    margin: $space-3 $space-4 0;
+    padding: $space-3 $space-4;
+    text-align: left;
+    @include card;
+    @include press-state;
+  }
+
+  &__subs-main {
+    flex: 1;
+    min-width: 0;
+  }
+
+  &__subs-title {
+    display: block;
+    font-size: $text-md;
+    font-weight: $weight-heavy;
+  }
+
+  &__subs-meta {
+    display: block;
+    margin-top: 2px;
+    font-size: $text-sm;
+    color: $ink-dim;
+  }
+
+  &__subs-amount {
+    font-size: $text-md;
+    font-weight: $weight-heavy;
+    @include tabular-nums;
+  }
+
   &__stats {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -165,6 +230,12 @@
     justify-content: space-between;
     padding: $space-3 $space-4;
     background: $surface;
+  }
+
+  &__member-id {
+    display: flex;
+    align-items: center;
+    gap: $space-2;
   }
 
   &__member-name {
@@ -295,6 +366,175 @@
 
   &__share {
     padding: 0 $space-5 $space-4;
+  }
+}
+
+// ── Recurring (subscription manager) ─────────────────────────────────────────
+.recurring {
+  &__hero {
+    display: flex;
+    flex-direction: column;
+    padding: $space-2 $space-4 $space-4;
+  }
+
+  &__hero-label {
+    font-size: $text-xs;
+    font-weight: $weight-semibold;
+    letter-spacing: 0.12em;
+    color: $ink-faint;
+  }
+
+  &__hero-value {
+    margin-top: $space-1;
+    font-size: $text-hero;
+    font-weight: $weight-heavy;
+    letter-spacing: -0.03em;
+    @include tabular-nums;
+  }
+
+  &__hero-meta {
+    margin-top: $space-1;
+    font-size: $text-sm;
+    color: $ink-dim;
+  }
+
+  &__row {
+    display: flex;
+    align-items: center;
+    gap: $space-3;
+    padding: $space-3 $space-4;
+    background: $surface;
+  }
+
+  &__row-main {
+    flex: 1;
+    min-width: 0;
+  }
+
+  &__row-name {
+    display: block;
+    font-size: $text-md;
+    font-weight: $weight-semibold;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &__row-meta {
+    display: block;
+    margin-top: 2px;
+    font-size: $text-sm;
+    color: $ink-dim;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &__row-side {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+  }
+
+  &__row-amount {
+    font-size: $text-md;
+    font-weight: $weight-heavy;
+    @include tabular-nums;
+  }
+
+  &__row-due {
+    font-size: $text-xs;
+    color: $ink-faint;
+  }
+}
+
+// ── Institution picker ("13,000+ banks" browser) ─────────────────────────────
+.institution-picker {
+  &__search {
+    padding: $space-2 $space-5 $space-3;
+  }
+
+  &__input {
+    width: 100%;
+    padding: $space-3 $space-4;
+    font-size: $text-md;
+    border: $hairline;
+    border-radius: $radius-pill;
+    background: $surface-sunken;
+    outline: none;
+
+    &:focus {
+      border-color: $ink;
+    }
+
+    &::placeholder {
+      color: $ink-faint;
+    }
+  }
+
+  &__grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: $space-2;
+    padding: 0 $space-5;
+    max-height: 40dvh;
+    overflow-y: auto;
+  }
+
+  &__cell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: $space-2;
+    padding: $space-3 $space-2;
+    border: $hairline;
+    border-radius: $radius-card - 4px;
+    background: $surface;
+    @include press-state;
+  }
+
+  &__logo {
+    width: 40px;
+    height: 40px;
+    border-radius: $radius-pill;
+    object-fit: contain;
+    background: $surface-sunken;
+
+    &--fallback {
+      display: grid;
+      place-items: center;
+      font-weight: $weight-heavy;
+      font-size: $text-lg;
+    }
+  }
+
+  &__line {
+    width: 60%;
+    height: 10px;
+  }
+
+  &__name {
+    font-size: $text-xs;
+    font-weight: $weight-semibold;
+    text-align: center;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
+
+  &__footer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: $space-2;
+    padding: $space-4 $space-5;
+  }
+
+  &__powered {
+    font-size: $text-xs;
+    color: $ink-faint;
   }
 }
 

@@ -67,12 +67,17 @@
 
   &__badges {
     display: flex;
+    align-items: center;
     flex-wrap: wrap;
     gap: $space-1;
     margin-top: 2px;
 
     &:empty {
       display: none;
+    }
+
+    .avatar-stack {
+      margin-right: $space-1;
     }
   }
 

@@ -6,6 +6,7 @@
  */
 import { useEffect, useMemo, useState } from 'react';
 import { BottomSheet } from '@/components/BottomSheet/BottomSheet';
+import { Avatar } from '@/components/Avatar/Avatar';
 import { useHaptics } from '@/hooks/useHaptics';
 import { useLedgerStore } from '@/store/useLedgerStore';
 import { money } from '@/lib/format';
@@ -186,20 +187,37 @@ export function TagSheet({ transaction, open, onClose }: TagSheetProps) {
 
         {needsOwner && partners.length > 1 ? (
           <div className="tag-sheet__section">
-            <span className="tag-sheet__section-title">WHO?</span>
-            <div className="chip-row">
+            <span className="tag-sheet__section-title">WHO WAS THIS?</span>
+            <div className="tag-sheet__people">
               {partners.map((member) => (
                 <button
                   key={member.userId}
                   type="button"
-                  className={`chip${member.userId === ownerId ? ' chip--active' : ''}`}
+                  className={`tag-sheet__person${member.userId === ownerId ? ' tag-sheet__person--active' : ''}`}
                   onClick={() => {
                     haptics.impactLight();
                     setOwnerId(member.userId);
                   }}
                 >
-                  {member.displayName}
+                  <Avatar name={member.displayName} size="lg" selected={member.userId === ownerId} />
+                  <span className="tag-sheet__person-name">{member.displayName}</span>
                 </button>
+              ))}
+            </div>
+          </div>
+        ) : null}
+
+        {split === 'SPLIT' && activeCircle ? (
+          <div className="tag-sheet__section">
+            <span className="tag-sheet__section-title">SPLITTING WITH</span>
+            <div className="tag-sheet__people">
+              {activeCircle.members.map((member) => (
+                <div key={member.userId} className="tag-sheet__person">
+                  <Avatar name={member.displayName} size="lg" />
+                  <span className="tag-sheet__person-name">
+                    {member.userId === cardholderId ? 'You' : member.displayName}
+                  </span>
+                </div>
               ))}
             </div>
           </div>

@@ -296,6 +296,65 @@ export async function refreshHoldings(plaidItemId: string): Promise<number> {
   return count;
 }
 
+// ── Institution directory (the "13,000+ banks" browser) ─────────────────────
+
+export interface InstitutionSummary {
+  id: string;
+  name: string;
+  /** data: URI (Plaid returns base64 PNG) — null when Plaid has no logo. */
+  logo: string | null;
+  primaryColor: string | null;
+  url: string | null;
+}
+
+const institutionCache = new Map<string, { at: number; items: InstitutionSummary[] }>();
+const INSTITUTION_CACHE_MS = 10 * 60 * 1000;
+
+function mapInstitution(inst: {
+  institution_id: string;
+  name: string;
+  logo?: string | null;
+  primary_color?: string | null;
+  url?: string | null;
+}): InstitutionSummary {
+  return {
+    id: inst.institution_id,
+    name: inst.name,
+    logo: inst.logo ? `data:image/png;base64,${inst.logo}` : null,
+    primaryColor: inst.primary_color ?? null,
+    url: inst.url ?? null,
+  };
+}
+
+/** Search Plaid's directory; empty query returns a browseable first page. */
+export async function searchInstitutions(query: string): Promise<InstitutionSummary[]> {
+  const key = query.trim().toLowerCase();
+  const cached = institutionCache.get(key);
+  if (cached && Date.now() - cached.at < INSTITUTION_CACHE_MS) return cached.items;
+
+  let items: InstitutionSummary[];
+  if (key) {
+    const response = await client().institutionsSearch({
+      query: key,
+      country_codes: [CountryCode.Us],
+      products: null,
+      options: { include_optional_metadata: true },
+    });
+    items = response.data.institutions.map(mapInstitution);
+  } else {
+    const response = await client().institutionsGet({
+      count: 12,
+      offset: 0,
+      country_codes: [CountryCode.Us],
+      options: { include_optional_metadata: true },
+    });
+    items = response.data.institutions.map(mapInstitution);
+  }
+
+  institutionCache.set(key, { at: Date.now(), items });
+  return items;
+}
+
 // ── Webhooks ─────────────────────────────────────────────────────────────────
 
 const webhookKeyCache = new Map<string, JWK>();

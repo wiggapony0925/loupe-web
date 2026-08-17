@@ -42,6 +42,27 @@ export function friendlyDate(isoDate: string): string {
   return dayFormat.format(new Date(`${isoDate}T12:00:00Z`));
 }
 
+/** Axis-label money: "$4.7K", "$26.5K", "$1.28M" — compact, never rounded up past the truth. */
+export function moneyCompact(cents: number): string {
+  const dollars = cents / 100;
+  const sign = dollars < 0 ? '-' : '';
+  const abs = Math.abs(dollars);
+  if (abs >= 1_000_000) return `${sign}$${trimZeros((abs / 1_000_000).toFixed(2))}M`;
+  if (abs >= 1_000) return `${sign}$${trimZeros((abs / 1_000).toFixed(1))}K`;
+  return `${sign}$${Math.round(abs)}`;
+}
+
+function trimZeros(value: string): string {
+  return value.replace(/\.0+$|(\.\d*?)0+$/, '$1');
+}
+
+const chartDateFormat = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' });
+
+/** Chart axis date: "Jun 1". */
+export function chartDate(epochMs: number): string {
+  return chartDateFormat.format(epochMs);
+}
+
 export function timeAgo(iso: string): string {
   const seconds = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
   if (seconds < 60) return 'just now';

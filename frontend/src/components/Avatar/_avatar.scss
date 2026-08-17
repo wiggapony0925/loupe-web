@@ -1,0 +1,56 @@
+@use '../../styles/variables' as *;
+
+.avatar {
+  display: inline-grid;
+  place-items: center;
+  border-radius: $radius-pill;
+  background: $surface-sunken;
+  color: $ink;
+  font-weight: $weight-heavy;
+  flex: none;
+  transition:
+    box-shadow $dur-fast $ease-out,
+    background-color $dur-fast $ease-out;
+
+  &--sm {
+    width: 26px;
+    height: 26px;
+    font-size: 10px;
+  }
+
+  &--md {
+    width: 42px;
+    height: 42px;
+    font-size: $text-sm;
+  }
+
+  &--lg {
+    width: 56px;
+    height: 56px;
+    font-size: $text-lg;
+  }
+
+  &--selected {
+    background: $accent;
+    color: $on-accent;
+    box-shadow: 0 0 0 2px $surface, 0 0 0 4px $accent;
+  }
+}
+
+.avatar-stack {
+  display: inline-flex;
+  align-items: center;
+
+  &__item {
+    border: 2px solid $surface;
+
+    &:not(:first-child) {
+      margin-left: -9px;
+    }
+  }
+
+  &__more {
+    font-weight: $weight-semibold;
+    color: $ink-dim;
+  }
+}

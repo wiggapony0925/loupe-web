@@ -16,6 +16,7 @@ import {
   createLinkToken,
   exchangePublicToken,
   refreshHoldings,
+  searchInstitutions,
   syncItemTransactions,
 } from '../services/plaidService';
 
@@ -68,6 +69,18 @@ accountRouter.post(
   '/link-token',
   asyncHandler(async (req, res) => {
     ok(res, await createLinkToken(currentUser(req)));
+  }),
+);
+
+// Institution browser: search Plaid's ~13k-institution US directory with
+// logos, so linking starts from "find your bank", not a blank Plaid modal.
+const institutionQuery = z.object({ query: z.string().max(60).default('') });
+
+accountRouter.get(
+  '/institutions',
+  asyncHandler(async (req, res) => {
+    const { query } = institutionQuery.parse(req.query);
+    ok(res, await searchInstitutions(query), { source: 'plaid' });
   }),
 );
 

@@ -51,6 +51,29 @@
     stroke-dasharray: 2 5;
   }
 
+  &__grid {
+    stroke: $border;
+    stroke-width: 1;
+    stroke-dasharray: 1 6;
+    opacity: 0.8;
+  }
+
+  &__grid-label {
+    fill: $ink-faint;
+    font-size: 10px;
+    font-weight: $weight-semibold;
+    font-variant-numeric: tabular-nums;
+  }
+
+  &__dates {
+    display: flex;
+    justify-content: space-between;
+    padding: $space-1 $space-4 0;
+    font-size: $text-xs;
+    color: $ink-faint;
+    @include tabular-nums;
+  }
+
   &__crosshair {
     stroke: $ink-faint;
     stroke-width: 1;
