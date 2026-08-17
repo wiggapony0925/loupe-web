@@ -4,10 +4,13 @@
  * deep-link into the Feed with the tag sheet open.
  */
 import { useCallback, useEffect, useState } from 'react';
-import { Navigate, Route, Routes, useNavigate } from 'react-router-dom';
+import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import { watchAuth } from '@/lib/firebase';
 import { useLedgerStore } from '@/store/useLedgerStore';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
+import { onAppResume, onDeepLink, onHardwareBack } from '@/native/appEvents';
+import { subscribeConnectivity } from '@/native/network';
+import { hideSplash } from '@/native/splash';
 import { TabBar } from '@/components/TabBar/TabBar';
 import { Home } from '@/pages/Home';
 import { Feed } from '@/pages/Feed';
@@ -18,14 +21,50 @@ import { Auth } from '@/pages/Auth';
 
 export function App() {
   const navigate = useNavigate();
+  const location = useLocation();
   const me = useLedgerStore((s) => s.me);
   const authReady = useLedgerStore((s) => s.authReady);
   const setAuthReady = useLedgerStore((s) => s.setAuthReady);
   const bootstrap = useLedgerStore((s) => s.bootstrap);
   const clearSession = useLedgerStore((s) => s.clearSession);
   const [signedIn, setSignedIn] = useState(false);
+  const [offline, setOffline] = useState(false);
 
   // Status-bar styling lives in ThemeProvider — it follows the theme.
+
+  // ── Native bridges ─────────────────────────────────────────────────────
+  useEffect(() => subscribeConnectivity((connected) => setOffline(!connected)), []);
+
+  // Native splash holds until auth resolves — never a half-hydrated frame.
+  useEffect(() => {
+    if (authReady) hideSplash();
+  }, [authReady]);
+
+  // Returning to the app = fresh feed and net worth, no pull-to-refresh tax.
+  useEffect(() => {
+    if (!signedIn || !me) return;
+    return onAppResume(() => {
+      const store = useLedgerStore.getState();
+      void store.loadFeed(true).catch(() => undefined);
+      void store.loadNetWorth().catch(() => undefined);
+    });
+  }, [signedIn, me]);
+
+  // trackify://feed?txn=… and universal links land on in-app routes.
+  useEffect(() => onDeepLink((path) => navigate(path)), [navigate]);
+
+  // Android hardware back: navigate back in-app; background the app at root.
+  useEffect(
+    () =>
+      onHardwareBack(() => {
+        if (location.pathname !== '/') {
+          navigate(-1);
+          return { handled: true };
+        }
+        return { handled: false };
+      }),
+    [navigate, location.pathname],
+  );
 
   useEffect(() => {
     const unsubscribe = watchAuth((firebaseUser) => {
@@ -58,6 +97,12 @@ export function App() {
 
   return (
     <div className="app-shell">
+      {offline ? (
+        <div className="offline-banner" role="status">
+          <span className="offline-banner__dot" aria-hidden="true" />
+          Offline — showing what's cached
+        </div>
+      ) : null}
       <main className="app-shell__main">
         <Routes>
           <Route path="/" element={<Home />} />

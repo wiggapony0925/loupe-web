@@ -18,11 +18,9 @@
   }
 
   &__panel {
-    position: relative;
-    background: $surface-raised;
-    border-radius: $radius-sheet $radius-sheet 0 0;
-    border-top: $hairline;
-    box-shadow: $shadow-float;
+    // Liquid Glass with the strong underlay — glassy against the dimmed
+    // backdrop, opaque enough that the ledger numbers stay legible.
+    @include liquid-glass(($radius-sheet $radius-sheet 0 0), var(--glass-underlay-strong));
     padding-bottom: calc(#{$safe-bottom} + #{$space-4});
     max-height: 88dvh;
     display: flex;

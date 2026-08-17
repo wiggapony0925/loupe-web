@@ -92,9 +92,9 @@ export async function apiFetch<T = unknown>(path: string, options: RequestOption
 }
 
 /**
- * Binary download (xlsx / csv / pdf). Fetches with auth, then hands the blob
- * to the browser as a named download; inside the Capacitor webview the OS
- * preview/share sheet takes over.
+ * Binary export (xlsx / csv / pdf). Fetches with auth, then delivers through
+ * the platform bridge: native share sheet (AirDrop / Save to Files / Mail)
+ * on device, a named download on the web.
  */
 export async function apiDownload(path: string, query: Query, filename: string): Promise<void> {
   const token = await config.getToken();
@@ -113,15 +113,6 @@ export async function apiDownload(path: string, query: Query, filename: string):
     throw new ApiError(response.status, code, message);
   }
 
-  const blob = await response.blob();
-  const url = URL.createObjectURL(blob);
-  const anchor = document.createElement('a');
-  anchor.href = url;
-  anchor.download = filename;
-  document.body.appendChild(anchor);
-  anchor.click();
-  anchor.remove();
-  // Revoke on a delay — revoking synchronously races the navigation in
-  // WebKit and yields an empty file.
-  setTimeout(() => URL.revokeObjectURL(url), 30_000);
+  const { deliverFile } = await import('@/native/share');
+  await deliverFile(await response.blob(), filename);
 }

@@ -26,6 +26,12 @@ const config: CapacitorConfig = {
     PushNotifications: {
       presentationOptions: ['badge', 'sound', 'alert'],
     },
+    SplashScreen: {
+      // Held open until auth resolves; App.tsx hides it (native/splash.ts).
+      launchAutoHide: false,
+      backgroundColor: '#0B0C0E',
+      showSpinner: false,
+    },
   },
 };
 

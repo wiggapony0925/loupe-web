@@ -1,20 +1,20 @@
 @use '../../styles/variables' as *;
 
-// Floating pill dock: translucent blur surface, active tab gets a soft
-// filled capsule — the modern-app read, in both themes.
+// The island nav pill — loupe's IslandNavPill spec, CSS-tier Liquid Glass:
+// 60pt capsule, radius 30, 10px inner gutters, hairline ink border, deep
+// soft shadow, saturating blur over a translucent elevated underlay.
 .tab-bar {
   position: fixed;
-  left: $space-3;
-  right: $space-3;
+  left: 50%;
   bottom: calc(#{$safe-bottom} + #{$space-3});
+  transform: translateX(-50%);
+  width: min(calc(100% - #{$space-3 * 2}), 420px);
+  height: 60px;
   z-index: $z-tab-bar;
   display: flex;
-  height: $tab-bar-height;
-  padding: $space-1;
-  border: $hairline;
-  border-radius: $radius-card + 4px;
-  box-shadow: $shadow-float;
-  @include blur-bar;
+  align-items: stretch;
+  padding: 5px 10px;
+  @include liquid-glass(30px);
 
   &__item {
     flex: 1;
@@ -22,8 +22,9 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 3px;
-    border-radius: $radius-card;
+    gap: 2px;
+    margin: 2px;
+    border-radius: 22px;
     color: $ink-faint;
     transition:
       color $dur-med $ease-out,
@@ -32,13 +33,13 @@
 
     &--active {
       color: $ink;
-      background: $surface-sunken;
+      background: color-mix(in srgb, var(--ink) 9%, transparent);
     }
   }
 
   &__icon {
-    width: 23px;
-    height: 23px;
+    width: 22px;
+    height: 22px;
 
     svg {
       width: 100%;

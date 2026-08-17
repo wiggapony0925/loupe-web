@@ -9,6 +9,8 @@ import { BottomSheet } from '@/components/BottomSheet/BottomSheet';
 import { EmptyState } from '@/components/EmptyState/EmptyState';
 import { useLedgerStore } from '@/store/useLedgerStore';
 import { useHaptics } from '@/hooks/useHaptics';
+import { copyText } from '@/native/clipboard';
+import { shareContent } from '@/native/share';
 import type { Circle } from '@/types/types';
 
 export function Circles() {
@@ -57,11 +59,25 @@ export function Circles() {
     }
   };
 
+  // Clipboard bridge: Capacitor Clipboard on device (webview
+  // navigator.clipboard is permission-flaky), navigator.clipboard on web.
   const copyInvite = (inviteCode: string): void => {
     haptics.impactLight();
-    void navigator.clipboard?.writeText(inviteCode).then(() => {
+    void copyText(inviteCode).then((ok) => {
+      if (!ok) return;
       setCopied(true);
       window.setTimeout(() => setCopied(false), 1500);
+    });
+  };
+
+  // Share bridge: native share sheet on device; falls back to copy.
+  const shareInvite = (circle: Circle): void => {
+    haptics.impactLight();
+    void shareContent(
+      `Join "${circle.name}" on trackify`,
+      `Join my circle "${circle.name}" on trackify — invite code: ${circle.inviteCode}`,
+    ).then((shared) => {
+      if (!shared) copyInvite(circle.inviteCode);
     });
   };
 
@@ -183,6 +199,15 @@ export function Circles() {
                 <span className="circles__invite-code">{detail.inviteCode}</span>
                 <span className="circles__invite-hint">{copied ? 'Copied' : 'Tap to copy'}</span>
               </button>
+              <div className="circles__share">
+                <button
+                  type="button"
+                  className="button button--ghost"
+                  onClick={() => shareInvite(detail)}
+                >
+                  Share invite
+                </button>
+              </div>
             </div>
           </div>
         ) : null}

@@ -10,6 +10,7 @@ import { TagSheet } from '@/components/TagSheet/TagSheet';
 import { EmptyState } from '@/components/EmptyState/EmptyState';
 import { useLedgerStore, sheetQuery } from '@/store/useLedgerStore';
 import { useHaptics } from '@/hooks/useHaptics';
+import { openExternal } from '@/native/browser';
 import { apiDownload, apiFetch, ApiError } from '@/lib/api';
 import { GoogleSheetExportSchema } from '@/types/schemas';
 import type { SheetRow, Transaction } from '@/types/types';
@@ -199,7 +200,17 @@ export function Sheet() {
       {sheetUrl ? (
         <p className="notice">
           Google Sheet created —{' '}
-          <a className="sheet-page__sheet-link" href={sheetUrl} target="_blank" rel="noreferrer">
+          {/* Browser bridge: SFSafariViewController/Custom Tabs on device. */}
+          <a
+            className="sheet-page__sheet-link"
+            href={sheetUrl}
+            target="_blank"
+            rel="noreferrer"
+            onClick={(event) => {
+              event.preventDefault();
+              void openExternal(sheetUrl);
+            }}
+          >
             open it
           </a>
           .

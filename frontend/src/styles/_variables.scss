@@ -27,6 +27,15 @@
   --blur-surface: rgba(255, 255, 255, 0.85);
   --shadow-card: 0 1px 2px rgba(10, 12, 14, 0.04), 0 8px 24px rgba(10, 12, 14, 0.06);
   --shadow-float: 0 2px 8px rgba(10, 12, 14, 0.08), 0 12px 32px rgba(10, 12, 14, 0.12);
+
+  // Liquid Glass (loupe IslandNavPill recipe, CSS tier): translucent underlay
+  // beneath a saturating blur, hairline ink border, specular highlights.
+  --glass-underlay: color-mix(in srgb, var(--surface-raised) 66%, transparent);
+  --glass-underlay-strong: color-mix(in srgb, var(--surface-raised) 86%, transparent);
+  --glass-border: rgba(11, 12, 14, 0.14);
+  --glass-highlight: rgba(255, 255, 255, 0.65);
+  --glass-sheen: rgba(255, 255, 255, 0.28);
+  --glass-shadow: 0 10px 20px rgba(0, 0, 0, 0.16), 0 2px 6px rgba(0, 0, 0, 0.08);
 }
 
 html[data-theme='dark'] {
@@ -50,6 +59,13 @@ html[data-theme='dark'] {
   --blur-surface: rgba(22, 24, 28, 0.82);
   --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.35), 0 8px 24px rgba(0, 0, 0, 0.35);
   --shadow-float: 0 2px 8px rgba(0, 0, 0, 0.45), 0 16px 40px rgba(0, 0, 0, 0.55);
+
+  --glass-underlay: color-mix(in srgb, var(--surface-raised) 60%, transparent);
+  --glass-underlay-strong: color-mix(in srgb, var(--surface-raised) 84%, transparent);
+  --glass-border: rgba(243, 244, 246, 0.14);
+  --glass-highlight: rgba(255, 255, 255, 0.12);
+  --glass-sheen: rgba(255, 255, 255, 0.07);
+  --glass-shadow: 0 10px 24px rgba(0, 0, 0, 0.5), 0 2px 8px rgba(0, 0, 0, 0.4);
 }
 
 // ── SCSS aliases (components use these, never raw hex) ──────────────────────
@@ -156,4 +172,54 @@ $safe-bottom: env(safe-area-inset-bottom, 0px);
   background: $blur-surface;
   -webkit-backdrop-filter: saturate(1.6) blur(18px);
   backdrop-filter: saturate(1.6) blur(18px);
+}
+
+// ── Liquid Glass ─────────────────────────────────────────────────────────────
+// CSS port of loupe's LiquidGlassView tiering: saturating blur over a
+// translucent underlay, hairline ink border, inset specular top edge, and a
+// curved sheen. Where backdrop-filter isn't available the underlay steps up
+// to near-opaque — the same "plain translucent surface" last-resort tier.
+// (When a Capacitor bridge for native iOS-26 glass exists, it slots in above
+// this exactly like expo-glass-effect does above expo-blur.)
+
+@mixin liquid-glass($radius: $radius-card, $underlay: var(--glass-underlay)) {
+  position: relative;
+  border-radius: $radius;
+  background: $underlay;
+  -webkit-backdrop-filter: saturate(1.8) blur(22px);
+  backdrop-filter: saturate(1.8) blur(22px);
+  border: 1px solid var(--glass-border);
+  box-shadow:
+    var(--glass-shadow),
+    inset 0 1px 0 var(--glass-highlight);
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    // backdrop-filter forces a stacking context, so -1 keeps the sheen above
+    // the underlay but safely beneath the surface's content.
+    z-index: -1;
+    background:
+      linear-gradient(115deg, var(--glass-sheen), transparent 42%),
+      radial-gradient(130% 90% at 50% -30%, var(--glass-sheen), transparent 55%);
+  }
+
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    background: var(--glass-underlay-strong);
+  }
+}
+
+// Edge-to-edge glass bar (sticky headers): same material, no radius/shadow.
+@mixin glass-bar {
+  background: var(--glass-underlay-strong);
+  -webkit-backdrop-filter: saturate(1.8) blur(16px);
+  backdrop-filter: saturate(1.8) blur(16px);
+  border-bottom: 1px solid var(--glass-border);
+
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    background: $surface-raised;
+  }
 }

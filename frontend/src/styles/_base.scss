@@ -14,15 +14,20 @@
 }
 
 .page {
-  padding-top: calc(#{$safe-top} + #{$space-4});
   animation: page-enter $dur-med $ease-out both;
 
+  // Sticky Liquid Glass header — content scrolls beneath it.
   &__header {
+    position: sticky;
+    top: 0;
+    z-index: 40;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: $space-3;
-    padding: 0 $space-4 $space-3;
+    padding: calc(#{$safe-top} + #{$space-3}) $space-4 $space-3;
+    margin-bottom: $space-1;
+    @include glass-bar;
   }
 
   &__title {
@@ -275,6 +280,43 @@
     color: $negative;
     background: $negative-soft;
     border-color: transparent;
+  }
+}
+
+// Connectivity pill (fed by the Network bridge) — floats under the notch.
+.offline-banner {
+  position: fixed;
+  top: calc(#{$safe-top} + #{$space-2});
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 90;
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+  padding: $space-2 $space-4;
+  font-size: $text-sm;
+  font-weight: $weight-semibold;
+  color: $ink;
+  white-space: nowrap;
+  @include liquid-glass($radius-pill);
+  animation: offline-banner-drop $dur-med $ease-spring both;
+
+  &__dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: $negative;
+  }
+}
+
+@keyframes offline-banner-drop {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
   }
 }
 

@@ -17,6 +17,7 @@ import {
 } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { StatusBar, Style } from '@capacitor/status-bar';
+import { storageGet, storageSet } from '@/native/storage';
 
 export type ThemeMode = 'light' | 'dark' | 'system';
 export type ResolvedTheme = 'light' | 'dark';
@@ -48,6 +49,16 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     () => window.matchMedia('(prefers-color-scheme: dark)').matches,
   );
 
+  // Preferences bridge hydration: on device, native storage outlives webview
+  // cache eviction — if it disagrees with localStorage, native wins.
+  useEffect(() => {
+    void storageGet(STORAGE_KEY).then((value) => {
+      if (value === 'light' || value === 'dark' || value === 'system') {
+        setModeState((current) => (current === value ? current : value));
+      }
+    });
+  }, []);
+
   useEffect(() => {
     const media = window.matchMedia('(prefers-color-scheme: dark)');
     const onChange = (event: MediaQueryListEvent): void => setSystemDark(event.matches);
@@ -74,11 +85,9 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   const setMode = useCallback((next: ThemeMode) => {
     setModeState(next);
-    try {
-      localStorage.setItem(STORAGE_KEY, next);
-    } catch {
-      // Private-mode storage failure: theme still works for the session.
-    }
+    // Write-through both stores: localStorage feeds the pre-paint bootstrap,
+    // Preferences survives on device.
+    void storageSet(STORAGE_KEY, next);
   }, []);
 
   const cycleMode = useCallback(() => {
