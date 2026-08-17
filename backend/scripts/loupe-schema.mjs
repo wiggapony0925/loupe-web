@@ -88,6 +88,6 @@ for (const [model, body] of modelBodies) {
 }
 
 mkdirSync(join(root, '../docs'), { recursive: true });
-const out = JSON.stringify({ tables, stats: { tables: tables.length, columns: tables.reduce((n, t) => n + t.columns.length, 0) } }, null, 1);
+const out = JSON.stringify({ meta: { name: 'trackify', generator: 'prisma' }, tables, stats: { tables: tables.length, columns: tables.reduce((n, t) => n + t.columns.length, 0) } }, null, 1);
 writeFileSync(join(root, '../docs/loupe-schema.json'), out);
 console.log(`docs/loupe-schema.json: ${tables.length} tables, ${tables.reduce((n, t) => n + t.columns.length, 0)} columns`);
