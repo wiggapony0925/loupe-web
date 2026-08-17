@@ -1,0 +1,1068 @@
+{
+ "tables": [
+  {
+   "name": "users",
+   "domain": "Identity",
+   "columns": [
+    {
+     "name": "id",
+     "type": "UUID",
+     "nullable": false,
+     "pk": true,
+     "fk": null,
+     "default": "uuid("
+    },
+    {
+     "name": "firebase_uid",
+     "type": "TEXT",
+     "nullable": false,
+     "pk": false,
+     "fk": null,
+     "default": null
+    },
+    {
+     "name": "phone_number",
+     "type": "TEXT",
+     "nullable": false,
+     "pk": false,
+     "fk": null,
+     "default": null
+    },
+    {
+     "name": "display_name",
+     "type": "TEXT",
+     "nullable": false,
+     "pk": false,
+     "fk": null,
+     "default": null
+    },
+    {
+     "name": "email",
+     "type": "TEXT",
+     "nullable": true,
+     "pk": false,
+     "fk": null,
+     "default": null
+    },
+    {
+     "name": "created_at",
+     "type": "TIMESTAMP",
+     "nullable": false,
+     "pk": false,
+     "fk": null,
+     "default": "now("
+    },
+    {
+     "name": "updated_at",
+     "type": "TIMESTAMP",
+     "nullable": false,
+     "pk": false,
+     "fk": null,
+     "default": null
+    }
+   ]
+  },
+  {
+   "name": "circles",
+   "domain": "Identity",
+   "columns": [
+    {
+     "name": "id",
+     "type": "UUID",
+     "nullable": false,
+     "pk": true,
+     "fk": null,
+     "default": "uuid("
+    },
+    {
+     "name": "name",
+     "type": "TEXT",
+     "nullable": false,
+     "pk": false,
+     "fk": null,
+     "default": null
+    },
+    {
+     "name": "invite_code",
+     "type": "TEXT",
+     "nullable": false,
+     "pk": false,
+     "fk": null,
+     "default": "cuid("
+    },
+    {
+     "name": "created_by",
+     "type": "UUID",
+     "nullable": false,
+     "pk": false,
+     "fk": "users.id",
+     "default": null
+    },
+    {
+     "name": "created_at",
+     "type": "TIMESTAMP",
+     "nullable": false,
+     "pk": false,
+     "fk": null,
+     "default": "now("
+    }
+   ]
+  },
+  {
+   "name": "circle_members",
+   "domain": "Identity",
+   "columns": [
+    {
+     "name": "circle_id",
+     "type": "UUID",
+     "nullable": false,
+     "pk": true,
+     "fk": "circles.id",
+     "default": null
+    },
+    {
+     "name": "user_id",
+     "type": "UUID",
+     "nullable": false,
+     "pk": true,
+     "fk": "users.id",
+     "default": null
+    },
+    {
+     "name": "role",
+     "type": "ENUM(CircleRole)",
+     "nullable": false,
+     "pk": false,
+     "fk": null,
+     "default": "MEMBER"
+    },
+    {
+     "name": "permissions",
+     "type": "JSONB",
+     "nullable": false,
+     "pk": false,
+     "fk": null,
+     "default": "\"[\\\"VIEW_BALANCES\\\", \\\"VIEW_TRANSACTIONS\\\", \\\"EDIT_TAGS\\\"]\""
+    },
+    {
+     "name": "joined_at",
+     "type": "TIMESTAMP",
+     "nullable": false,
+     "pk": false,
+     "fk": null,
+     "default": "now("
+    }
+   ]
+  },
+  {
+   "name": "bank_accounts",
+   "domain": "Banking",
+   "columns": [
+    {
+     "name": "id",
+     "type": "UUID",
+     "nullable": false,
+     "pk": true,
+     "fk": null,
+     "default": "uuid("
+    },
+    {
+     "name": "user_id",
+     "type": "UUID",
+     "nullable": false,
+     "pk": false,
+     "fk": "users.id",
+     "default": null
+    },
+    {
+     "name": "plaid_item_id",
+     "type": "TEXT",
+     "nullable": true,
+     "pk": false,
+     "fk": null,
+     "default": null
+    },
+    {
+     "name": "plaid_account_id",
+     "type": "TEXT",
+     "nullable": true,
+     "pk": false,
+     "fk": null,
+     "default": null
+    },
+    {
+     "name": "plaid_access_token",
+     "type": "TEXT",
+     "nullable": true,
+     "pk": false,
+     "fk": null,
+     "default": null
+    },
+    {
+     "name": "plaid_sync_cursor",
+     "type": "TEXT",
+     "nullable": true,
+     "pk": false,
+     "fk": null,
+     "default": null
+    },
+    {
+     "name": "mask",
+     "type": "TEXT",
+     "nullable": true,
+     "pk": false,
+     "fk": null,
+     "default": null
+    },
+    {
+     "name": "institution_name",
+     "type": "TEXT",
+     "nullable": false,
+     "pk": false,
+     "fk": null,
+     "default": null
+    },
+    {
+     "name": "name",
+     "type": "TEXT",
+     "nullable": false,
+     "pk": false,
+     "fk": null,
+     "default": null
+    },
+    {
+     "name": "type",
+     "type": "ENUM(AccountType)",
+     "nullable": false,
+     "pk": false,
+     "fk": null,
+     "default": "OTHER"
+    },
+    {
+     "name": "subtype",
+     "type": "TEXT",
+     "nullable": true,
+     "pk": false,
+     "fk": null,
+     "default": null
+    },
+    {
+     "name": "current_balance",
+     "type": "NUMERIC(14,2)",
+     "nullable": true,
+     "pk": false,
+     "fk": null,
+     "default": null
+    },
+    {
+     "name": "available_balance",
+     "type": "NUMERIC(14,2)",
+     "nullable": true,
+     "pk": false,
+     "fk": null,
+     "default": null
+    },
+    {
+     "name": "currency_code",
+     "type": "TEXT",
+     "nullable": false,
+     "pk": false,
+     "fk": null,
+     "default": "\"USD\""
+    },
+    {
+     "name": "is_hidden",
+     "type": "BOOLEAN",
+     "nullable": false,
+     "pk": false,
+     "fk": null,
+     "default": "false"
+    },
+    {
+     "name": "last_synced_at",
+     "type": "TIMESTAMP",
+     "nullable": true,
+     "pk": false,
+     "fk": null,
+     "default": null
+    },
+    {
+     "name": "created_at",
+     "type": "TIMESTAMP",
+     "nullable": false,
+     "pk": false,
+     "fk": null,
+     "default": "now("
+    },
+    {
+     "name": "updated_at",
+     "type": "TIMESTAMP",
+     "nullable": false,
+     "pk": false,
+     "fk": null,
+     "default": null
+    }
+   ]
+  },
+  {
+   "name": "card_mappings",
+   "domain": "Banking",
+   "columns": [
+    {
+     "name": "id",
+     "type": "UUID",
+     "nullable": false,
+     "pk": true,
+     "fk": null,
+     "default": "uuid("
+    },
+    {
+     "name": "bank_account_id",
+     "type": "UUID",
+     "nullable": false,
+     "pk": false,
+     "fk": "bank_accounts.id",
+     "default": null
+    },
+    {
+     "name": "user_id",
+     "type": "UUID",
+     "nullable": false,
+     "pk": false,
+     "fk": "users.id",
+     "default": null
+    },
+    {
+     "name": "last4",
+     "type": "TEXT",
+     "nullable": true,
+     "pk": false,
+     "fk": null,
+     "default": null
+    },
+    {
+     "name": "device_name",
+     "type": "TEXT",
+     "nullable": true,
+     "pk": false,
+     "fk": null,
+     "default": null
+    },
+    {
+     "name": "label",
+     "type": "TEXT",
+     "nullable": true,
+     "pk": false,
+     "fk": null,
+     "default": null
+    },
+    {
+     "name": "created_at",
+     "type": "TIMESTAMP",
+     "nullable": false,
+     "pk": false,
+     "fk": null,
+     "default": "now("
+    }
+   ]
+  },
+  {
+   "name": "transactions",
+   "domain": "Ledger",
+   "columns": [
+    {
+     "name": "id",
+     "type": "UUID",
+     "nullable": false,
+     "pk": true,
+     "fk": null,
+     "default": "uuid("
+    },
+    {
+     "name": "account_id",
+     "type": "UUID",
+     "nullable": false,
+     "pk": false,
+     "fk": "bank_accounts.id",
+     "default": null
+    },
+    {
+     "name": "plaid_transaction_id",
+     "type": "TEXT",
+     "nullable": true,
+     "pk": false,
+     "fk": null,
+     "default": null
+    },
+    {
+     "name": "amount",
+     "type": "NUMERIC(14,2)",
+     "nullable": false,
+     "pk": false,
+     "fk": null,
+     "default": null
+    },
+    {
+     "name": "merchant_name",
+     "type": "TEXT",
+     "nullable": false,
+     "pk": false,
+     "fk": null,
+     "default": null
+    },
+    {
+     "name": "merchant_normalized",
+     "type": "TEXT",
+     "nullable": false,
+     "pk": false,
+     "fk": null,
+     "default": null
+    },
+    {
+     "name": "date",
+     "type": "DATE",
+     "nullable": false,
+     "pk": false,
+     "fk": null,
+     "default": null
+    },
+    {
+     "name": "category",
+     "type": "TEXT",
+     "nullable": true,
+     "pk": false,
+     "fk": null,
+     "default": null
+    },
+    {
+     "name": "card_last4",
+     "type": "TEXT",
+     "nullable": true,
+     "pk": false,
+     "fk": null,
+     "default": null
+    },
+    {
+     "name": "apple_pay_device",
+     "type": "TEXT",
+     "nullable": true,
+     "pk": false,
+     "fk": null,
+     "default": null
+    },
+    {
+     "name": "tagged_owner_id",
+     "type": "UUID",
+     "nullable": true,
+     "pk": false,
+     "fk": "users.id",
+     "default": null
+    },
+    {
+     "name": "split_type",
+     "type": "ENUM(SplitType)",
+     "nullable": true,
+     "pk": false,
+     "fk": null,
+     "default": null
+    },
+    {
+     "name": "settlement_status",
+     "type": "ENUM(SettlementStatus)",
+     "nullable": false,
+     "pk": false,
+     "fk": null,
+     "default": "NONE"
+    },
+    {
+     "name": "status",
+     "type": "ENUM(TransactionStatus)",
+     "nullable": false,
+     "pk": false,
+     "fk": null,
+     "default": "PENDING"
+    },
+    {
+     "name": "source",
+     "type": "ENUM(TransactionSource)",
+     "nullable": false,
+     "pk": false,
+     "fk": null,
+     "default": "MANUAL"
+    },
+    {
+     "name": "circle_id",
+     "type": "UUID",
+     "nullable": true,
+     "pk": false,
+     "fk": "circles.id",
+     "default": null
+    },
+    {
+     "name": "settlement_id",
+     "type": "UUID",
+     "nullable": true,
+     "pk": false,
+     "fk": "settlements.id",
+     "default": null
+    },
+    {
+     "name": "notes",
+     "type": "TEXT",
+     "nullable": true,
+     "pk": false,
+     "fk": null,
+     "default": null
+    },
+    {
+     "name": "pending_plaid",
+     "type": "BOOLEAN",
+     "nullable": false,
+     "pk": false,
+     "fk": null,
+     "default": "false"
+    },
+    {
+     "name": "created_at",
+     "type": "TIMESTAMP",
+     "nullable": false,
+     "pk": false,
+     "fk": null,
+     "default": "now("
+    },
+    {
+     "name": "updated_at",
+     "type": "TIMESTAMP",
+     "nullable": false,
+     "pk": false,
+     "fk": null,
+     "default": null
+    }
+   ]
+  },
+  {
+   "name": "labels",
+   "domain": "Ledger",
+   "columns": [
+    {
+     "name": "id",
+     "type": "UUID",
+     "nullable": false,
+     "pk": true,
+     "fk": null,
+     "default": "uuid("
+    },
+    {
+     "name": "created_by",
+     "type": "UUID",
+     "nullable": false,
+     "pk": false,
+     "fk": "users.id",
+     "default": null
+    },
+    {
+     "name": "name",
+     "type": "TEXT",
+     "nullable": false,
+     "pk": false,
+     "fk": null,
+     "default": null
+    },
+    {
+     "name": "created_at",
+     "type": "TIMESTAMP",
+     "nullable": false,
+     "pk": false,
+     "fk": null,
+     "default": "now("
+    }
+   ]
+  },
+  {
+   "name": "transaction_labels",
+   "domain": "Ledger",
+   "columns": [
+    {
+     "name": "transaction_id",
+     "type": "UUID",
+     "nullable": false,
+     "pk": true,
+     "fk": "transactions.id",
+     "default": null
+    },
+    {
+     "name": "label_id",
+     "type": "UUID",
+     "nullable": false,
+     "pk": true,
+     "fk": "labels.id",
+     "default": null
+    }
+   ]
+  },
+  {
+   "name": "holdings",
+   "domain": "Banking",
+   "columns": [
+    {
+     "name": "id",
+     "type": "UUID",
+     "nullable": false,
+     "pk": true,
+     "fk": null,
+     "default": "uuid("
+    },
+    {
+     "name": "account_id",
+     "type": "UUID",
+     "nullable": false,
+     "pk": false,
+     "fk": "bank_accounts.id",
+     "default": null
+    },
+    {
+     "name": "security_id",
+     "type": "TEXT",
+     "nullable": true,
+     "pk": false,
+     "fk": null,
+     "default": null
+    },
+    {
+     "name": "symbol",
+     "type": "TEXT",
+     "nullable": true,
+     "pk": false,
+     "fk": null,
+     "default": null
+    },
+    {
+     "name": "name",
+     "type": "TEXT",
+     "nullable": true,
+     "pk": false,
+     "fk": null,
+     "default": null
+    },
+    {
+     "name": "quantity",
+     "type": "NUMERIC(18,6)",
+     "nullable": false,
+     "pk": false,
+     "fk": null,
+     "default": null
+    },
+    {
+     "name": "cost_basis",
+     "type": "NUMERIC(14,2)",
+     "nullable": true,
+     "pk": false,
+     "fk": null,
+     "default": null
+    },
+    {
+     "name": "institution_price",
+     "type": "NUMERIC(14,4)",
+     "nullable": true,
+     "pk": false,
+     "fk": null,
+     "default": null
+    },
+    {
+     "name": "institution_value",
+     "type": "NUMERIC(14,2)",
+     "nullable": true,
+     "pk": false,
+     "fk": null,
+     "default": null
+    },
+    {
+     "name": "as_of",
+     "type": "TIMESTAMP",
+     "nullable": false,
+     "pk": false,
+     "fk": null,
+     "default": null
+    }
+   ]
+  },
+  {
+   "name": "net_worth_snapshots",
+   "domain": "Reporting",
+   "columns": [
+    {
+     "name": "id",
+     "type": "UUID",
+     "nullable": false,
+     "pk": true,
+     "fk": null,
+     "default": "uuid("
+    },
+    {
+     "name": "user_id",
+     "type": "UUID",
+     "nullable": false,
+     "pk": false,
+     "fk": "users.id",
+     "default": null
+    },
+    {
+     "name": "captured_at",
+     "type": "TIMESTAMP",
+     "nullable": false,
+     "pk": false,
+     "fk": null,
+     "default": "now("
+    },
+    {
+     "name": "assets",
+     "type": "NUMERIC(14,2)",
+     "nullable": false,
+     "pk": false,
+     "fk": null,
+     "default": null
+    },
+    {
+     "name": "liabilities",
+     "type": "NUMERIC(14,2)",
+     "nullable": false,
+     "pk": false,
+     "fk": null,
+     "default": null
+    },
+    {
+     "name": "net_worth",
+     "type": "NUMERIC(14,2)",
+     "nullable": false,
+     "pk": false,
+     "fk": null,
+     "default": null
+    },
+    {
+     "name": "breakdown",
+     "type": "JSONB",
+     "nullable": false,
+     "pk": false,
+     "fk": null,
+     "default": null
+    }
+   ]
+  },
+  {
+   "name": "settlements",
+   "domain": "Ledger",
+   "columns": [
+    {
+     "name": "id",
+     "type": "UUID",
+     "nullable": false,
+     "pk": true,
+     "fk": null,
+     "default": "uuid("
+    },
+    {
+     "name": "circle_id",
+     "type": "UUID",
+     "nullable": false,
+     "pk": false,
+     "fk": "circles.id",
+     "default": null
+    },
+    {
+     "name": "from_user_id",
+     "type": "UUID",
+     "nullable": false,
+     "pk": false,
+     "fk": "users.id",
+     "default": null
+    },
+    {
+     "name": "to_user_id",
+     "type": "UUID",
+     "nullable": false,
+     "pk": false,
+     "fk": "users.id",
+     "default": null
+    },
+    {
+     "name": "amount",
+     "type": "NUMERIC(14,2)",
+     "nullable": false,
+     "pk": false,
+     "fk": null,
+     "default": null
+    },
+    {
+     "name": "unattributed_amount",
+     "type": "NUMERIC(14,2)",
+     "nullable": false,
+     "pk": false,
+     "fk": null,
+     "default": "0"
+    },
+    {
+     "name": "status",
+     "type": "ENUM(TransferStatus)",
+     "nullable": false,
+     "pk": false,
+     "fk": null,
+     "default": "PENDING"
+    },
+    {
+     "name": "note",
+     "type": "TEXT",
+     "nullable": true,
+     "pk": false,
+     "fk": null,
+     "default": null
+    },
+    {
+     "name": "created_at",
+     "type": "TIMESTAMP",
+     "nullable": false,
+     "pk": false,
+     "fk": null,
+     "default": "now("
+    },
+    {
+     "name": "confirmed_at",
+     "type": "TIMESTAMP",
+     "nullable": true,
+     "pk": false,
+     "fk": null,
+     "default": null
+    }
+   ]
+  },
+  {
+   "name": "statements",
+   "domain": "Reporting",
+   "columns": [
+    {
+     "name": "id",
+     "type": "UUID",
+     "nullable": false,
+     "pk": true,
+     "fk": null,
+     "default": "uuid("
+    },
+    {
+     "name": "user_id",
+     "type": "UUID",
+     "nullable": false,
+     "pk": false,
+     "fk": "users.id",
+     "default": null
+    },
+    {
+     "name": "circle_id",
+     "type": "UUID",
+     "nullable": true,
+     "pk": false,
+     "fk": "circles.id",
+     "default": null
+    },
+    {
+     "name": "period_start",
+     "type": "DATE",
+     "nullable": false,
+     "pk": false,
+     "fk": null,
+     "default": null
+    },
+    {
+     "name": "period_end",
+     "type": "DATE",
+     "nullable": false,
+     "pk": false,
+     "fk": null,
+     "default": null
+    },
+    {
+     "name": "format",
+     "type": "ENUM(StatementFormat)",
+     "nullable": false,
+     "pk": false,
+     "fk": null,
+     "default": null
+    },
+    {
+     "name": "storage_path",
+     "type": "TEXT",
+     "nullable": true,
+     "pk": false,
+     "fk": null,
+     "default": null
+    },
+    {
+     "name": "created_at",
+     "type": "TIMESTAMP",
+     "nullable": false,
+     "pk": false,
+     "fk": null,
+     "default": "now("
+    }
+   ]
+  },
+  {
+   "name": "device_tokens",
+   "domain": "Ingestion",
+   "columns": [
+    {
+     "name": "id",
+     "type": "UUID",
+     "nullable": false,
+     "pk": true,
+     "fk": null,
+     "default": "uuid("
+    },
+    {
+     "name": "user_id",
+     "type": "UUID",
+     "nullable": false,
+     "pk": false,
+     "fk": "users.id",
+     "default": null
+    },
+    {
+     "name": "token",
+     "type": "TEXT",
+     "nullable": false,
+     "pk": false,
+     "fk": null,
+     "default": null
+    },
+    {
+     "name": "platform",
+     "type": "ENUM(DevicePlatform)",
+     "nullable": false,
+     "pk": false,
+     "fk": null,
+     "default": null
+    },
+    {
+     "name": "action_key",
+     "type": "TEXT",
+     "nullable": true,
+     "pk": false,
+     "fk": null,
+     "default": null
+    },
+    {
+     "name": "created_at",
+     "type": "TIMESTAMP",
+     "nullable": false,
+     "pk": false,
+     "fk": null,
+     "default": "now("
+    },
+    {
+     "name": "last_seen_at",
+     "type": "TIMESTAMP",
+     "nullable": false,
+     "pk": false,
+     "fk": null,
+     "default": "now("
+    }
+   ]
+  },
+  {
+   "name": "email_ingest_events",
+   "domain": "Ingestion",
+   "columns": [
+    {
+     "name": "id",
+     "type": "UUID",
+     "nullable": false,
+     "pk": true,
+     "fk": null,
+     "default": "uuid("
+    },
+    {
+     "name": "provider",
+     "type": "ENUM(AlertProvider)",
+     "nullable": false,
+     "pk": false,
+     "fk": null,
+     "default": "UNKNOWN"
+    },
+    {
+     "name": "from_address",
+     "type": "TEXT",
+     "nullable": true,
+     "pk": false,
+     "fk": null,
+     "default": null
+    },
+    {
+     "name": "subject",
+     "type": "TEXT",
+     "nullable": true,
+     "pk": false,
+     "fk": null,
+     "default": null
+    },
+    {
+     "name": "raw_body",
+     "type": "TEXT",
+     "nullable": false,
+     "pk": false,
+     "fk": null,
+     "default": null
+    },
+    {
+     "name": "body_hash",
+     "type": "TEXT",
+     "nullable": false,
+     "pk": false,
+     "fk": null,
+     "default": null
+    },
+    {
+     "name": "parsed",
+     "type": "JSONB",
+     "nullable": true,
+     "pk": false,
+     "fk": null,
+     "default": null
+    },
+    {
+     "name": "status",
+     "type": "ENUM(IngestStatus)",
+     "nullable": false,
+     "pk": false,
+     "fk": null,
+     "default": null
+    },
+    {
+     "name": "error",
+     "type": "TEXT",
+     "nullable": true,
+     "pk": false,
+     "fk": null,
+     "default": null
+    },
+    {
+     "name": "transaction_id",
+     "type": "UUID",
+     "nullable": true,
+     "pk": false,
+     "fk": "transactions.id",
+     "default": null
+    },
+    {
+     "name": "received_at",
+     "type": "TIMESTAMP",
+     "nullable": false,
+     "pk": false,
+     "fk": null,
+     "default": "now("
+    }
+   ]
+  }
+ ],
+ "stats": {
+  "tables": 14,
+  "columns": 122
+ }
+}

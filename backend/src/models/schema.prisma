@@ -240,6 +240,8 @@ model Transaction {
   @@index([accountId, date(sort: Desc)])
   @@index([status])
   @@index([circleId, settlementStatus])
+  // Recurring detection + email-dedup both probe by normalized merchant.
+  @@index([merchantNormalized])
   @@map("transactions")
 }
 
