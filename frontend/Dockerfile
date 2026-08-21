@@ -1,7 +1,16 @@
 # trackify web — the SAME bundle Capacitor ships to iOS/Android, served as a
 # website from nginx on Cloud Run (the loupe-web pattern).
 #
-#   gcloud run deploy trackify-web --source frontend --region us-central1
+# Build it with `docker build`, NOT `gcloud run deploy --source`: that command
+# has no --build-arg mechanism, so it would bake empty strings into the six
+# VITE_* args below and the deployed site would throw auth/invalid-api-key on
+# the sign-in screen. Full command with values: README.md § "Web (desktop / PC)".
+#
+#   docker build . -t trackify-web --build-arg VITE_API_URL=… (+ the Firebase args)
+#   docker push …/trackify/web:TAG
+#   gcloud run deploy trackify-web --image …/trackify/web:TAG --region us-central1
+#
+# CI does exactly this in .github/workflows/google-cloud-run-deploy.yml.
 
 FROM node:22-slim AS build
 WORKDIR /app
