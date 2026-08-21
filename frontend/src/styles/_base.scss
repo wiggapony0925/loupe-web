@@ -30,6 +30,15 @@
   border-radius: 4px;
 }
 
+// …but an OUTSET ring is painted outside the border box, and card-grouped
+// containers clip their children (`@include card` → overflow:hidden), which
+// would erase the indicator on every list row and spreadsheet row. Those get
+// an inset ring instead so focus stays visible.
+.list > *:focus-visible,
+.sheet-grid__row:focus-visible {
+  outline-offset: -3px;
+}
+
 .page {
   animation: page-enter $dur-med $ease-out both;
 
@@ -109,7 +118,8 @@
 }
 
 // Header chrome the sidebar makes redundant on desktop.
-.page__header--mobile-only {
+.page__header--mobile-only,
+.page__action--mobile-only {
   @include bp-up('md') {
     display: none;
   }

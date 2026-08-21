@@ -70,9 +70,13 @@ export function Recurring() {
     <div className="page recurring">
       <header className="page__header">
         <h1 className="page__title">Recurring</h1>
+        {/* "Done" is a phone affordance: there, this page is only reachable by
+            tapping the Home card, so back always has somewhere to go. On
+            desktop it's a first-class sidebar destination that can be opened
+            cold by URL, where history-back would leave the app entirely. */}
         <button
           type="button"
-          className="page__action"
+          className="page__action page__action--mobile-only"
           onClick={() => {
             haptics.impactLight();
             navigate(-1);

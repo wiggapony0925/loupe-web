@@ -94,15 +94,17 @@
     font-size: 10px;
   }
 
-  // Quick actions (the Figma "Exchange / Transfer" row)
+  // Quick actions (the Figma "Exchange / Transfer" row). Phone-only: on
+  // desktop the rail carries Recurring and Ledger, and the accounts column's
+  // "Link an account" button sits in view at the same time — so keeping these
+  // would offer the identical action twice, side by side.
   &__quick-row {
     display: flex;
     gap: $space-2;
     padding: $space-1 $space-4 $space-3;
 
     @include bp-up('md') {
-      padding: $space-1 0 $space-4;
-      max-width: 460px;
+      display: none;
     }
   }
 
@@ -261,10 +263,13 @@
   &__filters {
     padding-bottom: $space-1;
 
-    // Chips stop being a scroll-strip once there's room to wrap them.
+    // Chips stop being a scroll-strip once there's room to wrap them — but
+    // each GROUP (dates / accounts / circles / labels) must stay its own row,
+    // or they merge into one undifferentiated run of chips.
     @include bp-up('md') {
       display: flex;
-      flex-wrap: wrap;
+      flex-direction: column;
+      align-items: flex-start;
       gap: $space-2;
       padding: 0 0 $space-4;
 
