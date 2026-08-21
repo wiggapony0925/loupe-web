@@ -105,7 +105,7 @@ export function Sheet() {
   };
 
   return (
-    <div className="page sheet-page">
+    <div className="page page--wide sheet-page">
       <header className="page__header">
         <h1 className="page__title">Sheet</h1>
         <span className="page__action">{loading ? 'Loading…' : `${rows.length} rows`}</span>

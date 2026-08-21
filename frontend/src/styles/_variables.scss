@@ -128,6 +128,12 @@ $radius-sheet: 24px;
 $tab-bar-height: 64px;
 $hairline: 1px solid $border;
 
+// Desktop shell
+$sidebar-width: 232px;
+$content-max: 720px; // single-column reading width (feed, ledger, circles)
+$content-max-wide: 1180px; // two-column dashboard + the excel sheet
+$dialog-max: 540px; // bottom sheet promoted to a centered dialog ≥ md
+
 // Motion
 $ease-out: cubic-bezier(0.16, 1, 0.3, 1);
 $ease-spring: cubic-bezier(0.32, 0.72, 0, 1);
@@ -182,8 +188,13 @@ $safe-bottom: env(safe-area-inset-bottom, 0px);
 // (When a Capacitor bridge for native iOS-26 glass exists, it slots in above
 // this exactly like expo-glass-effect does above expo-blur.)
 
+// NOTE: this mixin deliberately does NOT set `position`. It once set
+// `position: relative` for the ::before sheen, which silently overrode the
+// `position: fixed` on .tab-bar and .offline-banner (both include the mixin
+// last), so the "floating" bar actually sat in normal flow and scrolled away.
+// Callers establish their own positioning context; fixed/absolute/sticky all
+// contain the absolutely-positioned sheen just as well as relative does.
 @mixin liquid-glass($radius: $radius-card, $underlay: var(--glass-underlay)) {
-  position: relative;
   border-radius: $radius;
   background: $underlay;
   -webkit-backdrop-filter: saturate(1.8) blur(22px);

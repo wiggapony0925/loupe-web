@@ -1,6 +1,11 @@
 // Shared primitives, modern pass: pill buttons with press-scale, chip
 // filters, card-grouped lists, shimmer skeletons, and entrance motion.
+//
+// Responsive contract: phone-first, then ≥ md the fixed bottom tab bar gives
+// way to a left sidebar and content gets a max width instead of stretching
+// edge-to-edge across a 27" display.
 @use 'variables' as *;
+@use 'breakpoints' as *;
 
 .app-shell {
   min-height: 100dvh;
@@ -10,11 +15,33 @@
   &__main {
     flex: 1;
     padding-bottom: calc(#{$tab-bar-height} + #{$safe-bottom} + #{$space-8});
+
+    @include bp-up('md') {
+      margin-left: $sidebar-width;
+      padding-bottom: $space-10;
+    }
   }
+}
+
+// Keyboard users get a visible ring everywhere; pointer users never see it.
+:focus-visible {
+  outline: 2px solid $ink;
+  outline-offset: 2px;
+  border-radius: 4px;
 }
 
 .page {
   animation: page-enter $dur-med $ease-out both;
+
+  // Single-column reading width on desktop; `--page-max` lets a wide page
+  // (dashboard, spreadsheet) opt into more room without new selectors.
+  @include bp-up('md') {
+    max-width: var(--page-max, #{$content-max});
+    margin: 0 auto;
+    // Top padding matters here: pages whose header is mobile-only would
+    // otherwise start flush against the viewport edge.
+    padding: $space-6 $space-6 0;
+  }
 
   // Sticky Liquid Glass header — content scrolls beneath it.
   &__header {
@@ -28,12 +55,29 @@
     padding: calc(#{$safe-top} + #{$space-3}) $space-4 $space-3;
     margin-bottom: $space-1;
     @include glass-bar;
+
+    @include bp-up('md') {
+      // The rail carries the app identity on desktop, so the page header
+      // stops being chrome and becomes a plain title row.
+      padding: $space-6 0 $space-4;
+      margin-bottom: 0;
+      background: none;
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+      border-bottom: none;
+      position: static;
+    }
   }
 
   &__title {
     font-size: $text-xl;
     font-weight: $weight-heavy;
     letter-spacing: -0.02em;
+
+    @include bp-up('md') {
+      font-size: 28px;
+      letter-spacing: -0.03em;
+    }
   }
 
   &__actions {
@@ -50,6 +94,24 @@
     border-radius: $radius-pill;
     background: $surface-sunken;
     @include press-state;
+
+    @include hover {
+      color: $ink;
+    }
+  }
+}
+
+// Pages that earn the full desktop canvas.
+.page--wide {
+  @include bp-up('md') {
+    --page-max: #{$content-max-wide};
+  }
+}
+
+// Header chrome the sidebar makes redundant on desktop.
+.page__header--mobile-only {
+  @include bp-up('md') {
+    display: none;
   }
 }
 
@@ -78,11 +140,19 @@
     background: $accent;
     color: $on-accent;
     box-shadow: $shadow-card;
+
+    @include hover {
+      opacity: 0.88;
+    }
   }
 
   &--ghost {
     background: $surface-sunken;
     color: $ink;
+
+    @include hover {
+      background: $border;
+    }
   }
 
   &--danger {
@@ -117,10 +187,19 @@
   white-space: nowrap;
   @include press-state;
 
+  @include hover {
+    border-color: $ink-faint;
+    color: $ink;
+  }
+
   &--active {
     background: $accent;
     color: $on-accent;
     border-color: $accent;
+
+    @include hover {
+      color: $on-accent;
+    }
   }
 }
 
@@ -155,6 +234,10 @@
 .list {
   margin: 0 $space-4;
   @include card;
+
+  @include bp-up('md') {
+    margin: 0;
+  }
 
   > * {
     border-bottom: $hairline;
@@ -289,6 +372,10 @@
   top: calc(#{$safe-top} + #{$space-2});
   left: 50%;
   transform: translateX(-50%);
+
+  @include bp-up('md') {
+    left: calc(50% + #{$sidebar-width} / 2);
+  }
   z-index: 90;
   display: flex;
   align-items: center;

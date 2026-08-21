@@ -124,14 +124,17 @@ export function Home() {
   const visibleAccounts = accounts.filter((a) => !a.isHidden);
 
   return (
-    <div className="page home">
-      <header className="page__header">
+    <div className="page page--wide home">
+      {/* Desktop carries the wordmark and theme control in the sidebar. */}
+      <header className="page__header page__header--mobile-only">
         <span className="home__brand">trackify</span>
         <div className="page__actions">
           <ThemeToggle />
         </div>
       </header>
 
+      <div className="home__columns">
+      <div className="home__col-main">
       <div className="home__hero">
         <span className="home__eyebrow">NET WORTH</span>
         <span className="home__value">
@@ -201,7 +204,9 @@ export function Home() {
           </div>
         </div>
       ) : null}
+      </div>
 
+      <div className="home__col-side">
       {recurring && recurring.items.length > 0 ? (
         <button
           type="button"
@@ -255,6 +260,8 @@ export function Home() {
           {linkError ? <p className="notice notice--error">{linkError}</p> : null}
         </div>
       </section>
+      </div>
+      </div>
 
       {linkToken ? (
         <PlaidLauncher

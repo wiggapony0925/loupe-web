@@ -12,6 +12,7 @@ import { onAppResume, onDeepLink, onHardwareBack } from '@/native/appEvents';
 import { subscribeConnectivity } from '@/native/network';
 import { hideSplash } from '@/native/splash';
 import { TabBar } from '@/components/TabBar/TabBar';
+import { Sidebar } from '@/components/Sidebar/Sidebar';
 import { Home } from '@/pages/Home';
 import { Feed } from '@/pages/Feed';
 import { Sheet } from '@/pages/Sheet';
@@ -104,6 +105,8 @@ export function App() {
           Offline — showing what's cached
         </div>
       ) : null}
+      {/* CSS picks the form factor: rail ≥ md, floating tab bar below. */}
+      <Sidebar />
       <main className="app-shell__main">
         <Routes>
           <Route path="/" element={<Home />} />

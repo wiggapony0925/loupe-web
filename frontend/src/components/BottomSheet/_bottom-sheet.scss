@@ -1,5 +1,9 @@
 @use '../../styles/variables' as *;
+@use '../../styles/breakpoints' as *;
 
+// Phone: a sheet rising from the bottom edge.
+// Desktop (≥ md): the SAME component becomes a centered dialog — a sheet
+// glued to the bottom of a 27" monitor reads as a phone app in a browser.
 .bottom-sheet {
   position: fixed;
   inset: 0;
@@ -7,6 +11,12 @@
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
+
+  @include bp-up('md') {
+    justify-content: center;
+    align-items: center;
+    padding: $space-6;
+  }
 
   &__backdrop {
     position: absolute;
@@ -20,6 +30,7 @@
   &__panel {
     // Liquid Glass with the strong underlay — glassy against the dimmed
     // backdrop, opaque enough that the ledger numbers stay legible.
+    position: relative; // contains the mixin's ::before sheen
     @include liquid-glass(($radius-sheet $radius-sheet 0 0), var(--glass-underlay-strong));
     padding-bottom: calc(#{$safe-bottom} + #{$space-4});
     max-height: 88dvh;
@@ -31,11 +42,30 @@
     &--dragging {
       transition: none;
     }
+
+    @include bp-up('md') {
+      width: 100%;
+      max-width: $dialog-max;
+      max-height: min(82dvh, 760px);
+      border-radius: $radius-sheet;
+      padding-bottom: $space-4;
+      animation: bottom-sheet-zoom $dur-med $ease-spring;
+      // Drag-to-dismiss is a touch gesture; a mouse drag must not shift it.
+      transform: none !important;
+    }
   }
 
   &--closing &__panel {
     transform: translateY(100%);
     transition: transform $dur-med ease-in;
+
+    @include bp-up('md') {
+      opacity: 0;
+      transform: scale(0.97) !important;
+      transition:
+        opacity $dur-fast ease-in,
+        transform $dur-fast ease-in;
+    }
   }
 
   &--closing &__backdrop {
@@ -49,6 +79,11 @@
     justify-content: center;
     touch-action: none;
     cursor: grab;
+
+    // No grab handle on a dialog — Esc and the backdrop are the affordances.
+    @include bp-up('md') {
+      display: none;
+    }
   }
 
   &__handle {
@@ -68,6 +103,10 @@
     font-size: $text-lg;
     font-weight: $weight-heavy;
     letter-spacing: -0.01em;
+
+    @include bp-up('md') {
+      padding-top: $space-5;
+    }
   }
 
   &__content {
@@ -82,6 +121,17 @@
   }
   to {
     transform: translateY(0);
+  }
+}
+
+@keyframes bottom-sheet-zoom {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
   }
 }
 

@@ -1,0 +1,66 @@
+// ───────────────────────────────────────────────────────────────────────────
+// breakpoints.scss — THE single source of truth for responsive breakpoints.
+//
+// Values and tier names are shared verbatim with loupe-web, so "md" means the
+// same thing across every JFM product. Edit here and the whole app follows —
+// nothing else defines breakpoints.
+//
+//   sm   640px  → large phone
+//   md   768px  → tablet portrait  (sidebar replaces the bottom tab bar)
+//   lg  1024px  → tablet landscape / small laptop (multi-column pages)
+//   xl  1280px  → desktop
+//   2xl 1536px  → large desktop
+//
+// Usage:
+//   @include bp-up("lg")   { … }   // ≥ 1024px (mobile-first)
+//   @include bp-down("md") { … }   // < 768px  (desktop-first)
+// No CSS output — safe to @use anywhere.
+// ───────────────────────────────────────────────────────────────────────────
+
+@use 'sass:map';
+
+$breakpoints: (
+  'sm': 640px,
+  'md': 768px,
+  'lg': 1024px,
+  'xl': 1280px,
+  '2xl': 1536px,
+);
+
+@function bp-value($name) {
+  $v: map.get($breakpoints, $name);
+  @if $v == null {
+    @error "Unknown breakpoint '#{$name}'. Use one of: #{map.keys($breakpoints)}.";
+  }
+  @return $v;
+}
+
+/// ≥ breakpoint (mobile-first).
+@mixin bp-up($name) {
+  @media (min-width: bp-value($name)) {
+    @content;
+  }
+}
+
+/// < breakpoint (desktop-first).
+@mixin bp-down($name) {
+  @media (max-width: (bp-value($name) - 0.02px)) {
+    @content;
+  }
+}
+
+@mixin bp-between($min, $max) {
+  @media (min-width: bp-value($min)) and (max-width: (bp-value($max) - 0.02px)) {
+    @content;
+  }
+}
+
+/// Pointer-based, not width-based: hover styles must never attach on a
+/// touchscreen, where :hover sticks after a tap.
+@mixin hover {
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      @content;
+    }
+  }
+}

@@ -66,6 +66,69 @@ jobs:
           path: frontend/dist
           retention-days: 7
 
+  # The same bundle Capacitor ships to iOS/Android, served as a website from
+  # nginx on Cloud Run (the loupe-web pattern).
+  deploy-web:
+    needs: [build-frontend]
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ vars.GCP_SERVICE_ACCOUNT }}
+
+      - uses: google-github-actions/setup-gcloud@v2
+
+      # Built with docker (not `builds submit --tag`) because the web bundle
+      # needs --build-arg for its VITE_* values; those are public identifiers
+      # baked into the client, never secrets.
+      - name: Build & push web image
+        env:
+          IMAGE: ${{ vars.GCP_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/trackify/web:${{ github.sha }}
+        run: |
+          gcloud auth configure-docker "${{ vars.GCP_REGION }}-docker.pkg.dev" --quiet
+          docker build frontend \
+            --tag "$IMAGE" \
+            --build-arg VITE_API_URL="${{ vars.TRACKIFY_API_URL }}" \
+            --build-arg VITE_FIREBASE_API_KEY="${{ vars.FIREBASE_API_KEY }}" \
+            --build-arg VITE_FIREBASE_AUTH_DOMAIN="${{ vars.FIREBASE_AUTH_DOMAIN }}" \
+            --build-arg VITE_FIREBASE_PROJECT_ID="${{ vars.GCP_PROJECT_ID }}" \
+            --build-arg VITE_FIREBASE_APP_ID="${{ vars.FIREBASE_APP_ID }}" \
+            --build-arg VITE_FIREBASE_MESSAGING_SENDER_ID="${{ vars.FIREBASE_MESSAGING_SENDER_ID }}"
+          docker push "$IMAGE"
+
+      - name: Deploy web to Cloud Run
+        run: |
+          gcloud run deploy trackify-web \
+            --project "${{ vars.GCP_PROJECT_ID }}" \
+            --region "${{ vars.GCP_REGION }}" \
+            --image "${{ vars.GCP_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/trackify/web:${{ github.sha }}" \
+            --cpu 1 --memory 256Mi \
+            --min-instances 0 --max-instances 5 \
+            --allow-unauthenticated
+
+      - name: Smoke test the web host
+        run: |
+          URL=$(gcloud run services describe trackify-web \
+            --project "${{ vars.GCP_PROJECT_ID }}" \
+            --region "${{ vars.GCP_REGION }}" \
+            --format 'value(status.url)')
+          for i in 1 2 3 4 5; do
+            # SPA fallback must serve the app HTML for a client-side route.
+            if curl -fsS "$URL/healthz" | grep -q ok && curl -fsS "$URL/ledger" | grep -q '<div id="root">'; then
+              echo "web healthy: $URL"; exit 0
+            fi
+            sleep 5
+          done
+          echo "web failed smoke test" >&2; exit 1
+
   deploy-api:
     needs: [test]
     if: github.ref == 'refs/heads/main'

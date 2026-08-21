@@ -131,19 +131,25 @@ export function NetWorthChart({ points, range, onRangeChange, onScrub }: NetWort
                   <stop className="net-worth-chart__grad-bottom" offset="100%" />
                 </linearGradient>
               </defs>
-              {geometry.ticks.map((tick, index) => (
-                <g key={tick.valueCents}>
-                  <line className="net-worth-chart__grid" x1={0} x2={width} y1={tick.y} y2={tick.y} />
-                  <text
-                    className="net-worth-chart__grid-label"
-                    x={index === 0 ? 8 : width - 8}
-                    y={tick.y - 5}
-                    textAnchor={index === 0 ? 'start' : 'end'}
-                  >
-                    {moneyCompact(tick.valueCents)}
-                  </text>
-                </g>
-              ))}
+              {geometry.ticks.map((tick, index) => {
+                const isTop = index === 0;
+                return (
+                  <g key={tick.valueCents}>
+                    <line className="net-worth-chart__grid" x1={0} x2={width} y1={tick.y} y2={tick.y} />
+                    <text
+                      className="net-worth-chart__grid-label"
+                      x={isTop ? 8 : width - 8}
+                      // The top gridline sits at the very edge of the plot, so
+                      // its label hangs BELOW the line; only the lower one can
+                      // safely sit above without being clipped.
+                      y={isTop ? tick.y + 13 : tick.y - 6}
+                      textAnchor={isTop ? 'start' : 'end'}
+                    >
+                      {moneyCompact(tick.valueCents)}
+                    </text>
+                  </g>
+                );
+              })}
               {geometry.baselineY !== null ? (
                 <line
                   className="net-worth-chart__baseline"

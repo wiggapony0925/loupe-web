@@ -1,8 +1,31 @@
 // Page-level BEM blocks: .home, .feed, .sheet-page, .ledger, .circles, .auth
 @use 'variables' as *;
+@use 'breakpoints' as *;
 
 // ── Home ─────────────────────────────────────────────────────────────────────
 .home {
+  // Desktop dashboard: hero + chart on the left, accounts + recurring in a
+  // right column, instead of one long phone scroll.
+  @include bp-up('lg') {
+    &__columns {
+      display: grid;
+      grid-template-columns: minmax(0, 1.45fr) minmax(320px, 1fr);
+      gap: $space-6;
+      align-items: start;
+    }
+
+    // Sticky, but bounded: a column taller than the viewport would otherwise
+    // pin at the top and leave its bottom (more accounts, the Link button)
+    // permanently below the fold with no way to scroll to it.
+    &__col-side {
+      position: sticky;
+      top: $space-6;
+      max-height: calc(100dvh - #{$space-6 * 2});
+      overflow-y: auto;
+      scrollbar-width: thin;
+    }
+  }
+
   &__brand {
     font-size: $text-lg;
     font-weight: $weight-heavy;
@@ -14,6 +37,10 @@
     flex-direction: column;
     align-items: flex-start;
     padding: $space-2 $space-4 $space-4;
+
+    @include bp-up('md') {
+      padding: 0 0 $space-4;
+    }
   }
 
   &__eyebrow {
@@ -29,6 +56,10 @@
     font-weight: $weight-heavy;
     letter-spacing: -0.03em;
     @include tabular-nums;
+
+    @include bp-up('lg') {
+      font-size: 56px;
+    }
   }
 
   &__delta {
@@ -68,6 +99,11 @@
     display: flex;
     gap: $space-2;
     padding: $space-1 $space-4 $space-3;
+
+    @include bp-up('md') {
+      padding: $space-1 0 $space-4;
+      max-width: 460px;
+    }
   }
 
   &__quick {
@@ -102,6 +138,15 @@
     text-align: left;
     @include card;
     @include press-state;
+
+    @include bp-up('md') {
+      width: 100%;
+      margin: $space-4 0 0;
+    }
+
+    @include hover {
+      border-color: $ink-faint;
+    }
   }
 
   &__subs-main {
@@ -133,6 +178,10 @@
     grid-template-columns: 1fr 1fr;
     gap: $space-3;
     margin: $space-4 $space-4 0;
+
+    @include bp-up('md') {
+      margin: $space-5 0 0;
+    }
   }
 
   &__stat {
@@ -162,6 +211,10 @@
 
   &__link {
     padding: $space-4;
+
+    @include bp-up('md') {
+      padding: $space-4 0 0;
+    }
   }
 
   &__account-balance {
@@ -207,6 +260,20 @@
 .sheet-page {
   &__filters {
     padding-bottom: $space-1;
+
+    // Chips stop being a scroll-strip once there's room to wrap them.
+    @include bp-up('md') {
+      display: flex;
+      flex-wrap: wrap;
+      gap: $space-2;
+      padding: 0 0 $space-4;
+
+      .chip-row {
+        padding: 0;
+        overflow: visible;
+        flex-wrap: wrap;
+      }
+    }
   }
 
   &__exports {
@@ -214,6 +281,18 @@
     grid-template-columns: 1fr 1fr;
     gap: $space-2;
     padding: $space-4;
+
+    // Exports are a desktop-native act — one row of buttons, right-aligned.
+    @include bp-up('md') {
+      display: flex;
+      justify-content: flex-end;
+      padding: $space-4 0;
+
+      .button {
+        width: auto;
+        padding: $space-3 $space-5;
+      }
+    }
   }
 
   &__sheet-link {
@@ -548,6 +627,20 @@
   padding-bottom: calc(#{$safe-bottom} + #{$space-4});
   animation: page-enter $dur-slow $ease-out both;
 
+  // Desktop: a centered sign-in card rather than a stretched phone screen.
+  @include bp-up('md') {
+    justify-content: center;
+    gap: $space-8;
+    padding: $space-10 $space-6;
+
+    .auth__form {
+      width: 100%;
+      max-width: 400px;
+      margin: 0 auto;
+      padding: $space-5 $space-4 $space-6;
+    }
+  }
+
   &__brand {
     display: flex;
     flex-direction: column;
@@ -586,5 +679,9 @@
     text-align: center;
     font-size: $text-xs;
     color: $ink-faint;
+
+    @include bp-up('md') {
+      margin-top: $space-4;
+    }
   }
 }

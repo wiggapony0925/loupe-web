@@ -1,8 +1,13 @@
 @use '../../styles/variables' as *;
+@use '../../styles/breakpoints' as *;
 
 // The island nav pill — loupe's IslandNavPill spec, CSS-tier Liquid Glass:
 // 60pt capsule, radius 30, 10px inner gutters, hairline ink border, deep
 // soft shadow, saturating blur over a translucent elevated underlay.
+// Phone/tablet-portrait only: the Sidebar takes over at md — see the
+// display:none at the END of this block (a media query nested BEFORE the
+// plain declarations loses to them on source order, since @media adds no
+// specificity; that bug is why this comment exists).
 .tab-bar {
   position: fixed;
   left: 50%;
@@ -15,6 +20,10 @@
   align-items: stretch;
   padding: 5px 10px;
   @include liquid-glass(30px);
+
+  @include bp-up('md') {
+    display: none;
+  }
 
   &__item {
     flex: 1;

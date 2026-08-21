@@ -1,0 +1,10 @@
+node_modules
+dist
+ios
+android
+native
+.env
+.env.*
+*.log
+preview.html
+src/preview.tsx

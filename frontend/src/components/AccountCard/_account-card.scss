@@ -1,4 +1,5 @@
 @use '../../styles/variables' as *;
+@use '../../styles/breakpoints' as *;
 
 .account-card {
   display: flex;
@@ -12,6 +13,10 @@
   @include press-state;
 
   &:active {
+    background: $surface-sunken;
+  }
+
+  @include hover {
     background: $surface-sunken;
   }
 

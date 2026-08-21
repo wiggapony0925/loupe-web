@@ -11,9 +11,23 @@ and exportable statements.
 Modern monochrome-forward UI with first-class **light & dark themes** (CSS
 custom properties on `<html data-theme>`, resolved pre-paint — the loupe
 pattern), trend-colored animated charts, spring bottom sheets, and haptic
-micro-interactions. One web codebase, bundled into iOS/Android with
-Capacitor (the Chase-app model). Node/Express + Prisma + Cloud SQL on Cloud
-Run, Firebase SMS OTP auth, GCP Secret Manager.
+micro-interactions. Node/Express + Prisma + Cloud SQL on Cloud Run, Firebase
+SMS OTP auth, GCP Secret Manager.
+
+**One codebase, three targets.** The same `frontend/dist` bundle ships as:
+
+| Target | How | Notes |
+|---|---|---|
+| iOS / Android | Capacitor native shell | the Chase-app model; haptics, push, share sheet, widgets |
+| Desktop & laptop web | nginx on Cloud Run (`frontend/Dockerfile`) | sidebar nav, two-column dashboard, full-width spreadsheet |
+| Tablet | same bundle, `md` breakpoint | sidebar + single-column reading width |
+
+Responsive contract: phone-first, then at **`md` (768px)** the floating tab
+bar gives way to a left sidebar and bottom sheets become centered dialogs; at
+**`lg` (1024px)** the dashboard splits into two columns and the spreadsheet
+shows every column without horizontal scroll. Breakpoint names and values are
+shared verbatim with loupe-web (`src/styles/_breakpoints.scss`), and every
+native capability degrades to a web equivalent (see `src/native/`).
 
 ```
 ┌─ alert email (Amex/Chase) ──► /v1/webhooks/email/inbound ─┐   push ► 📱 tag it
@@ -107,6 +121,32 @@ curl -s "http://localhost:8080/v1/webhooks/email/inbound?token=$EMAIL_WEBHOOK_TO
 ```
 
 `npm test` in `backend/` runs the parser/settlement/matcher unit suites.
+
+## Web (desktop / PC)
+
+`npm run dev` in `frontend/` already serves the full desktop experience —
+resize past 768px and the sidebar appears. To ship it:
+
+```bash
+cd frontend
+docker build . -t trackify-web \
+  --build-arg VITE_API_URL=https://<api-cloud-run-url> \
+  --build-arg VITE_FIREBASE_API_KEY=… --build-arg VITE_FIREBASE_AUTH_DOMAIN=… \
+  --build-arg VITE_FIREBASE_PROJECT_ID=trackify-jfm --build-arg VITE_FIREBASE_APP_ID=… \
+  --build-arg VITE_FIREBASE_MESSAGING_SENDER_ID=…
+docker run -p 8080:8080 trackify-web        # → http://localhost:8080
+```
+
+CI deploys it to Cloud Run as `trackify-web` on every push to `main`
+(`deploy-web` job). Two things must line up for the deployed site to work:
+
+1. the API's `CORS_ORIGINS` must include the web origin, and
+2. the web origin must be listed in **Firebase Auth → Authorized domains**
+   (phone sign-in uses invisible reCAPTCHA, which checks it).
+
+Desktop push notifications are intentionally **not** wired: the FCM path here
+is native (APNs/Android). The app runs fine without them — everything else
+(Plaid Link, exports, the share sheet's web fallback) works in a browser.
 
 ## Mobile (Capacitor)
 
