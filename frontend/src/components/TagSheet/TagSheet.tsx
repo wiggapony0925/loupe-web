@@ -115,7 +115,9 @@ export function TagSheet({ transaction, open, onClose }: TagSheetProps) {
     saving || (needsCircle && !circleId) || (needsOwner && !ownerId);
 
   return (
-    <BottomSheet open={open} onClose={onClose}>
+    // No visible sheet title (the merchant header serves that role), so the
+    // dialog gets its accessible name explicitly.
+    <BottomSheet open={open} onClose={onClose} ariaLabel={`Tag ${transaction.merchant}`}>
       <div className="tag-sheet">
         <header className="tag-sheet__header">
           <span className="tag-sheet__merchant">{transaction.merchant}</span>
@@ -247,6 +249,7 @@ export function TagSheet({ transaction, open, onClose }: TagSheetProps) {
           <button
             type="button"
             className={`button button--primary${saveDisabled ? ' button--disabled' : ''}`}
+            disabled={saveDisabled}
             onClick={() => void save()}
           >
             {saving ? 'Saving…' : 'Save tag'}

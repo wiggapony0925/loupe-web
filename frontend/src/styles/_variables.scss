@@ -156,11 +156,17 @@ $safe-bottom: env(safe-area-inset-bottom, 0px);
 }
 
 // Tactile press: scale, not opacity — the modern-app feel.
+// NOTE: this emits a `transition` SHORTHAND, which replaces any transition the
+// caller declared above the @include (that's how .tab-bar__item lost its color
+// transition). The list below therefore covers the properties call sites
+// actually animate; add to it rather than re-declaring transition at a call site.
 @mixin press-state {
   transition:
     transform $dur-fast $ease-out,
     opacity $dur-fast $ease-out,
-    background-color $dur-fast $ease-out;
+    color $dur-med $ease-out,
+    border-color $dur-fast $ease-out,
+    background-color $dur-med $ease-out;
   &:active {
     transform: scale(0.97);
   }

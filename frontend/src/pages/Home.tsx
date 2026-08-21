@@ -354,6 +354,7 @@ export function Home() {
                 <button
                   type="button"
                   className={`button button--ghost${syncing ? ' button--disabled' : ''}`}
+                  disabled={syncing}
                   onClick={() => void doSync(selectedAccount)}
                 >
                   {syncing ? 'Syncing…' : 'Sync now'}

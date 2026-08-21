@@ -191,6 +191,7 @@ export function Sheet() {
             key={kind}
             type="button"
             className={`button button--ghost${exporting !== null ? ' button--disabled' : ''}`}
+            disabled={exporting !== null}
             onClick={() => void runExport(kind)}
           >
             {exporting === kind ? 'Exporting…' : label}

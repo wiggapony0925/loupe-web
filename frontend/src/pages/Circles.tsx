@@ -162,6 +162,7 @@ export function Circles() {
             <button
               type="button"
               className={`button button--primary${busy ? ' button--disabled' : ''}`}
+              disabled={busy}
               onClick={() => void submit()}
             >
               {busy ? 'Working…' : mode === 'create' ? 'Create' : 'Join'}

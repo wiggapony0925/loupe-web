@@ -174,6 +174,7 @@ export function Ledger() {
                     <button
                       type="button"
                       className={`button button--primary button--inline${busy ? ' button--disabled' : ''}`}
+                      disabled={busy}
                       onClick={() => void settle(suggestion.fromUserId, suggestion.toUserId)}
                     >
                       Record
@@ -197,6 +198,7 @@ export function Ledger() {
                     <button
                       type="button"
                       className={`button button--ghost button--inline${busy ? ' button--disabled' : ''}`}
+                      disabled={busy}
                       onClick={() => void confirm(pending.id)}
                     >
                       Confirm

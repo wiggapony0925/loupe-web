@@ -50,8 +50,10 @@
       border-radius: $radius-sheet;
       padding-bottom: $space-4;
       animation: bottom-sheet-zoom $dur-med $ease-spring;
-      // Drag-to-dismiss is a touch gesture; a mouse drag must not shift it.
-      transform: none !important;
+      // No `transform: none !important` here: an important author declaration
+      // outranks the Animation origin and would cancel the zoom's own
+      // transform. It isn't needed anyway — the drag grip is display:none at
+      // this width, so a drag can never start and no inline transform is set.
     }
   }
 
@@ -61,7 +63,7 @@
 
     @include bp-up('md') {
       opacity: 0;
-      transform: scale(0.97) !important;
+      transform: scale(0.97);
       transition:
         opacity $dur-fast ease-in,
         transform $dur-fast ease-in;
@@ -112,6 +114,20 @@
   &__content {
     overflow-y: auto;
     overscroll-behavior: contain;
+
+    // On phone the grip supplies the top spacing; at md it's display:none.
+    // Sheets WITHOUT a title (TagSheet) have no other top padding, so put it
+    // here rather than on __title, which only renders when a title is passed.
+    @include bp-up('md') {
+      padding-top: $space-4;
+    }
+  }
+
+  // …and when a title IS present it already carries that padding; don't double it.
+  &__title + &__content {
+    @include bp-up('md') {
+      padding-top: 0;
+    }
   }
 }
 

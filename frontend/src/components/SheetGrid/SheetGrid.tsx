@@ -89,7 +89,23 @@ export function SheetGrid({ rows, onRowPress }: SheetGridProps) {
           </thead>
           <tbody>
             {sorted.map((row) => (
-              <tr key={row.id} className="sheet-grid__row" onClick={() => onRowPress(row)}>
+              // A <tr> isn't focusable, so on the desktop grid — where this is
+              // the ONLY way to open a transaction — a keyboard user could
+              // never reach a row. Made an explicit button-role stop instead.
+              <tr
+                key={row.id}
+                className="sheet-grid__row"
+                role="button"
+                tabIndex={0}
+                aria-label={`${row.merchant}, ${row.date}`}
+                onClick={() => onRowPress(row)}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    onRowPress(row);
+                  }
+                }}
+              >
                 <td className="sheet-grid__cell sheet-grid__cell--nowrap">{row.date}</td>
                 <td className="sheet-grid__cell sheet-grid__cell--strong">{row.merchant}</td>
                 <td className="sheet-grid__cell">{row.account}</td>

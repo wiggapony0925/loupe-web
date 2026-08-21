@@ -14,7 +14,12 @@
     z-index: $z-tab-bar;
     display: flex;
     flex-direction: column;
-    padding: $space-5 $space-3 $space-4;
+    // The rail appears at >= 768px, which an iPhone hits in LANDSCAPE — where
+    // the notch eats the left edge and the home indicator the bottom. Every
+    // other edge-anchored surface already respects the insets; so does this.
+    padding: calc(#{$safe-top} + #{$space-5}) $space-3 calc(#{$safe-bottom} + #{$space-4})
+      max(#{$space-3}, env(safe-area-inset-left));
+    overflow-y: auto;
     background: $surface;
     border-right: $hairline;
   }

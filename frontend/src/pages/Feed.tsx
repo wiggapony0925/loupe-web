@@ -114,6 +114,7 @@ export function Feed() {
           <button
             type="button"
             className={`button button--ghost${feedLoading ? ' button--disabled' : ''}`}
+            disabled={feedLoading}
             onClick={() => void loadFeed()}
           >
             {feedLoading ? 'Loading…' : 'Load more'}

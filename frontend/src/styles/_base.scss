@@ -160,7 +160,15 @@
     color: $negative;
   }
 
+  // Visual only. `pointer-events:none` stops the mouse but NOT keyboard
+  // activation, so every call site must also set the real `disabled`
+  // attribute — this class alone is not a disabling mechanism.
   &--disabled {
+    opacity: 0.35;
+    pointer-events: none;
+  }
+
+  &:disabled {
     opacity: 0.35;
     pointer-events: none;
   }
@@ -197,8 +205,11 @@
     color: $on-accent;
     border-color: $accent;
 
+    // `.chip:hover` (0,2,0) outranks `.chip--active` (0,1,0), so the base
+    // hover's border-color would grey out an active chip — restate it here.
     @include hover {
       color: $on-accent;
+      border-color: $accent;
     }
   }
 }
@@ -241,7 +252,11 @@
 
   > * {
     border-bottom: $hairline;
-    animation: list-enter $dur-med $ease-out both;
+    // `backwards`, NOT `both`: a forwards-filled animation keeps contributing
+    // its final `transform: translateY(0)` from the Animation origin, which
+    // outranks normal declarations — that silently killed the :active
+    // press-scale on every row in every list.
+    animation: list-enter $dur-med $ease-out backwards;
     animation-delay: calc(var(--i, 0) * 24ms);
 
     &:last-child {

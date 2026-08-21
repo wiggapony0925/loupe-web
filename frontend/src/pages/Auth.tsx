@@ -77,6 +77,7 @@ export function Auth() {
             <button
               type="button"
               className={`button button--primary${busy || phone.replace(/\D/g, '').length < 10 ? ' button--disabled' : ''}`}
+              disabled={busy || phone.replace(/\D/g, '').length < 10}
               onClick={() => void sendCode()}
             >
               {busy ? 'Sending…' : 'Text me a code'}
@@ -100,6 +101,7 @@ export function Auth() {
             <button
               type="button"
               className={`button button--primary${busy || code.trim().length < 6 ? ' button--disabled' : ''}`}
+              disabled={busy || code.trim().length < 6}
               onClick={() => void verify()}
             >
               {busy ? 'Verifying…' : 'Sign in'}
